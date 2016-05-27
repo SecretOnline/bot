@@ -1,0 +1,22 @@
+{
+  "name": "secret_bot",
+  "version": "1.0.0",
+  "description": "a stupid bot",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SecretOnline/bot.git"
+  },
+  "author": "secret_online",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SecretOnline/bot/issues"
+  },
+  "homepage": "https://github.com/SecretOnline/bot#readme",
+  "dependencies": {
+    "discord.js": "^7.0.1"
+  }
+}
