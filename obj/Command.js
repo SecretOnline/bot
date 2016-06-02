@@ -5,16 +5,41 @@
  *
  */
 class Command {
-  constructor(funct, help) {
+  constructor(funct, properties) {
     var functType = typeof funct;
-    if (functType !== 'string' && functType !== 'function') {
-      throw new TypeError('trigger must be either a string or a function');
+    if (functType === 'string') {
+      this.f = Command.makeStringFunction(funct);
+    } else if (functType === 'function') {
+      this.f = funct;
+    } else {
+      throw new TypeError('commands must be a function or a string');
     }
-    this.f = funct;
-    this.h = help;
+
+
+    this.prop = properties;
   }
 
   run(input) {
-    throw new Error('nyi');
+    return new Promise((resolve, reject) => {
+      var result = this.f(input);
+      if (result instanceof Promise) {
+        result.then(resolve, reject);
+      } else {
+        resolve(result);
+      }
+    });
+  }
+
+  static makeStringFunction(str) {
+    return (input) => {
+      return input.process()
+        .then((res) => {
+          return str
+            .replace(/\{args\}/g, res)
+            .replace(/\{user\}/g, input.user.name);
+        });
+    };
   }
 }
+
+module.exports = Command;
