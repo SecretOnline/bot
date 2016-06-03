@@ -1,5 +1,7 @@
 /* jslint node: true, esversion: 6 */
 'use strict';
+var fs = require('fs');
+
 var Command = require('./Command.js');
 var Input = require('./Input.js');
 
@@ -30,6 +32,8 @@ class Bot {
       token: this.conf.token
     });
 
+    this.forceReload();
+
     this.d.Dispatcher.once('GATEWAY_READY', (event) => {
       console.log(`[LOGIN] Logged in as ${this.d.User.username}`);
     });
@@ -54,7 +58,99 @@ class Bot {
   }
 
   forceReload() {
-    throw new Error('NYI');
+    return new Promise((resolve, reject) => {
+      fs.readdir('./addons/', (err, data) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        var proms = [];
+        data.forEach((item) => {
+          proms.push(this.loadAddon(item));
+        });
+
+        Promise.all(proms).then(() => {
+
+          // function addCommands(obj) {
+          //   var keys = Object.keys(obj);
+          //   keys.forEach(function(key) {
+          //     commands[key] = obj[key];
+          //
+          //     if (typeof obj[key] === 'object') {
+          //       if (obj[key].help) {
+          //         help.registerHelp(key, obj[key].help);
+          //       }
+          //     }
+          //   });
+          // }
+          //
+          // addCommands(help.commands);
+          //
+          // commands.commands = getCommandList;
+          //
+          // commands.reload = {
+          //   f: reloadAddons,
+          //   perm: 10
+          // };
+
+          resolve(`reloaded. ${proms.length} addons, ${this.commands.size} commands`);
+        }, reject);
+      });
+    });
+  }
+
+  loadAddon(name) {
+    return new Promise((resolve, reject) => {
+      name = `./addons/${name}`;
+      var ext = name.split('.').pop();
+      var mod, obj, keys;
+
+      try {
+        delete require.cache[require.resolve(name)];
+      } catch (e) {
+        console.error(`couldn't remove ${name} from require cache`);
+      }
+
+      if (ext === 'json') {
+        try {
+          obj = require.main.require(name);
+        } catch (e) {
+          console.error(`error while require-ing ${name}. continuing`);
+          console.error(e);
+          console.error(e.stack);
+          resolve();
+          return;
+        }
+
+        keys = Object.keys(obj);
+        keys.forEach((key) => {
+          var comm = new Command(obj[key], name);
+          this.registerCommand(key, comm);
+        });
+
+        console.log(`loaded ${name}`);
+        resolve();
+      } else if (ext === 'js') {
+        try {
+          mod = require.main.require(name);
+        } catch (e) {
+          console.error(`error while require-ing ${name}. continuing`);
+          console.error(e);
+          console.error(e.stack);
+          resolve();
+          return;
+        }
+
+        mod.init(this);
+
+        console.log(`loaded ${name}`);
+        resolve();
+      } else {
+        console.log(`ignoring ${name}`);
+        resolve();
+      }
+    });
   }
 
   registerCommand(trigger, comm) {

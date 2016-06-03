@@ -5,7 +5,7 @@
  *
  */
 class Command {
-  constructor(funct, group, properties) {
+  constructor(funct, group, properties = {}) {
     var functType = typeof funct;
     if (functType === 'string') {
       this.f = Command.makeStringFunction(funct);
