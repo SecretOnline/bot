@@ -26,11 +26,37 @@ class Input {
   }
 
   process() {
-    throw new Error('nyi');
+    return new Promise((resolve, reject) => {
+      var quickReturn = true;
+      var output = '';
+      var words = this.m.content.split(' ');
+
+      for (var i = 0; i < words.length; i++) {
+        let comm = this.b.getCommand(words[i], this.m);
+
+        if (comm) {
+          quickReturn = false;
+          words.splice(i + 1);
+          var newIn = this.from(words.join(' '));
+
+          newIn.process()
+            .then(resolve);
+          break;
+        } else {
+          output += ` ${words[i]}`;
+        }
+      }
+
+      if (quickReturn) {
+        resolve(output);
+      }
+    });
   }
 
   from(text) {
-    return new Input(text, this.a, this.b);
+    return new Input(this.m.merge({
+      content: text
+    }), this.b);
   }
 }
 

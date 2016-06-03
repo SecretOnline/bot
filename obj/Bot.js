@@ -21,7 +21,6 @@ class Bot {
     return Input;
   }
 
-
   get discord() {
     return this.d;
   }
@@ -69,13 +68,33 @@ class Bot {
   addListeners() {
     this.d.Dispatcher.on('MESSAGE_CREATE', (event) => {
       var input = new Input(event.message, this);
-
       if (this.conf.verbose) {
         console.log(`${input.user.username}: ${input.raw}`);
+      }
+
+      // TODO: Proper command detection
+      if (true) {
+        input.process()
+          .then((a) => {
+            console.log(`<- ${a}`);
+          });
       }
     });
   }
 
+  getCommand(trigger, message) {
+    if (typeof trigger === 'string') {
+      // TODO: check server-specific command character
+      // TODO: check user permissions
+      if (trigger.charAt(0) === '~') {
+        return this.commands.get(trigger.substr(1));
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
 }
 
 module.exports = Bot;
