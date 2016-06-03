@@ -1,7 +1,7 @@
 /* jslint node: true, esversion: 6 */
 'use strict';
-var Command = require('./obj/Command.js');
-var Input = require('./obj/Input.js');
+var Command = require('./Command.js');
+var Input = require('./Input.js');
 
 
 class Bot {
@@ -10,6 +10,7 @@ class Bot {
     this.d = discord;
     this.conf = config;
 
+    this.addListeners();
   }
 
   get Command() {
@@ -30,7 +31,7 @@ class Bot {
       token: this.conf.token
     });
 
-    this.d.Dispatcher.once('GATEWAY_READY', e => {
+    this.d.Dispatcher.once('GATEWAY_READY', (event) => {
       console.log(`[LOGIN] Logged in as ${this.d.User.username}`);
     });
 
@@ -47,8 +48,8 @@ class Bot {
     }
   }
 
-  reconnect(e) {
-    console.log(`[LOGIN] Disconnected: ${e.error.message}`);
+  reconnect(event) {
+    console.log(`[LOGIN] Disconnected: ${event.error.message}`);
 
     this.start();
   }
@@ -58,7 +59,21 @@ class Bot {
   }
 
   registerCommand(trigger, comm) {
-    throw new Error('NYI');
+    this.commands.set(trigger, comm);
+
+    if (this.conf.verbose) {
+      console.log(`added command: ${trigger}`);
+    }
+  }
+
+  addListeners() {
+    this.d.Dispatcher.on('MESSAGE_CREATE', (event) => {
+      var input = new Input(event.message, this);
+
+      if (this.conf.verbose) {
+        console.log(`${input.user.username}: ${input.raw}`);
+      }
+    });
   }
 
 }
