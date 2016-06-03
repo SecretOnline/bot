@@ -155,24 +155,28 @@ class Bot {
 
   registerCommand(trigger, comm) {
     this.commands.set(trigger, comm);
-
-    if (this.conf.verbose) {
-      console.log(`added command: ${trigger}`);
-    }
   }
 
   addListeners() {
     this.d.Dispatcher.on('MESSAGE_CREATE', (event) => {
-      var input = new Input(event.message, this);
+      // Quick exit on self messages
+      if (event.message.author.id === this.d.User.id) {
+        return;
+      }
+
+      var input = new Input(event.message.content, event.message, this);
       if (this.conf.verbose) {
         console.log(`${input.user.username}: ${input.raw}`);
       }
 
       // TODO: Proper command detection
-      if (true) {
+      var first = input.raw.split(' ')[0];
+      if (this.getCommand(first)) {
         input.process()
           .then((a) => {
             console.log(`<- ${a}`);
+          }, (a) => {
+            console.err(`[ERROR] ${a}`);
           });
       }
     });

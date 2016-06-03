@@ -5,7 +5,7 @@
  *
  */
 class Input {
-  constructor(message, bot) {
+  constructor(text, message, bot) {
     if (!message) {
       throw new Error('message not given to input constructor');
     }
@@ -13,12 +13,17 @@ class Input {
       throw new Error('bot not given to input constructor');
     }
 
+    this.t = text;
     this.m = message;
     this.b = bot;
   }
 
   get raw() {
-    return this.m.content;
+    return this.t;
+  }
+
+  get originalMessage() {
+    return this.m;
   }
 
   get user() {
@@ -29,17 +34,20 @@ class Input {
     return new Promise((resolve, reject) => {
       var quickReturn = true;
       var output = '';
-      var words = this.m.content.split(' ');
+      var words = this.t.split(' ');
 
       for (var i = 0; i < words.length; i++) {
         let comm = this.b.getCommand(words[i], this.m);
 
         if (comm) {
+          var newStr = '';
           quickReturn = false;
-          words.splice(i + 1);
-          var newIn = this.from(words.join(' '));
-
-          newIn.process()
+          if (words.length !== 1) {
+            words.splice(i + 1);
+            newStr = words.join(' ');
+          }
+          var newIn = this.from(newStr);
+          comm.run(newIn)
             .then(resolve);
           break;
         } else {
@@ -54,9 +62,7 @@ class Input {
   }
 
   from(text) {
-    return new Input(this.m.merge({
-      content: text
-    }), this.b);
+    return new Input(text, this.m, this.b);
   }
 }
 

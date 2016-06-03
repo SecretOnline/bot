@@ -38,9 +38,17 @@ class Command {
     return (input) => {
       return input.process()
         .then((res) => {
-          return str
-            .replace(/\{args\}/g, res)
-            .replace(/\{user\}/g, input.user.name);
+          if (str.match(/{args}|{user}/)) {
+            return str
+              .replace(/{args}/g, res)
+              .replace(/{user}/g, input.user.username);
+          } else {
+            if (input) {
+              return `${str} ${res}`;
+            } else {
+              return str;
+            }
+          }
         });
     };
   }
