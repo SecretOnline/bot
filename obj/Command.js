@@ -5,7 +5,7 @@
  *
  */
 class Command {
-  constructor(funct, properties) {
+  constructor(funct, group, properties) {
     var functType = typeof funct;
     if (functType === 'string') {
       this.f = Command.makeStringFunction(funct);
@@ -15,8 +15,12 @@ class Command {
       throw new TypeError('commands must be a function or a string');
     }
 
-
+    this.g = group;
     this.prop = properties;
+  }
+
+  get group() {
+    return this.g;
   }
 
   run(input) {
