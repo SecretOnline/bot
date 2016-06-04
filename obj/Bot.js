@@ -4,6 +4,7 @@ var fs = require('fs');
 
 var Command = require('./Command.js');
 var Input = require('./Input.js');
+var Discordie = require('discordie');
 
 
 class Bot {
@@ -71,29 +72,6 @@ class Bot {
         });
 
         Promise.all(proms).then(() => {
-
-          // function addCommands(obj) {
-          //   var keys = Object.keys(obj);
-          //   keys.forEach(function(key) {
-          //     commands[key] = obj[key];
-          //
-          //     if (typeof obj[key] === 'object') {
-          //       if (obj[key].help) {
-          //         help.registerHelp(key, obj[key].help);
-          //       }
-          //     }
-          //   });
-          // }
-          //
-          // addCommands(help.commands);
-          //
-          // commands.commands = getCommandList;
-          //
-          // commands.reload = {
-          //   f: reloadAddons,
-          //   perm: 10
-          // };
-
           resolve(`reloaded. ${proms.length} addons, ${this.commands.size} commands`);
         }, reject);
       });
@@ -142,9 +120,14 @@ class Bot {
           return;
         }
 
-        mod.init(this);
+        try {
+          mod.init(this);
+          console.log(`loaded ${name}`);
+        } catch (e) {
+          console.error(`[ERROR] loading ${name}`);
+          console.error(e.stack);
+        }
 
-        console.log(`loaded ${name}`);
         resolve();
       } else {
         console.log(`ignoring ${name}`);
@@ -171,7 +154,7 @@ class Bot {
 
       // TODO: Proper command detection
       var first = input.raw.split(' ')[0];
-      if (this.getCommand(first)) {
+      if (this.getCommand(first, event.message)) {
         input.process()
           .then((a) => {
             console.log(`<- ${a}`);
@@ -185,9 +168,30 @@ class Bot {
   getCommand(trigger, message) {
     if (typeof trigger === 'string') {
       // TODO: check server-specific command character
-      // TODO: check user permissions
       if (trigger.charAt(0) === '~') {
-        return this.commands.get(trigger.substr(1));
+        let comm = this.commands.get(trigger.substr(1));
+        // Check user permissions
+        if (comm.permission) {
+          let userPerm = Command.PermissionLevels.DEFAULT;
+
+          // Check overlords list
+          if (this.conf.overlords.indexOf(message.author.id) > -1) {
+            userPerm = Command.PermissionLevels.OVERLORD;
+          } else
+          // Check server permissions
+          if (message.guild && message.author.can(Discordie.Permissions.General.MANAGE_GUILD, message.guild)) {
+            userPerm = Command.PermissionLevels.ADMIN;
+          }
+
+          if (userPerm >= comm.permission) {
+            // TODO: check server allowed groups
+            return comm;
+          } else {
+            return false;
+          }
+        } else {
+          return comm;
+        }
       } else {
         return false;
       }

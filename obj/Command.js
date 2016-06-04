@@ -1,11 +1,17 @@
 /* jslint node: true, esversion: 6 */
 'use strict';
 
+var perms = {
+  DEFAULT: 0,
+  ADMIN: 1,
+  OVERLORD: 2
+};
+
 /**
  *
  */
 class Command {
-  constructor(funct, group, properties = {}) {
+  constructor(funct, group = 'nogroup', permission = perms.DEFAULT, properties = {}) {
     var functType = typeof funct;
     if (functType === 'string') {
       this.f = Command.makeStringFunction(funct);
@@ -16,11 +22,16 @@ class Command {
     }
 
     this.g = group;
+    this.p = permission;
     this.prop = properties;
   }
 
   get group() {
     return this.g;
+  }
+
+  get permission() {
+    return this.p;
   }
 
   run(input) {
@@ -51,6 +62,10 @@ class Command {
           }
         });
     };
+  }
+
+  static get PermissionLevels() {
+    return perms;
   }
 }
 
