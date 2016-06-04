@@ -207,10 +207,29 @@ class Bot {
       var first = input.raw.split(' ')[0];
       if (this.getCommand(first, event.message)) {
         input.process()
-          .then((a) => {
-            console.log(`<- ${a}`);
-          }, (a) => {
-            console.err(`[ERROR] ${a}`);
+          .catch((err) => {
+            console.error(`[ERROR] processing command`);
+            if (this.conf.verbose) {
+              console.error(err.stack);
+            }
+          })
+          .then((result) => {
+            if (result) {
+              if (event.message.channel) {
+                event.message.channel.sendMessage(result)
+                  .then(() => {
+                    console.log(`<- ${result}`);
+                  }, (err) => {
+                    console.error(`[ERROR] sending command`);
+                    if (this.conf.verbose) {
+                      console.error(err.stack);
+                    }
+                  });
+              }
+            }
+          })
+          .catch((err) => {
+            console.error(`[ERROR] ${err}`);
           });
       }
     });

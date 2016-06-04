@@ -48,8 +48,10 @@ class Input {
           var newIn = this.from(newStr);
           comm.run(newIn)
             .then((res) => {
-              if (res) {
+              if (output) {
                 output += ` ${res}`;
+              } else {
+                output = res;
               }
               resolve(output);
             });
