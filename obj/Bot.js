@@ -5,6 +5,7 @@ var Command = require('./Command.js');
 var Input = require('./Input.js');
 var Discordie = require('discordie');
 
+var addonList = [];
 
 class Bot {
   constructor(discord, config) {
@@ -102,6 +103,22 @@ class Bot {
 
   forceReload() {
     return new Promise((resolve, reject) => {
+      // Do deinit of addons
+      addonList.forEach((item) => {
+        if (item) {
+          if (typeof item.deinit === 'function') {
+            try {
+              item.deinit();
+            } catch (e) {
+              console.error(`error during deinit`);
+              console.error(e);
+            }
+          }
+        }
+      });
+
+
+      // Load addons
       fs.readdir('./addons/', (err, data) => {
         if (err) {
           reject(err);
@@ -113,8 +130,9 @@ class Bot {
           proms.push(this.loadAddon(item));
         });
 
-        Promise.all(proms).then(() => {
-          resolve(`reloaded. ${proms.length} addons, ${this.commands.size} commands`);
+        Promise.all(proms).then((addons) => {
+          addonList = addons;
+          resolve(`reloaded. ${addons.length} addons, ${this.commands.size} commands`);
         }, reject);
       });
     });
@@ -167,12 +185,16 @@ class Bot {
           return;
         }
 
-        try {
-          mod.init(this);
-          console.log(`loaded ${filename}`);
-        } catch (e) {
-          console.error(`[ERROR] loading ${filename}`);
-          console.error(e.stack);
+        if (mod.init) {
+          try {
+            mod.init(this);
+            console.log(`loaded ${filename}`);
+          } catch (e) {
+            console.error(`[ERROR] loading ${filename}`);
+            console.error(e.stack);
+          }
+        } else {
+          console.log(`${filename} has no init function. is this intended?`);
         }
 
         resolve();
@@ -187,6 +209,21 @@ class Bot {
     this.commands.set(trigger, comm);
   }
 
+  deregisterCommand(trigger, group) {
+    var comm = this.commands.get(trigger);
+
+    if (comm) {
+      if (group === comm.group) {
+        this.commands.delete(trigger);
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return true;
+    }
+  }
+
   addListeners() {
     this.d.Dispatcher.on('MESSAGE_CREATE', (event) => {
       // Quick exit on self messages
@@ -195,7 +232,7 @@ class Bot {
       }
 
       if (!this.servers[event.message.guild.id]) {
-        this.servers[event.message.guild.id] = Object.assign({}, this.servers._default);
+        this.servers[event.message.guild.id] = this.servers._default;
 
         fs.writeFile(this.conf.files.servers, JSON.stringify(this.servers, null, 2));
       }
@@ -245,7 +282,7 @@ class Bot {
         // Check command actually exists
         if (comm) {
           // Check server allowed groups
-          if (this.servers[message.guild.id].groups.indexOf(comm.group) > -1) {
+          if (comm.group === `custom-${message.guild.id}` || this.servers[message.guild.id].groups.indexOf(comm.group) > -1) {
             // Check for permissions
             if (comm.permission) {
               let userPerm = Command.PermissionLevels.DEFAULT;
