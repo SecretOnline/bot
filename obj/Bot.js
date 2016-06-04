@@ -13,7 +13,41 @@ class Bot {
     this.d = discord;
     this.conf = config;
 
+
     this.addListeners();
+
+    this.servers = JSON.parse(fs.readFileSync(config.files.servers));
+
+    fs.watch(config.files.servers, (event, filename) => {
+      if (event === 'change') {
+        if (config.verbose) {
+          console.log('[INFO] reading server configuration');
+        }
+        fs.readFile(config.files.servers, (err, data) => {
+          if (err) {
+            console.error(`[Error] reading ${config.files.server}`);
+            if (config.verbose) {
+              console.error(err.stack);
+            } else {
+              console.error(err);
+            }
+            return;
+          }
+
+          try {
+            this.servers = JSON.parse(data);
+          } catch (err) {
+            console.error(`[Error] parsing servers ${config.files.server}`);
+            if (config.verbose) {
+              console.error(err.stack);
+            } else {
+              console.error(err);
+            }
+            return;
+          }
+        });
+      }
+    });
   }
 
   get Command() {
@@ -26,6 +60,15 @@ class Bot {
 
   get discord() {
     return this.d;
+  }
+
+  getServerConf(id) {
+    return this.servers[id];
+  }
+
+  setServerConf(id, conf) {
+    this.servers[id] = conf;
+    fs.writeFile(this.conf.files.servers, JSON.stringify(this.servers, null, 2));
   }
 
   start() {
@@ -80,21 +123,23 @@ class Bot {
 
   loadAddon(name) {
     return new Promise((resolve, reject) => {
-      name = `./addons/${name}`;
-      var ext = name.split('.').pop();
+      var filename = `./addons/${name}`;
+      var parts = name.split('.');
+      var ext = parts.pop();
+      var noExt = parts.join('.');
       var mod, obj, keys;
 
       try {
-        delete require.cache[require.resolve(name)];
+        delete require.cache[require.resolve(filename)];
       } catch (e) {
-        console.error(`couldn't remove ${name} from require cache`);
+        console.error(`couldn't remove ${filename} from require cache`);
       }
 
       if (ext === 'json') {
         try {
-          obj = require.main.require(name);
+          obj = require.main.require(filename);
         } catch (e) {
-          console.error(`error while require-ing ${name}. continuing`);
+          console.error(`error while require-ing ${filename}. continuing`);
           console.error(e);
           console.error(e.stack);
           resolve();
@@ -103,17 +148,17 @@ class Bot {
 
         keys = Object.keys(obj);
         keys.forEach((key) => {
-          var comm = new Command(obj[key], name);
+          var comm = new Command(obj[key], noExt);
           this.registerCommand(key, comm);
         });
 
-        console.log(`loaded ${name}`);
+        console.log(`loaded ${filename}`);
         resolve();
       } else if (ext === 'js') {
         try {
-          mod = require.main.require(name);
+          mod = require.main.require(filename);
         } catch (e) {
-          console.error(`error while require-ing ${name}. continuing`);
+          console.error(`error while require-ing ${filename}. continuing`);
           console.error(e);
           console.error(e.stack);
           resolve();
@@ -122,15 +167,15 @@ class Bot {
 
         try {
           mod.init(this);
-          console.log(`loaded ${name}`);
+          console.log(`loaded ${filename}`);
         } catch (e) {
-          console.error(`[ERROR] loading ${name}`);
+          console.error(`[ERROR] loading ${filename}`);
           console.error(e.stack);
         }
 
         resolve();
       } else {
-        console.log(`ignoring ${name}`);
+        console.log(`ignoring ${filename}`);
         resolve();
       }
     });
@@ -145,6 +190,12 @@ class Bot {
       // Quick exit on self messages
       if (event.message.author.id === this.d.User.id) {
         return;
+      }
+
+      if (!this.servers[event.message.guild.id]) {
+        this.servers[event.message.guild.id] = Object.assign({}, this.servers._default);
+
+        fs.writeFile(this.conf.files.servers, JSON.stringify(this.servers, null, 2));
       }
 
       var input = new Input(event.message.content, event.message, this);
@@ -168,29 +219,38 @@ class Bot {
   getCommand(trigger, message) {
     if (typeof trigger === 'string') {
       // TODO: check server-specific command character
-      if (trigger.charAt(0) === '~') {
+      if (trigger.charAt(0) === this.servers[message.guild.id].char) {
         let comm = this.commands.get(trigger.substr(1));
-        // Check user permissions
-        if (comm.permission) {
-          let userPerm = Command.PermissionLevels.DEFAULT;
+        // Check command actually exists
+        if (comm) {
+          // Check server allowed groups
+          if (this.servers[message.guild.id].groups.indexOf(comm.group) > -1) {
+            // Check for permissions
+            if (comm.permission) {
+              let userPerm = Command.PermissionLevels.DEFAULT;
 
-          // Check overlords list
-          if (this.conf.overlords.indexOf(message.author.id) > -1) {
-            userPerm = Command.PermissionLevels.OVERLORD;
-          } else
-          // Check server permissions
-          if (message.guild && message.author.can(Discordie.Permissions.General.MANAGE_GUILD, message.guild)) {
-            userPerm = Command.PermissionLevels.ADMIN;
-          }
-
-          if (userPerm >= comm.permission) {
-            // TODO: check server allowed groups
-            return comm;
+              // Check overlords list
+              if (this.conf.overlords.indexOf(message.author.id) > -1) {
+                userPerm = Command.PermissionLevels.OVERLORD;
+                // userPerm = Command.PermissionLevels.DEFAULT;
+              } else
+              // Check server permissions
+              if (message.guild && message.author.can(Discordie.Permissions.General.MANAGE_GUILD, message.guild)) {
+                userPerm = Command.PermissionLevels.ADMIN;
+              }
+              if (userPerm >= comm.permission) {
+                return comm;
+              } else {
+                return false;
+              }
+            } else {
+              return comm;
+            }
           } else {
             return false;
           }
         } else {
-          return comm;
+          return false;
         }
       } else {
         return false;

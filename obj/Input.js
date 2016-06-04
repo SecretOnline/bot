@@ -48,10 +48,19 @@ class Input {
           }
           var newIn = this.from(newStr);
           comm.run(newIn)
-            .then(resolve);
+            .then((res) => {
+              if (res) {
+                output += ` ${res}`;
+              }
+              resolve(output);
+            });
           break;
         } else {
-          output += ` ${words[i]}`;
+          if (output) {
+            output += ` ${words[i]}`;
+          } else {
+            output = words[i];
+          }
         }
       }
 
