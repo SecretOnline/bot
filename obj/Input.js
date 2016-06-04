@@ -43,8 +43,7 @@ class Input {
           var newStr = '';
           quickReturn = false;
           if (words.length !== 1) {
-            words.splice(i + 1);
-            newStr = words.join(' ');
+            newStr = words.splice(i + 1).join(' ');
           }
           var newIn = this.from(newStr);
           comm.run(newIn)
