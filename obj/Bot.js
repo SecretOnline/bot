@@ -130,7 +130,7 @@ class Bot {
       var mod, obj, keys;
 
       try {
-        delete require.cache[require.resolve(filename)];
+        delete require.cache[require.resolve(filename).replace('\\\\', '\\')];
       } catch (e) {
         console.error(`couldn't remove ${filename} from require cache`);
       }
