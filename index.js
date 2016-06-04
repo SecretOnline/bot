@@ -1,4 +1,3 @@
-/* jslint node: true, esversion: 6 */
 'use strict';
 var Discordie = require('discordie');
 var config = require('./main.conf.json');
