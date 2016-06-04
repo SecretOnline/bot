@@ -129,9 +129,12 @@ class Bot {
       var mod, obj, keys;
 
       try {
-        delete require.cache[require.resolve(filename).replace('\\\\', '\\')];
+        delete require.cache[require.resolve(`.${filename}`)];
       } catch (e) {
         console.error(`couldn't remove ${filename} from require cache`);
+        if (this.conf.verbose) {
+          console.error(e);
+        }
       }
 
       if (ext === 'json') {
