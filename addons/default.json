@@ -1,0 +1,20 @@
+{
+  "rip": "rip in peace,",
+  "hundreds": "hundreds, if not thousands, of",
+  "ones": "one, if not two,",
+  "sorry": "not sorry enough :(",
+  "realbest": "the real {args}, the best {args}",
+  "fakeworst": "the fake {args}, the worst {args}",
+  "tm": "{args}™",
+  "r": "https://reddit.com/r/{args}",
+  "urn": "{args} is now in an urn",
+  "burn": "{args} is now on fire",
+  "extinguish": "{args} is no longer on fire",
+  "freeze": "{args} is now frozen",
+  "melt": "{args} is no longer frozen",
+  "thaw": "{args} is no longer frozen",
+  "source":"https://github.com/SecretOnline/bot",
+  "projects": "https://secretonline.github.io/",
+  "gothefucktosleep": "https://upload.wikimedia.org/wikipedia/en/c/c3/Go_the_fuck_to_sleep.jpg",
+  "islove": "{args} is love, {args} is life"
+}
