@@ -1,6 +1,6 @@
 {
   "name": "secret_bot",
-  "version": "6.1.4",
+  "version": "6.2.1",
   "description": "a stupid bot",
   "main": "index.js",
   "scripts": {
