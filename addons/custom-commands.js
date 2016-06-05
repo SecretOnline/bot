@@ -10,8 +10,21 @@ function init(bot) {
   _bot = bot;
 
   bot.registerCommand('add-command', new bot.Command(addCommand, 'core', bot.Command.PermissionLevels.ADMIN));
+  bot.registerCommand('remove-command', new bot.Command(removeCommand, 'core', bot.Command.PermissionLevels.ADMIN));
 
-  commandLists = JSON.parse(fs.readFileSync(dataLocation));
+  try {
+    commandLists = JSON.parse(fs.readFileSync(dataLocation));
+  } catch (e) {
+    commandLists = {};
+    fs.writeFileSync(dataLocation, JSON.stringify(commandLists, null, 2));
+  }
+
+  Object.keys(commandLists).forEach(function(id) {
+    var commands = commandLists[id];
+    Object.keys(commands).forEach(function(trigger) {
+      _bot.registerCommand(trigger, new _bot.Command(commands[trigger], `custom-${id}`));
+    });
+  });
 
   watcher = fs.watch(dataLocation, (event, filename) => {
     if (event === 'change') {
@@ -40,20 +53,48 @@ function deinit() {
 }
 
 function addCommand(input) {
-  return input.process()
-    .then((result) => {
-      var server = input.originalMessage.guild.id;
-      var parts = result.split(' ');
-      var trigger = parts.shift();
-      var response = parts.join(' ');
-      // Save to file
-      commandLists[server][trigger] = response;
-      fs.writeFile(dataLocation, JSON.stringify(commandLists, null, 2));
+  return new Promise((resolve, reject) => {
+    var server = input.originalMessage.guild.id;
+    var parts = input.raw.split(' ');
+    var trigger = parts.shift();
+    var response = parts.join(' ');
+    // Save to file
+    commandLists[server] = commandLists[server] || {};
+    commandLists[server][trigger] = response;
 
-      _bot.registerCommand(trigger, new _bot.Command(response, `custom-${server}`));
+    _bot.registerCommand(trigger, new _bot.Command(response, `custom-${server}`));
 
-      return `added ~${trigger} to server`;
+    fs.writeFile(dataLocation, JSON.stringify(commandLists, null, 2), (err) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(`added \`~${trigger}\` to server`);
     });
+  });
+}
+
+function removeCommand(input) {
+  return new Promise((resolve, reject) => {
+    var server = input.originalMessage.guild.id;
+    var trigger = input.raw.split(' ')[0];
+    // Save to file
+    commandLists[server] = commandLists[server] || {};
+
+    delete commandLists[server][trigger];
+
+    fs.writeFile(dataLocation, JSON.stringify(commandLists, null, 2));
+
+    _bot.deregisterCommand(trigger, `custom-${server}`);
+
+    fs.writeFile(dataLocation, JSON.stringify(commandLists, null, 2), (err) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(`removed \`~${trigger}\` from server`);
+    });
+  });
 }
 
 
