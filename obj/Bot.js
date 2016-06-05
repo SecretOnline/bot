@@ -239,10 +239,35 @@ class Bot {
     }
   }
 
+  commandList(message) {
+    if (message) {
+      let server = message.guild.id;
+      this.servers[server] = this.servers[server] || {};
+      let allowedGroups = this.servers[server].groups || [];
+      return Array.from(this.commands.entries())
+        .filter((pair) => {
+          let trigger = pair[0];
+          let command = pair[1];
+
+          return command.group === `custom-${message.guild.id}` || allowedGroups.indexOf(command.group) > -1;
+        })
+        .map((pair) => {
+          return pair[0];
+        });
+    } else {
+      return Array.from(this.commands.keys());
+    }
+  }
+
   addListeners() {
     this.d.Dispatcher.on('MESSAGE_CREATE', (event) => {
       // Quick exit on self messages
       if (event.message.author.id === this.d.User.id) {
+        return;
+      }
+
+      // Insta-fail on direct messages
+      if (!event.message.guild) {
         return;
       }
 
@@ -332,6 +357,16 @@ class Bot {
       return false;
     }
   }
+
+  sendToUser(text, user) {
+    user.openDM()
+      .then((channel) => {
+        channel.sendMessage(text);
+      }, (err) => {
+        console.error(`unable to open a dm channel to ${user.username}`);
+      });
+  }
+
 }
 
 module.exports = Bot;
