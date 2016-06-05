@@ -7,17 +7,23 @@ var Discordie = require('discordie');
 
 var addonList = [];
 
+/**
+ * A bot
+ */
 class Bot {
+  /**
+   * Creates a new Bot
+   * @param  {Discordie} discord Discord object to link to this bot
+   * @param  {Object}    config  Main configuration
+   */
   constructor(discord, config) {
     this.commands = new Map();
     this.d = discord;
     this.conf = config;
 
-
-    this.addListeners();
-
+    // Load server configs
     this.servers = JSON.parse(fs.readFileSync(config.files.servers));
-
+    // Watch servers config file for changes
     fs.watch(config.files.servers, (event, filename) => {
       if (event === 'change') {
         if (config.verbose) {
@@ -48,29 +54,57 @@ class Bot {
         });
       }
     });
+
+    this.addListeners();
   }
 
+  /**
+   * The Command class
+   * @readonly
+   */
   get Command() {
     return Command;
   }
 
+  /**
+   * The Input class
+   * @readonly
+   */
   get Input() {
     return Input;
   }
 
+  /**
+   * The Discord object linked to this bot
+   * @readonly
+   * @return {Discordie} Discord connection
+   */
   get discord() {
     return this.d;
   }
 
+  /**
+   * Returns the config used for a paticular servers
+   * @param  {string} id ID of the server
+   * @return {Object}    Server's configuration
+   */
   getServerConf(id) {
-    return this.servers[id];
+    return this.servers[id] || {};
   }
 
+  /**
+   * Sets the configuration of the server
+   * @param {string} id   ID of the server
+   * @param {Object} conf Server's new configuration
+   */
   setServerConf(id, conf) {
     this.servers[id] = conf;
     fs.writeFile(this.conf.files.servers, JSON.stringify(this.servers, null, 2));
   }
 
+  /**
+   * Starts the bot
+   */
   start() {
     this.d.connect({
       token: this.conf.token
@@ -87,6 +121,9 @@ class Bot {
     }
   }
 
+  /**
+   * Stops the bot
+   */
   stop() {
     this.d.disconnect();
 
@@ -95,12 +132,20 @@ class Bot {
     }
   }
 
+  /**
+   * Internal function to restart the bot if it dosconnects
+   * @param  {Event} event Disconnect event
+   */
   reconnect(event) {
     console.log(`[LOGIN] Disconnected: ${event.error.message}`);
 
     this.start();
   }
 
+  /**
+   * Forces the bot to reload any commands
+   * @return {Promise<string,Error>} Resolves with message to print
+   */
   forceReload() {
     return new Promise((resolve, reject) => {
       // Do deinit of addons
@@ -140,6 +185,11 @@ class Bot {
     });
   }
 
+  /**
+   * Loads a single addon
+   * @param  {string}           name name of the file
+   * @return {Promise<*,Error>}      Resolves once addon is loaded
+   */
   loadAddon(name) {
     return new Promise((resolve, reject) => {
       var filename = `./addons/${name}`;
@@ -215,6 +265,12 @@ class Bot {
     });
   }
 
+  /**
+   * Adds a command to the bot
+   * @param  {string}  trigger String to call the commands
+   * @param  {command} comm    Command to add
+   * @return {boolean}         Success
+   */
   registerCommand(trigger, comm) {
     if (this.commands.has(trigger)) {
       return false;
@@ -224,6 +280,12 @@ class Bot {
     }
   }
 
+  /**
+   * Removes a command from the bot
+   * @param  {string}  trigger Command identifier
+   * @param  {string}  group   Command's group. Used to verify
+   * @return {boolean}         Success
+   */
   deregisterCommand(trigger, group) {
     var comm = this.commands.get(trigger);
 
@@ -239,6 +301,13 @@ class Bot {
     }
   }
 
+  /**
+   * Lists the commands available
+   * Optionally, list commands available in group
+   * @param  {string}        message Discord message
+   * @param  {string=}       group   Command group for filtering
+   * @return {Array<string>}         List of command triggers
+   */
   commandList(message, group) {
     if (message) {
       let server = message.guild.id;
@@ -263,6 +332,9 @@ class Bot {
     }
   }
 
+  /**
+   * Internal function to add event listeners for main functionality
+   */
   addListeners() {
     this.d.Dispatcher.on('MESSAGE_CREATE', (event) => {
       // Quick exit on self messages
@@ -318,6 +390,12 @@ class Bot {
     });
   }
 
+  /**
+   * Retrieves the wanted command
+   * @param  {string}           trigger Command identifier
+   * @param  {IMessage}         message Discord message that triggered this request
+   * @return {?Command|boolean}         Command, or 'falsey' value
+   */
   getCommand(trigger, message) {
     if (typeof trigger === 'string') {
       // TODO: check server-specific command character
@@ -362,6 +440,12 @@ class Bot {
     }
   }
 
+  /**
+   * Sends a message to the user
+   * @param  {string}  text Message to send
+   * @param  {IUser}   user User to send to
+   * @return {Promise}      Resolves upon message sent
+   */
   sendToUser(text, user) {
     user.openDM()
       .then((channel) => {
