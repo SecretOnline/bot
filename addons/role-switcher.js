@@ -12,10 +12,16 @@ function init(bot) {
 
   _bot.registerCommand('join-role', new _bot.Command(joinRole, 'roles'));
   _bot.registerCommand('leave-role', new _bot.Command(leaveRole, 'roles'));
+  _bot.registerCommand('list-roles', new _bot.Command(listRoles, 'roles'));
   _bot.registerCommand('add-role', new _bot.Command(addRole, 'roles', _bot.Command.PermissionLevels.ADMIN));
+  _bot.registerCommand('remove-role', new _bot.Command(removeRole, 'roles', _bot.Command.PermissionLevels.ADMIN));
 
-
-  roleLists = JSON.parse(fs.readFileSync(dataLocation)) || {};
+  try {
+    roleLists = JSON.parse(fs.readFileSync(dataLocation));
+  } catch (e) {
+    roleLists = {};
+    fs.writeFile(dataLocation, JSON.stringify(roleLists, null, 2));
+  }
 
   watcher = fs.watch(dataLocation, (event, filename) => {
     if (event === 'change') {
@@ -106,55 +112,89 @@ function leaveRole(input) {
 function addRole(input) {
   return input.process()
     .then((result) => {
-      var server = input.originalMessage.guild;
-      var allowedRoles = roleLists[server.id] || [];
+      return new Promise((resolve, reject) => {
+        var server = input.originalMessage.guild;
+        var allowedRoles = roleLists[server.id] || [];
 
-      var requestedRole = server.roles.find((role) => {
-        return result.toLowerCase() === role.name.toLowerCase();
-      });
+        var requestedRole = server.roles.find((role) => {
+          return result.toLowerCase() === role.name.toLowerCase();
+        });
 
-      if (requestedRole) {
-        console.log(`have role ${requestedRole.name}`);
-        if (allowedRoles.indexOf(requestedRole.id) > -1) {
-          return `${requestedRole.name} is already in the roles list`;
+        if (requestedRole) {
+          console.log(`have role ${requestedRole.name}`);
+          if (allowedRoles.indexOf(requestedRole.id) > -1) {
+            resolve(`${requestedRole.name} is already in the roles list`);
+          } else {
+            allowedRoles.push(requestedRole.id);
+            roleLists[server.id] = allowedRoles;
+
+            fs.writeFile(dataLocation, JSON.stringify(roleLists, null, 2), (err) => {
+              if (err) {
+                reject(err);
+                return;
+              }
+              resolve(`added ${requestedRole.name} to allowed roles`);
+            });
+          }
         } else {
-          allowedRoles.push(requestedRole.id);
-          roleLists[server.id] = allowedRoles;
-          fs.writeFile(dataLocation, JSON.stringify(roleLists, null, 2));
-
-          return `added ${requestedRole.name} to allowed roles`;
+          resolve('role not found');
         }
-      } else {
-        return 'role not found';
-      }
+      });
     });
 }
 
 function removeRole(input) {
   return input.process()
     .then((result) => {
+      return new Promise((resolve, reject) => {
+        var server = input.originalMessage.guild;
+        var allowedRoles = roleLists[server.id] || [];
+
+        var requestedRole = server.roles.find((role) => {
+          return result.toLowerCase() === role.name.toLowerCase();
+        });
+
+        if (requestedRole) {
+          console.log(`have role ${requestedRole.name}`);
+          if (allowedRoles.indexOf(requestedRole.id) > -1) {
+            allowedRoles.splice(allowedRoles.indexOf(requestedRole.id), 1);
+            roleLists[server.id] = allowedRoles;
+
+            fs.writeFile(dataLocation, JSON.stringify(roleLists, null, 2), (err) => {
+              if (err) {
+                reject(err);
+                return;
+              }
+              resolve(`removed ${requestedRole.name} from allowed roles`);
+            });
+
+          } else {
+            resolve(`${requestedRole.name} is already in the roles list`);
+          }
+        } else {
+          resolve('role not found');
+        }
+      });
+    });
+}
+
+function listRoles(input) {
+  return input.process()
+    .then((result) => {
       var server = input.originalMessage.guild;
       var allowedRoles = roleLists[server.id] || [];
+      var nameList = [];
 
-      var requestedRole = server.roles.find((role) => {
-        return result.toLowerCase() === role.name.toLowerCase();
+      allowedRoles.forEach((roleId) => {
+        var role = server.roles.find((r) => {
+          return r.id === roleId;
+        });
+        if (role) {
+          nameList.push(role.name);
+        }
       });
 
-      if (requestedRole) {
-        console.log(`have role ${requestedRole.name}`);
-        if (allowedRoles.indexOf(requestedRole.id) > -1) {
-          allowedRoles.splice(allowedRoles.indexOf(requestedRole.id), 1);
-          roleLists[server.id] = allowedRoles;
-          fs.writeFile(dataLocation, JSON.stringify(roleLists, null, 2));
-
-          return `removed ${requestedRole.name} from allowed roles`;
-
-        } else {
-          return `${requestedRole.name} is already in the roles list`;
-        }
-      } else {
-        return 'role not found';
-      }
+      return `allowed roles: ${nameList.join(', ')}`;
     });
 }
 
