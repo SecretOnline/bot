@@ -6,6 +6,16 @@ function init(bot) {
 
   bot.registerCommand('commands', new bot.Command(getCommands, 'core'));
   bot.registerCommand('help', new bot.Command(getHelp, 'core'));
+  bot.registerCommand('which', new bot.Command(getWhich, 'core', bot.Command.PermissionLevels.ADMIN));
+}
+
+function getWhich(input) {
+  var comm = _bot.getCommand(input.raw, input.originalMessage);
+  if (comm) {
+    return `\`${input.raw}\` is from ${comm.group}`;
+  } else {
+    return `unknown or disallowed command: ${input.raw}`;
+  }
 }
 
 function getCommands(input) {
