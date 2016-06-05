@@ -105,6 +105,7 @@ class Bot {
     return new Promise((resolve, reject) => {
       // Do deinit of addons
       addonList.forEach((item) => {
+        console.log(item);
         if (item) {
           if (typeof item.deinit === 'function') {
             try {
@@ -173,7 +174,7 @@ class Bot {
         });
 
         console.log(`loaded ${filename}`);
-        resolve();
+        resolve(obj);
       } else if (ext === 'js') {
         try {
           mod = require.main.require(filename);
@@ -187,17 +188,25 @@ class Bot {
 
         if (mod.init) {
           try {
-            mod.init(this);
-            console.log(`loaded ${filename}`);
+            var res = mod.init(this);
+            if (res instanceof Promise) {
+              res.then(() => {
+                console.log(`loaded ${filename}`);
+                resolve(mod);
+              });
+            } else {
+              console.log(`loaded ${filename}`);
+              resolve(mod);
+            }
           } catch (e) {
             console.error(`[ERROR] loading ${filename}`);
             console.error(e.stack);
+            resolve();
           }
         } else {
           console.log(`${filename} has no init function. is this intended?`);
+          resolve(mod);
         }
-
-        resolve();
       } else {
         console.log(`ignoring ${filename}`);
         resolve();
@@ -206,7 +215,12 @@ class Bot {
   }
 
   registerCommand(trigger, comm) {
-    this.commands.set(trigger, comm);
+    if (this.commands.has(trigger)) {
+      return false;
+    } else {
+      this.commands.set(trigger, comm);
+      return true;
+    }
   }
 
   deregisterCommand(trigger, group) {
