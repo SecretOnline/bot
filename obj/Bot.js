@@ -239,7 +239,7 @@ class Bot {
     }
   }
 
-  commandList(message) {
+  commandList(message, group) {
     if (message) {
       let server = message.guild.id;
       this.servers[server] = this.servers[server] || {};
@@ -248,6 +248,10 @@ class Bot {
         .filter((pair) => {
           let trigger = pair[0];
           let command = pair[1];
+
+          if (group && command.group !== group) {
+            return false;
+          }
 
           return command.group === `custom-${message.guild.id}` || allowedGroups.indexOf(command.group) > -1;
         })

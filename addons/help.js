@@ -19,14 +19,30 @@ function getWhich(input) {
 }
 
 function getCommands(input) {
-  var available = _bot.commandList(input.originalMessage);
   var serverConf = _bot.getServerConf(input.originalMessage.guild.id);
+  var available = [];
+  var reply = '';
+  if (input.raw) {
+    available = _bot.commandList(input.originalMessage, input.raw);
 
-  var reply = `secret_bot help -> commands
+    reply = `secret_bot help -> commands -> ${input.raw}
+config for server: ${input.originalMessage.guild.name}
+
+commands: ${available.sort().map((item) => {
+  return `\`${serverConf.char}${item}\``;
+}).join(', ')}`;
+
+  } else {
+    available = _bot.commandList(input.originalMessage);
+
+    reply = `secret_bot help -> commands
 config for server: ${input.originalMessage.guild.name}
 command groups enabled: ${serverConf.groups.join(', ')}
 
-commands: \`${serverConf.char}${available.sort().join(`\`, \`${serverConf.char}`)}\``;
+commands: ${available.sort().map((item) => {
+  return `\`${serverConf.char}${item}\``;
+}).join(', ')}`;
+  }
 
   _bot.sendToUser(reply, input.originalMessage.author);
 
