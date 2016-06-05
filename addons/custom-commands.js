@@ -62,15 +62,18 @@ function addCommand(input) {
     commandLists[server] = commandLists[server] || {};
     commandLists[server][trigger] = response;
 
-    _bot.registerCommand(trigger, new _bot.Command(response, `custom-${server}`));
-
-    fs.writeFile(dataLocation, JSON.stringify(commandLists, null, 2), (err) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-      resolve(`added \`~${trigger}\` to server`);
-    });
+    var res = _bot.registerCommand(trigger, new _bot.Command(response, `custom-${server}`));
+    if (res) {
+      fs.writeFile(dataLocation, JSON.stringify(commandLists, null, 2), (err) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(`added \`~${trigger}\` to server`);
+      });
+    } else {
+      resolve(`\`~${trigger}\` is already added`);
+    }
   });
 }
 
