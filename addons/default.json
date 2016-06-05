@@ -19,5 +19,6 @@
   "islove": "{args} is love, {args} is life",
   "me": "{user}",
   "who": "{user}",
-  "inception": "http://inception.davepedu.com/inception.mp3"
+  "inception": "http://inception.davepedu.com/inception.mp3",
+  "vote": "{user} voted to {args}"
 }

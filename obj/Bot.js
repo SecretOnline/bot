@@ -105,7 +105,6 @@ class Bot {
     return new Promise((resolve, reject) => {
       // Do deinit of addons
       addonList.forEach((item) => {
-        console.log(item);
         if (item) {
           if (typeof item.deinit === 'function') {
             try {
@@ -117,6 +116,8 @@ class Bot {
           }
         }
       });
+
+      this.commands.clear();
 
 
       // Load addons
