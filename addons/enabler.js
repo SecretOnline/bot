@@ -1,11 +1,19 @@
 'use strict';
 var _bot;
 
+var enablerHelp = [
+  'syntax: `~<enable/disable>-addon <addon name>`',
+  'the `enable/disable-addon` commands allow you to add and remove command groups from your serer',
+  'example usage:',
+  '~enable-addon roles',
+  '~disable-addon faces'
+];
+
 function init(bot) {
   _bot = bot;
 
-  _bot.registerCommand('enable-addon', new _bot.Command(addToServer, 'core', _bot.Command.PermissionLevels.ADMIN));
-  _bot.registerCommand('disable-addon', new _bot.Command(removeFromServer, 'core', _bot.Command.PermissionLevels.ADMIN));
+  _bot.registerCommand('enable-addon', new _bot.Command(addToServer, 'core', _bot.Command.PermissionLevels.ADMIN, enablerHelp));
+  _bot.registerCommand('disable-addon', new _bot.Command(removeFromServer, 'core', _bot.Command.PermissionLevels.ADMIN, enablerHelp));
 }
 
 function addToServer(input) {

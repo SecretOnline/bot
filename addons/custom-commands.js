@@ -1,6 +1,17 @@
 'use strict';
 var fs = require('fs');
 
+var commandHelp = [
+  'syntax: `~<add/remove>-command <command trigger> <words to output>`',
+  'allows the addition of custom commands to each server',
+  'commands created on one server *can not* be used on another, unless the second server enables it',
+  'the words to output follow the same rules as JSON command loading',
+  '`{args}` will be replaced by any processed text after this command',
+  '`{user}` will be replaced by the name of the user who sent the command',
+  'example usage:',
+  '~add-command self-ban {user} has been banned for {args}!'
+];
+
 var _bot;
 var commandLists = {};
 var dataLocation = './data/custom-commands.json';
@@ -9,8 +20,8 @@ var watcher;
 function init(bot) {
   _bot = bot;
 
-  bot.registerCommand('add-command', new bot.Command(addCommand, 'core', bot.Command.PermissionLevels.ADMIN));
-  bot.registerCommand('remove-command', new bot.Command(removeCommand, 'core', bot.Command.PermissionLevels.ADMIN));
+  bot.registerCommand('add-command', new bot.Command(addCommand, 'core', bot.Command.PermissionLevels.ADMIN, commandHelp));
+  bot.registerCommand('remove-command', new bot.Command(removeCommand, 'core', bot.Command.PermissionLevels.ADMIN, commandHelp));
 
   try {
     commandLists = JSON.parse(fs.readFileSync(dataLocation));

@@ -1,15 +1,13 @@
 var flipHelp = [
-  'flip',
   'this command will flip any text upside down',
   '(not all characters work just yet. soon(tm))',
-  'the flip command supports emote injection',
   'example usage:',
-  '~flip example text',
-  '~flip ~dance'
+  '``~flip example text`',
+  '``~flip ~dance`'
 ];
 
 function init(bot) {
-  bot.registerCommand('flip', new bot.Command(getFlip, 'default'));
+  bot.registerCommand('flip', new bot.Command(getFlip, 'default', flipHelp));
 }
 
 function getFlip(input) {

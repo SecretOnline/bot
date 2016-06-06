@@ -1,13 +1,33 @@
 'use strict';
 
+var sayHelp = [
+  'syntax: `~<say/raw> <text to output>`',
+  'takes some text, and outputs it',
+  '`~say` processes the text, while `~raw` does not',
+  'example usage:',
+  '~say ~lenny',
+  '~raw ~lenny'
+];
+var linkHelp = [
+  'syntax: `~<google,wiki,yt,lmgtfy> [search]`',
+  'builds a clickable link to the appropriate service'
+];
+var rollHelp = [
+  'syntax: `~roll <roll> [more rolls]`',
+  'where a roll is in the format `ndm`, `n` being the number of dice to roll, and `m` being the magnitude of the dice',
+  'example usage:',
+  '~roll 5d6',
+  '~roll 1d20'
+];
+
 function init(bot) {
-  bot.registerCommand('say', new bot.Command(say, 'default'));
-  bot.registerCommand('raw', new bot.Command(raw, 'default'));
-  bot.registerCommand('wiki', new bot.Command(getWikiLink, 'default'));
-  bot.registerCommand('yt', new bot.Command(getYtLink, 'default'));
-  bot.registerCommand('google', new bot.Command(getGoogleLink, 'default'));
-  bot.registerCommand('lmgtfy', new bot.Command(getLmgtfyLink, 'default'));
-  bot.registerCommand('roll', new bot.Command(getRoll, 'default'));
+  bot.registerCommand('say', new bot.Command(say, 'default', sayHelp));
+  bot.registerCommand('raw', new bot.Command(raw, 'default', sayHelp));
+  bot.registerCommand('wiki', new bot.Command(getWikiLink, 'default', linkHelp));
+  bot.registerCommand('yt', new bot.Command(getYtLink, 'default', linkHelp));
+  bot.registerCommand('google', new bot.Command(getGoogleLink, 'default', linkHelp));
+  bot.registerCommand('lmgtfy', new bot.Command(getLmgtfyLink, 'default', linkHelp));
+  bot.registerCommand('roll', new bot.Command(getRoll, 'default', rollHelp));
   // Latins
   bot.registerCommand('secret_latin', new bot.Command(getSecretText, 'latin'));
   bot.registerCommand('trk_latin', new bot.Command(getTrkText, 'latin'));

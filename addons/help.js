@@ -1,12 +1,22 @@
 'use strict';
 var _bot;
 
+var helpHelp = [
+  'syntax: `~help [command]`',
+  'did you think there\'d be something secret here?',
+  'i guess i could put something thing here'
+];
+var whichHelp = [
+  'syntax: `~which <command>`',
+  'alows you to find out which command group a command belongs to'
+];
+
 function init(bot) {
   _bot = bot;
 
-  bot.registerCommand('commands', new bot.Command(getCommands, 'core', bot.Command.PermissionLevels.DEFAULT, getCommands));
-  bot.registerCommand('help', new bot.Command(getHelp, 'core'));
-  bot.registerCommand('which', new bot.Command(getWhich, 'core', bot.Command.PermissionLevels.ADMIN));
+  bot.registerCommand('commands', new bot.Command(getCommands, 'core', getCommands));
+  bot.registerCommand('help', new bot.Command(getHelp, 'core', helpHelp));
+  bot.registerCommand('which', new bot.Command(getWhich, 'core', bot.Command.PermissionLevels.ADMIN, whichHelp));
 }
 
 function getWhich(input) {
@@ -67,11 +77,28 @@ function getHelp(input) {
       }
 
       if (help) {
-        response = `secret_bot help -> ${input.raw}
+        let header = [
+          `secret_bot help -> ${input.raw}`,
+          `command group: ${comm.group}`
+        ];
+        if (comm.permission) {
+          switch (comm.permission) {
+            case 1:
+              header.push('permission required: Admin');
+              break;
+            case 2:
+              header.push('permission required: Overlord');
+              break;
+          }
+        }
 
-${help}`;
+        response = [
+          ...header,
+          '',
+          help
+        ].join('\n');
       } else {
-        response = `no help specified for ${input.raw}`;
+        response = `there is no help for ${input.raw}`;
       }
     } else {
       response = `unknown or disallowed command: ${input.raw}`;

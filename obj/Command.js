@@ -13,10 +13,10 @@ class Command {
 
   /**
    * Creates a new command
-   * @param {function|string}               funct      Function to call when processing. Strings get converted into a function
-   * @param {string}                        group      Command group this command belongs to
-   * @param {number}                        permission Permission level required for this command
-   * @param {function|string|Array<string>} help       Help
+   * @param {function|string}                funct      Function to call when processing. Strings get converted into a function
+   * @param {string}                         group      Command group this command belongs to
+   * @param {number=}                        permission Permission level required for this command
+   * @param {function|string|Array<string>=} help       Help
    */
   constructor(funct, group = 'nogroup', permission = perms.DEFAULT, help = null) {
     var functType = typeof funct;
@@ -28,9 +28,15 @@ class Command {
       throw new TypeError('commands must be a function or a string');
     }
 
+    if (typeof permission === 'number') {
+      this.p = permission;
+      this.h = help;
+    } else {
+      this.p = perms.DEFAULT;
+      this.h = permission;
+    }
+
     this.g = group;
-    this.p = permission;
-    this.h = help;
   }
 
   /**
