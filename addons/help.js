@@ -4,15 +4,16 @@ var _bot;
 function init(bot) {
   _bot = bot;
 
-  bot.registerCommand('commands', new bot.Command(getCommands, 'core'));
+  bot.registerCommand('commands', new bot.Command(getCommands, 'core', bot.Command.PermissionLevels.DEFAULT, getCommands));
   bot.registerCommand('help', new bot.Command(getHelp, 'core'));
   bot.registerCommand('which', new bot.Command(getWhich, 'core', bot.Command.PermissionLevels.ADMIN));
 }
 
 function getWhich(input) {
-  var comm = _bot.getCommand(input.raw, input.originalMessage);
+  var serverConf = _bot.getServerConf(input.originalMessage.guild.id);
+  var comm = _bot.getCommand(`${serverConf.char}${input.raw}`, input.originalMessage);
   if (comm) {
-    return `\`${input.raw}\` is from ${comm.group}`;
+    return `\`${serverConf.char}${input.raw}\` is from ${comm.group}`;
   } else {
     return `unknown or disallowed command: ${input.raw}`;
   }
@@ -51,21 +52,39 @@ commands: ${available.sort().map((item) => {
 }
 
 function getHelp(input) {
+  var response;
+
   if (input.raw) {
-    if (input.raw.toLowerCase() === 'commands') {
-      return getCommands(input);
+    // Get command
+    var serverConf = _bot.getServerConf(input.originalMessage.guild.id);
+    var comm = _bot.getCommand(`${serverConf.char}${input.raw}`, input.originalMessage);
+    if (comm) {
+      var help = comm.help(input.from(''));
+
+      // Return on empty string. Allows for a no-response
+      if (help === '') {
+        return '';
+      }
+
+      if (help) {
+        response = `secret_bot help -> ${input.raw}
+
+${help}`;
+      } else {
+        response = `no help specified for ${input.raw}`;
+      }
     } else {
-      return 'NYI';
+      response = `unknown or disallowed command: ${input.raw}`;
     }
   } else {
-    _bot.sendToUser(`secret_bot help
+    response = `secret_bot help
 secret_bot v6.2.x - the helpful update
 
 secret_bot is written by secret_online
-https://github.com/SecretOnline/bot
-`, input.originalMessage.author);
+https://github.com/SecretOnline/bot`;
   }
 
+  _bot.sendToUser(response, input.originalMessage.author);
   return '';
 }
 

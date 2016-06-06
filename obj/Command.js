@@ -13,11 +13,12 @@ class Command {
 
   /**
    * Creates a new command
-   * @param {function|string} funct      Function to call when processing. Strings get converted into a function
-   * @param {string}          group      Command group this command belongs to
-   * @param {number}          permission Permission level required for this command
+   * @param {function|string}               funct      Function to call when processing. Strings get converted into a function
+   * @param {string}                        group      Command group this command belongs to
+   * @param {number}                        permission Permission level required for this command
+   * @param {function|string|Array<string>} help       Help
    */
-  constructor(funct, group = 'nogroup', permission = perms.DEFAULT) {
+  constructor(funct, group = 'nogroup', permission = perms.DEFAULT, help = null) {
     var functType = typeof funct;
     if (functType === 'string') {
       this.f = Command.makeStringFunction(funct);
@@ -29,6 +30,7 @@ class Command {
 
     this.g = group;
     this.p = permission;
+    this.h = help;
   }
 
   /**
@@ -63,6 +65,26 @@ class Command {
         resolve(result);
       }
     });
+  }
+
+  /**
+   * Help for this command
+   * @param {Input} input Input. May have empty `.raw`
+   * @return {string} Help string
+   */
+  help(input) {
+    if (this.h) {
+      if (Array.isArray(this.h)) {
+        return this.h.join('\n');
+      } else {
+        let type = typeof this.h;
+        if (type === 'string') {
+          return this.h;
+        } else if (type === 'function') {
+          return this.h(input);
+        }
+      }
+    }
   }
 
   /**
