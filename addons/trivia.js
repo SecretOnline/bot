@@ -18,6 +18,7 @@ var addRemoveHelp = [
 
 var _bot;
 var servers = {};
+var current = {};
 var trivia = {};
 var watcher;
 var dataLocation = './data/trivia.json';
@@ -78,8 +79,58 @@ function removeTrivia(input) {
   return 'NYI';
 }
 
-function reloadTrivia(input) {
+function nextQuestion(input) {
+  return new Promise((resolve, reject) => {
+    var server = input.originalMessage.guild.id;
 
+    if (!servers[server]) {
+      servers[server] = {
+        categories: [],
+        points: {},
+        name: input.originalMessage.guild.name
+      };
+
+      fs.writeFile(dataLocation, JSON.stringify(servers, null, 2));
+    }
+
+    var allowedCategories = servers[server].categories;
+
+    if (!allowedCategories.length) {
+      reject('unable to choose a question as no categories are enabled');
+      return;
+    }
+
+    var qList = [];
+
+    allowedCategories.forEach((cat) => {
+      if (trivia[cat]) {
+        trivia[cat].forEach((q) => {
+          qList.push(q);
+        });
+      }
+    });
+
+    if (!qList.length) {
+      reject('unable to choose a question as there were none to choose from');
+      return;
+    }
+
+    current[server] = current[server] || {};
+
+    if (current[server].currQuestion) {
+      var question = randomFromArray(qList.filter((item) => {
+        return current[server].currQuestion !== item;
+      }));
+      resolve(question);
+    } else {
+      resolve(randomFromArray(qList));
+    }
+  });
+}
+
+function randomFromArray(arr) {
+  var index = Math.floor(Math.random() * arr.length);
+  return arr[index];
 }
 
 module.exports = {
