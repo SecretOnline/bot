@@ -373,7 +373,9 @@ class Bot {
               if (event.message.channel) {
                 event.message.channel.sendMessage(result)
                   .then(() => {
-                    console.log(`<- ${result}`);
+                    if (this.conf.verbose) {
+                      console.log(`<- ${result}`);
+                    }
                   }, (err) => {
                     console.error(`[ERROR] sending command`);
                     if (this.conf.verbose) {
