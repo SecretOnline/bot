@@ -16,37 +16,21 @@ function init(bot) {
   _bot.registerCommand('add-role', new _bot.Command(addRole, 'roles', _bot.Command.PermissionLevels.ADMIN));
   _bot.registerCommand('remove-role', new _bot.Command(removeRole, 'roles', _bot.Command.PermissionLevels.ADMIN));
 
-  try {
-    roleLists = JSON.parse(fs.readFileSync(dataLocation));
-  } catch (e) {
-    roleLists = {};
-    fs.writeFile(dataLocation, JSON.stringify(roleLists, null, 2));
-  }
-
-  watcher = fs.watch(dataLocation, (event, filename) => {
-    if (event === 'change') {
-      fs.readFile(dataLocation, (err, data) => {
-        if (err) {
-          console.error(`[Error] reading ${dataLocation}`);
-          console.error(err);
-          return;
-        }
-
-        try {
-          roleLists = JSON.parse(data);
-          console.log('reloaded roles');
-        } catch (err) {
-          console.error(`[Error] parsing servers ${dataLocation}`);
-          console.error(err);
-          return;
-        }
-      });
-    }
-  });
+  _bot.watchFile(dataLocation, updateRoleDict);
 }
 
 function deinit() {
-  watcher.close();
+  _bot.unwatchFile(dataLocation, updateRoleDict);
+}
+
+function updateRoleDict(data) {
+  try {
+    roleLists = JSON.parse(data);
+    console.log('[roles] loaded roles/servers config');
+  } catch (e) {
+    roleLists = roleLists || {};
+    console.error('[ERROR] failed to parse role lists');
+  }
 }
 
 function joinRole(input) {

@@ -20,38 +20,12 @@ class Bot {
     this.commands = new Map();
     this.d = discord;
     this.conf = config;
+    this.watching = new Map();
 
-    // Load server configs
-    this.servers = JSON.parse(fs.readFileSync(config.files.servers));
-    // Watch servers config file for changes
-    fs.watch(config.files.servers, (event, filename) => {
-      if (event === 'change') {
-        if (config.verbose) {
-          console.log('[INFO] reading server configuration');
-        }
-        fs.readFile(config.files.servers, (err, data) => {
-          if (err) {
-            console.error(`[Error] reading ${config.files.server}`);
-            if (config.verbose) {
-              console.error(err.stack);
-            } else {
-              console.error(err);
-            }
-            return;
-          }
-
-          try {
-            this.servers = JSON.parse(data);
-          } catch (err) {
-            console.error(`[Error] parsing servers ${config.files.server}`);
-            if (config.verbose) {
-              console.error(err.stack);
-            } else {
-              console.error(err);
-            }
-            return;
-          }
-        });
+    this.watchFile(config.files.servers, (data) => {
+      this.servers = JSON.parse(data);
+      if (this.conf.verbose) {
+        console.log('[INFO] reloaded server config');
       }
     });
 
@@ -457,6 +431,70 @@ class Bot {
       });
   }
 
+  /**
+   * Watches a file for changes, and runs the callback when that happens
+   * @param  {string}   file     File to watch
+   * @param  {function} callback Function to call when file changes
+   */
+  watchFile(file, callback) {
+    if (this.watching.has(file)) {
+      let watch = this.watching.get(file);
+      watch.callbacks.push(callback);
+    } else {
+      let watch = {
+        watcher: undefined,
+        callbacks: [
+          callback
+        ]
+      };
+
+      watch.watcher = fs.watch(file, (event, filename) => {
+        if (event === 'change') {
+          fs.readFile(file, (err, data) => {
+            if (err) {
+              console.error(`[ERROR] error trying to read ${file}`);
+              if (this.conf.verbose) {
+                console.error(err.stack);
+              }
+              return;
+            }
+            watch.callbacks.forEach((cb) => {
+              try {
+                cb(data);
+              } catch (e) {
+                console.error(`[ERROR] uncaught exception in callback for ${file}`);
+              }
+            });
+          });
+        }
+      });
+
+      this.watching.set(file, watch);
+    }
+
+    fs.readFile(file, (err, data) => {
+      if (err) {
+        console.error(`[ERROR] error trying to read ${file}`);
+        if (this.conf.verbose) {
+          console.error(err.stack);
+        }
+        return;
+      }
+      callback(data);
+    });
+  }
+
+  /**
+   * Removes the callback from the watcher
+   * @param  {string}   file     File to watch
+   * @param  {function} callback Function to remove
+   */
+  unwatchFile(file, callback) {
+    if (this.watching.has(file)) {
+      let watch = this.watching.get(file);
+      watch.callbacks.splice(watch.callbacks.indexOf(callback), 1);
+    }
+  }
 }
 
 module.exports = Bot;

@@ -23,44 +23,21 @@ function init(bot) {
   bot.registerCommand('add-command', new bot.Command(addCommand, 'core', bot.Command.PermissionLevels.ADMIN, commandHelp));
   bot.registerCommand('remove-command', new bot.Command(removeCommand, 'core', bot.Command.PermissionLevels.ADMIN, commandHelp));
 
-  try {
-    commandLists = JSON.parse(fs.readFileSync(dataLocation));
-  } catch (e) {
-    commandLists = {};
-    fs.writeFileSync(dataLocation, JSON.stringify(commandLists, null, 2));
-  }
-
-  Object.keys(commandLists).forEach(function(id) {
-    var commands = commandLists[id];
-    Object.keys(commands).forEach(function(trigger) {
-      _bot.registerCommand(trigger, new _bot.Command(commands[trigger], `custom-${id}`));
-    });
-  });
-
-  watcher = fs.watch(dataLocation, (event, filename) => {
-    if (event === 'change') {
-      fs.readFile(dataLocation, (err, data) => {
-        if (err) {
-          console.error(`[Error] reading ${dataLocation}`);
-          console.error(err);
-          return;
-        }
-
-        try {
-          commandLists = JSON.parse(data);
-          console.log('reloaded commands');
-        } catch (err) {
-          console.error(`[Error] parsing servers ${dataLocation}`);
-          console.error(err);
-          return;
-        }
-      });
-    }
-  });
+  _bot.watchFile(dataLocation, updateCommandLists);
 }
 
 function deinit() {
-  watcher.close();
+  _bot.unwatchFile(dataLocation, updateCommandLists);
+}
+
+function updateCommandLists(data) {
+  try {
+    commandLists = JSON.parse(data);
+    console.log('[comm] loaded commands');
+  } catch (e) {
+    commandLists = commandLists || {};
+    console.error('[ERROR] failed to parse command lists');
+  }
 }
 
 function addCommand(input) {

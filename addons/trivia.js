@@ -18,8 +18,10 @@ var addRemoveHelp = [
 
 var _bot;
 var servers = {};
+var trivia = {};
 var watcher;
 var dataLocation = './data/trivia.json';
+var serversLocation = './data/trivia-servers.json';
 
 
 function init(bot) {
@@ -31,37 +33,33 @@ function init(bot) {
   bot.registerCommand('add-trivia', new bot.Command(addTrivia, 'trivia', bot.Command.PermissionLevels.ADMIN, addRemoveHelp));
   bot.registerCommand('remove-trivia', new bot.Command(removeTrivia, 'trivia', bot.Command.PermissionLevels.ADMIN, addRemoveHelp));
 
-  try {
-    servers = JSON.parse(fs.readFileSync(dataLocation));
-  } catch (e) {
-    servers = {};
-    fs.writeFile(dataLocation, JSON.stringify(servers, null, 2));
-  }
-
-  watcher = fs.watch(dataLocation, (event, filename) => {
-    if (event === 'change') {
-      fs.readFile(dataLocation, (err, data) => {
-        if (err) {
-          console.error(`[Error] reading ${dataLocation}`);
-          console.error(err);
-          return;
-        }
-
-        try {
-          servers = JSON.parse(data);
-          console.log('reloaded trivia server config');
-        } catch (err) {
-          console.error(`[Error] parsing servers ${dataLocation}`);
-          console.error(err);
-          return;
-        }
-      });
-    }
-  });
+  bot.watchFile(dataLocation, updateTriviaList);
+  bot.watchFile(serversLocation, updateServerList);
 }
 
 function deinit() {
-  watcher.close();
+  _bot.unwatchFile(dataLocation, updateTriviaList);
+  _bot.unwatchFile(serversLocation, updateServerList);
+}
+
+function updateServerList(data) {
+  try {
+    servers = JSON.parse(data);
+    console.log('[trivia] loaded server data');
+  } catch (e) {
+    servers = servers || {};
+    console.error('[ERROR] failed to parse trivia server lists');
+  }
+}
+
+function updateTriviaList(data) {
+  try {
+    trivia = JSON.parse(data);
+    console.log('[trivia] loaded trivia list');
+  } catch (e) {
+    trivia = trivia || {};
+    console.error('[ERROR] failed to parse trivia list');
+  }
 }
 
 function getTrivia(input) {
@@ -78,6 +76,10 @@ function addTrivia(input) {
 
 function removeTrivia(input) {
   return 'NYI';
+}
+
+function reloadTrivia(input) {
+
 }
 
 module.exports = {
