@@ -3,8 +3,7 @@ var _bot;
 
 var helpHelp = [
   'syntax: `~help [command]`',
-  'did you think there\'d be something secret here?',
-  'i guess i could put something thing here'
+  'did you think there\'d be something secret here?'
 ];
 var whichHelp = [
   'syntax: `~which <command>`',
