@@ -193,3 +193,28 @@ You will still need to authorize the bot to join your server. However, you will 
   }
 }
 ```
+
+## Previous versions of secret_bot
+
+I haven't ever had a good versioning system, so numbers are based on major events in the bot's lifetime.
+
+* **6.x.x**  
+  Moved to [bot](https://github.com/SecretOnline/bot)  
+  Complete rewrite.  
+  Allow multiple Discord servers  
+  Abandon bot being module in favour of better Discord support  
+* **5.x**  
+  Bot is now a module  
+  Uses IRCord as a bridge between IRC and Discord  
+  Now supports Discord  
+* **4.x**  
+  Promises.  
+  Big rewrite of internal logic to work with Promises  
+* **3.x**  
+  Moved to [secret_bot](https://github.com/SecretOnline/secret_bot)  
+  Removed remote web server because of latency  
+* **2.x**  
+  Recursive command processing added!  
+  Was kind-of buggy with async commands  
+* **1**  
+  Creation of [NMS-irc-bot](https://github.com/SecretOnline/NMS-irc-bot)  
