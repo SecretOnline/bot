@@ -322,8 +322,10 @@ class Bot {
       }
 
       if (!this.servers[event.message.guild.id]) {
-        this.servers[event.message.guild.id] = this.servers._default;
-
+        // Create new entry in servers
+        this.servers[event.message.guild.id] = Object.assign({}, this.servers._default);
+        this.servers[event.message.guild.id].name = event.message.guild.name;
+        // This will trigger a filechange evnt, so srver config gets reloaded again
         fs.writeFile(this.conf.files.servers, JSON.stringify(this.servers, null, 2));
       }
 

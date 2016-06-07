@@ -38,7 +38,7 @@ function getCommands(input) {
     reply = `secret_bot help -> commands -> ${input.raw}
 config for server: ${input.originalMessage.guild.name}
 
-commands: ${available.sort().map((item) => {
+commands (${available.length}): ${available.sort().map((item) => {
   return `\`${serverConf.char}${item}\``;
 }).join(', ')}`;
 
@@ -49,7 +49,7 @@ commands: ${available.sort().map((item) => {
 config for server: ${input.originalMessage.guild.name}
 command groups enabled: ${serverConf.groups.join(', ')}
 
-commands: ${available.sort().map((item) => {
+commands (${available.length}): ${available.sort().map((item) => {
   return `\`${serverConf.char}${item}\``;
 }).join(', ')}`;
   }
