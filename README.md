@@ -3,6 +3,7 @@
 version 6.x.x
 
 * [Add the bot to your server](https://github.com/SecretOnline/bot#using-secret_bot)
+* [Basic usage for server admins](https://github.com/SecretOnline/bot#basic-setup-and-use)
 * [Adding commands](https://github.com/SecretOnline/bot#using-the-authorized-bot-link)
 * [Adding commands (advanced)](https://github.com/SecretOnline/bot#adding-an-addon)
 
@@ -116,6 +117,8 @@ Clicked the link ([here it is again](https://discordapp.com/oauth2/authorize?cli
 The first command you should know is `~commands`. It sends you a DM (direct message) with a list of all the commands you can use on the server you typed the command in. You'll notice that the bot comes with some command groups enabled by default (core, default, emotes, faces, flipping). To have a look at what each command group adds, just add the name of the group to the command (`~commands core`). If you want to find out which group a particular command belongs to, you can use `~which` (`~which help`). For further help on a command, you can use `~help <command>. Some commands may not have any help associated with them.
 
 The `core` addon has some reasonably important commands. I'd recommend against disabling it. To disable a command group, you can send `~disable-addon <addon name>`. Don't like table flipping? Easy: `~disable-addon flipping`. The counterpart of disable is `~enable-addon`, which works in the same way. Want to allow users to chose some roles on your server? `~enable-addon roles`. Every time you add a new addon, it may be useful to see the list of commands that it adds, and then view the `~help` for those commands.
+
+If you have another bot that also uses the tilde (`~`) for commands and it's causing problems, you can use the `~change-char` command to change which character secret_bot uses for the beginning of commands.
 
 #### Adding your own commands
 

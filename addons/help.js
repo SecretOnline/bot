@@ -75,30 +75,31 @@ function getHelp(input) {
         return '';
       }
 
-      if (help) {
-        let header = [
-          `secret_bot help -> ${input.raw}`,
-          `command group: ${comm.group}`
-        ];
-        if (comm.permission) {
-          switch (comm.permission) {
-            case 1:
-              header.push('permission required: Admin');
-              break;
-            case 2:
-              header.push('permission required: Overlord');
-              break;
-          }
-        }
-
-        response = [
-          ...header,
-          '',
-          help
-        ].join('\n');
-      } else {
-        response = `there is no help for ${input.raw}`;
+      if (!help) {
+        help = `no help for ${input.raw} can be found`;
       }
+
+      let header = [
+        `secret_bot help -> ${input.raw}`,
+        `command group: ${comm.group}`
+      ];
+      if (comm.permission) {
+        switch (comm.permission) {
+          case 1:
+            header.push('permission required: Admin');
+            break;
+          case 2:
+            header.push('permission required: Overlord');
+            break;
+        }
+      }
+
+      response = [
+        ...header,
+        '',
+        help
+      ].join('\n');
+
     } else {
       response = `unknown or disallowed command: ${input.raw}`;
     }
