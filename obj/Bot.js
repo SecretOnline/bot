@@ -343,6 +343,14 @@ class Bot {
             if (this.conf.verbose) {
               console.error(err.stack);
             }
+
+            if (typeof err === 'string') {
+              this.sendToUser(err, event.message.author);
+            } else {
+              if (this.conf.overlords.indexOf(event.message.author.id) > -1) {
+                this.sendToUser(err, event.message.author);
+              }
+            }
           })
           .then((result) => {
             if (result) {
@@ -354,6 +362,7 @@ class Bot {
                     }
                   }, (err) => {
                     console.error(`[ERROR] sending command`);
+
                     if (this.conf.verbose) {
                       console.error(err.stack);
                     }
@@ -428,9 +437,15 @@ class Bot {
     user.openDM()
       .then((channel) => {
         channel.sendMessage(text);
+        console.log(`<= (@${user.username}): ${text}`);
       }, (err) => {
         console.error(`unable to open a dm channel to ${user.username}`);
       });
+  }
+
+  sendToChannel(text, channel) {
+    channel.sendMessage(text);
+    console.log(`<= (#${channel.name}): ${text}`);
   }
 
   /**

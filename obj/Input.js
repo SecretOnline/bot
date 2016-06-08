@@ -80,7 +80,7 @@ class Input {
           }
           var newIn = this.from(newStr);
           comm.run(newIn)
-            .then(appendResult);
+            .then(appendResult, reject);
           break;
         } else {
           if (output) {
