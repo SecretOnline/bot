@@ -23,6 +23,7 @@ var trivia = {};
 var watcher;
 var dataLocation = './data/trivia.json';
 var serversLocation = './data/trivia-servers.json';
+var maxGuesses = 5;
 
 
 function init(bot) {
@@ -68,7 +69,73 @@ function getTrivia(input) {
 }
 
 function getAnswer(input) {
-  return 'NYI';
+  return new Promise((resolve, reject) => {
+    var id = input.originalMessage.guild.id;
+    var user = input.user.id;
+    var curr = current[id];
+    var server = servers[id];
+
+    if (!server) {
+      resolve('this server has not set up trivia yet');
+      return;
+    }
+
+    if (!curr) {
+      resolve('there is no active question right now');
+      return;
+    }
+
+    if (curr.guesses[user]) {
+      curr.guesses[user].push(input.raw);
+
+      if (curr.guesses[user].length > 5) {
+        resolve(`sorry, ${input.user.name}, you've already guessed too much`);
+        return;
+      }
+    } else {
+      curr.guesses[user] = [input.raw];
+    }
+
+    if (input.raw.toLowerCase() === curr.question.q.toLowerCase()) {
+      var r = `${input.user.name} guessed correctly!`;
+
+      nextQuestion(input.originalMessage.guild)
+        .then((newQ) => {
+          return new Promise((res2, rej2) => {
+            if (server.points[user]) {
+              server.points[user]++;
+            } else {
+              server.points[user] = 1;
+            }
+
+            fs.writeFile(serversLocation, JSON.stringify(servers), () => {
+              var ret = [
+                r,
+                `you now have ${server.points[user]} point${server.points[user] === 1 ? '' : 's'}`,
+                `next question: ${newQ}`
+              ];
+              resolve(ret.join('\n'));
+            });
+          });
+
+        }, (err) => {
+          if (typeof err === 'string') {
+            resolve(`${r}\n${err}`);
+          } else {
+            reject(err);
+          }
+        });
+
+
+
+
+    } else {
+      var remainingGuesses = maxGuesses - curr.guesses[user].length;
+      resolve(`incorrect guess, ${input.user.name}. you have ${remainingGuesses} guess${remainingGuesses === 1 ? '' : 'es'} remaining`);
+    }
+
+  });
+
 }
 
 function addTrivia(input) {
@@ -79,21 +146,21 @@ function removeTrivia(input) {
   return 'NYI';
 }
 
-function nextQuestion(input) {
+function nextQuestion(server) {
   return new Promise((resolve, reject) => {
-    var server = input.originalMessage.guild.id;
+    var id = server.id;
 
-    if (!servers[server]) {
-      servers[server] = {
+    if (!servers[id]) {
+      servers[id] = {
         categories: [],
         points: {},
-        name: input.originalMessage.guild.name
+        name: server.name
       };
 
       fs.writeFile(dataLocation, JSON.stringify(servers, null, 2));
     }
 
-    var allowedCategories = servers[server].categories;
+    var allowedCategories = servers[id].categories;
 
     if (!allowedCategories.length) {
       reject('unable to choose a question as no categories are enabled');
@@ -115,11 +182,11 @@ function nextQuestion(input) {
       return;
     }
 
-    current[server] = current[server] || {};
+    current[id] = current[id] || {};
 
-    if (current[server].currQuestion) {
+    if (current[id].currQuestion) {
       var question = randomFromArray(qList.filter((item) => {
-        return current[server].currQuestion !== item;
+        return current[id].currQuestion !== item;
       }));
       resolve(question);
     } else {
