@@ -42,6 +42,9 @@ function changeGame(input) {
         return `set game to ${result}`;
       });
   } else {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
     pickRandomGame();
     return 'going back to random games';
   }
