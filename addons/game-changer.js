@@ -14,8 +14,11 @@ function init(bot) {
   _bot.registerCommand('change-game', new _bot.Command(changeGame, 'core', _bot.Command.PermissionLevels.OVERLORD));
 
   _bot.watchFile(dataLocation, updateGamesList);
+}
 
+function postinit() {
   pickRandomGame();
+  console.log('[gamechange] picked first game');
 }
 
 function deinit() {
@@ -26,6 +29,7 @@ function deinit() {
 function updateGamesList(data) {
   try {
     games = JSON.parse(data);
+    console.log('[gamechange] loaded games');
   } catch (e) {
     games = games || [];
   }
@@ -70,5 +74,6 @@ function set(game) {
 
 module.exports = {
   init: init,
+  postinit: postinit,
   deinit: deinit
 };

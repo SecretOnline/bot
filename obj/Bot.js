@@ -81,18 +81,36 @@ class Bot {
    */
   start() {
     this.d.connect({
-      token: this.conf.token
+      token: this.conf.token,
+      reconnect: this.conf.reconnect
     });
 
     this.forceReload();
 
-    this.d.Dispatcher.once('GATEWAY_READY', (event) => {
+    // Because event listeners...
+    let bot = this;
+
+    this.d.Dispatcher.on('GATEWAY_READY', (event) => {
       console.log(`[LOGIN] Logged in as ${this.d.User.username}`);
+
+      // Do postinit of addons
+      addonList.forEach((item) => {
+        if (item) {
+          if (typeof item.postinit === 'function') {
+            try {
+              item.postinit(bot);
+            } catch (e) {
+              console.error(`error during postinit`);
+              console.error(e);
+            }
+          }
+        }
+      });
     });
 
-    if (this.conf.reconnect) {
-      this.d.Dispatcher.on('DISCONNECTED', this.reconnect);
-    }
+    this.d.Dispatcher.on('DISCONNECTED', (err) => {
+      console.log(`[LOGIN] Disconnected: ${err}`);
+    });
   }
 
   /**
@@ -100,26 +118,6 @@ class Bot {
    */
   stop() {
     this.d.disconnect();
-
-    if (this.conf.reconnect) {
-      this.d.Dispatcher.off('DISCONNECTED', this.reconnect);
-    }
-  }
-
-  /**
-   * Internal function to restart the bot if it dosconnects
-   * @param  {Event} event Disconnect event
-   */
-  reconnect(event) {
-    console.log(`[LOGIN] Disconnected: ${event.error.message}`);
-
-    this.connect({
-      token: this.conf.token
-    });
-
-    this.Dispatcher.once('GATEWAY_READY', (event) => {
-      console.log(`[LOGIN] Logged in as ${this.User.username}`);
-    });
   }
 
   /**
@@ -159,6 +157,21 @@ class Bot {
 
         Promise.all(proms).then((addons) => {
           addonList = addons;
+
+          // Do init of addons
+          addonList.forEach((item) => {
+            if (item) {
+              if (typeof item.init === 'function') {
+                try {
+                  item.init(this);
+                } catch (e) {
+                  console.error(`error during init`);
+                  console.error(e);
+                }
+              }
+            }
+          });
+
           resolve(`reloaded. ${addons.length} addons, ${this.commands.size} commands`);
         }, reject);
       });
@@ -217,27 +230,8 @@ class Bot {
           return;
         }
 
-        if (mod.init) {
-          try {
-            var res = mod.init(this);
-            if (res instanceof Promise) {
-              res.then(() => {
-                console.log(`loaded ${filename}`);
-                resolve(mod);
-              });
-            } else {
-              console.log(`loaded ${filename}`);
-              resolve(mod);
-            }
-          } catch (e) {
-            console.error(`[ERROR] loading ${filename}`);
-            console.error(e.stack);
-            resolve();
-          }
-        } else {
-          console.log(`${filename} has no init function. is this intended?`);
-          resolve(mod);
-        }
+        console.log(`loaded ${filename}`);
+        resolve(mod);
       } else {
         console.log(`ignoring ${filename}`);
         resolve();

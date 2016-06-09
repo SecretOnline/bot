@@ -41,10 +41,7 @@ function init(bot) {
 }
 
 function say(input) {
-  return input.process()
-    .then((result) => {
-      return result;
-    });
+  return input.process();
 }
 
 function raw(input) {
