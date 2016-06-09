@@ -113,7 +113,13 @@ class Bot {
   reconnect(event) {
     console.log(`[LOGIN] Disconnected: ${event.error.message}`);
 
-    this.start();
+    this.connect({
+      token: this.conf.token
+    });
+
+    this.Dispatcher.once('GATEWAY_READY', (event) => {
+      console.log(`[LOGIN] Logged in as ${this.User.username}`);
+    });
   }
 
   /**
