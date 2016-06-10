@@ -102,20 +102,16 @@ function getAnswer(input) {
       nextQuestion(input.originalMessage.guild)
         .then((newQ) => {
           return new Promise((res2, rej2) => {
-            if (server.points[user]) {
-              server.points[user]++;
-            } else {
-              server.points[user] = 1;
-            }
 
-            fs.writeFile(serversLocation, JSON.stringify(servers), () => {
-              var ret = [
-                r,
-                `you now have ${server.points[user]} point${server.points[user] === 1 ? '' : 's'}`,
-                `next question: ${newQ}`
-              ];
-              resolve(ret.join('\n'));
-            });
+            var newPoints = _bot.getPoints(input.user, input.originalMessage.guild);
+            _bot.setPoints(input.user, input.originalMessage.guild, newPoints);
+
+            var ret = [
+              r,
+              `you now have ${newPoints} point${newPoints === 1 ? '' : 's'}`,
+              `next question: ${newQ}`
+            ];
+            resolve(ret.join('\n'));
           });
 
         }, (err) => {
@@ -125,10 +121,6 @@ function getAnswer(input) {
             reject(err);
           }
         });
-
-
-
-
     } else {
       var remainingGuesses = maxGuesses - curr.guesses[user].length;
       resolve(`incorrect guess, ${input.user.name}. you have ${remainingGuesses} guess${remainingGuesses === 1 ? '' : 'es'} remaining`);

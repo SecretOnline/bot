@@ -21,11 +21,20 @@ class Bot {
     this.d = discord;
     this.conf = config;
     this.watching = new Map();
+    this.points = {};
+    this.servers = {};
 
     this.watchFile(config.files.servers, (data) => {
       this.servers = JSON.parse(data);
       if (this.conf.verbose) {
         console.log('[INFO] reloaded server config');
+      }
+    });
+
+    this.watchFile(config.files.points, (data) => {
+      this.points = JSON.parse(data);
+      if (this.conf.verbose) {
+        console.log('[INFO] reloaded points');
       }
     });
 
@@ -510,6 +519,43 @@ class Bot {
     if (this.watching.has(file)) {
       let watch = this.watching.get(file);
       watch.callbacks.splice(watch.callbacks.indexOf(callback), 1);
+    }
+  }
+
+  /**
+   * Return the number of points a user has on this server
+   * @param  {IUser}  user   User to get points for
+   * @param  {IGuild} server Server user is on
+   * @return {number}        Number of points
+   */
+  getPoints(user, server) {
+    var uid = user.id;
+    var sid = server.id;
+
+    if (this.points[sid]) {
+      return this.points[sid][uid] || 0;
+    } else {
+      return 0;
+    }
+  }
+
+  /**
+   * Sets the user's points
+   * @param {IUser} user   User to set points of
+   * @param {IGuild} server Server user is on
+   * @param {number} points Points to set user to
+   */
+  setPoints(user, server, points) {
+    if (typeof points === 'number') {
+      var uid = user.id;
+      var sid = server.id;
+
+      if (!this.points[sid]) {
+        this.points[sid] = {};
+      }
+      this.points[sid][uid] = points;
+
+      fs.writeFile(this.conf.files.points, JSON.stringify(this.points, null, 2));
     }
   }
 }
