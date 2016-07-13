@@ -24,10 +24,33 @@ function init(bot) {
   bot.registerCommand('remove-command', new bot.Command(removeCommand, 'core', bot.Command.PermissionLevels.ADMIN, commandHelp));
 
   _bot.watchFile(dataLocation, updateCommandLists);
+  _bot.watchFile(dataLocation, firstUpdate);
 }
 
 function deinit() {
   _bot.unwatchFile(dataLocation, updateCommandLists);
+}
+
+function firstUpdate(data) {
+  try {
+    commandLists = JSON.parse(data);
+    console.log('[comm] loaded commands');
+  } catch (e) {
+    commandLists = commandLists || {};
+    console.error('[ERROR] failed to parse command lists');
+    return;
+  }
+
+  _bot.unwatchFile(dataLocation, firstUpdate);
+
+  Object.keys(commandLists).forEach((serverId) => {
+    var server = commandLists[serverId];
+    Object.keys(server).forEach((trigger) => {
+      var response = server[trigger];
+
+      _bot.registerCommand(trigger, new _bot.Command(response, `custom-${serverId}`));
+    });
+  });
 }
 
 function updateCommandLists(data) {
