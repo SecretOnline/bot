@@ -23,15 +23,11 @@ function init(bot) {
   bot.registerCommand('add-command', new bot.Command(addCommand, 'core', bot.Command.PermissionLevels.ADMIN, commandHelp));
   bot.registerCommand('remove-command', new bot.Command(removeCommand, 'core', bot.Command.PermissionLevels.ADMIN, commandHelp));
 
-  _bot.watchFile(dataLocation, updateCommandLists);
   _bot.watchFile(dataLocation, firstUpdate);
 }
 
-function deinit() {
-  _bot.unwatchFile(dataLocation, updateCommandLists);
-}
-
 function firstUpdate(data) {
+  // Parse data
   try {
     commandLists = JSON.parse(data);
     console.log('[comm] loaded commands');
@@ -41,26 +37,19 @@ function firstUpdate(data) {
     return;
   }
 
+  // Since parsed, unwatch this function
   _bot.unwatchFile(dataLocation, firstUpdate);
 
+  // For each command in the server
   Object.keys(commandLists).forEach((serverId) => {
     var server = commandLists[serverId];
     Object.keys(server).forEach((trigger) => {
       var response = server[trigger];
 
+      // Register command
       _bot.registerCommand(trigger, new _bot.Command(response, `custom-${serverId}`));
     });
   });
-}
-
-function updateCommandLists(data) {
-  try {
-    commandLists = JSON.parse(data);
-    console.log('[comm] loaded commands');
-  } catch (e) {
-    commandLists = commandLists || {};
-    console.error('[ERROR] failed to parse command lists');
-  }
 }
 
 function addCommand(input) {
@@ -73,8 +62,10 @@ function addCommand(input) {
     commandLists[server] = commandLists[server] || {};
     commandLists[server][trigger] = response;
 
+    // Register the custom command
     var res = _bot.registerCommand(trigger, new _bot.Command(response, `custom-${server}`));
     if (res) {
+      // Save custom commands to file
       fs.writeFile(dataLocation, JSON.stringify(commandLists, null, 2), (err) => {
         if (err) {
           reject(err);
@@ -92,15 +83,13 @@ function removeCommand(input) {
   return new Promise((resolve, reject) => {
     var server = input.originalMessage.guild.id;
     var trigger = input.raw.split(' ')[0];
-    // Save to file
+
+    // Remove references
     commandLists[server] = commandLists[server] || {};
-
     delete commandLists[server][trigger];
-
-    fs.writeFile(dataLocation, JSON.stringify(commandLists, null, 2));
-
     _bot.deregisterCommand(trigger, `custom-${server}`);
 
+    // Write to file
     fs.writeFile(dataLocation, JSON.stringify(commandLists, null, 2), (err) => {
       if (err) {
         reject(err);
@@ -113,6 +102,5 @@ function removeCommand(input) {
 
 
 module.exports = {
-  init: init,
-  deinit: deinit
+  init: init
 };

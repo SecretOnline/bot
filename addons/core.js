@@ -24,13 +24,15 @@ function doReload() {
 }
 
 function changeCommandChar(input) {
+  // You need something to set it to, duh
   if (input.raw) {
+    // Take first character of raw input
     var character = input.raw.charAt(0);
     var server = input.originalMessage.guild.id;
+
+    // Set command prefix character
     var serverConf = _bot.getServerConf(server);
-
     serverConf.char = character;
-
     _bot.setServerConf(server, serverConf);
 
     return `command character changed to \`${character}\``;

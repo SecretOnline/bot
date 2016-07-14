@@ -24,6 +24,7 @@ class Bot {
     this.points = {};
     this.servers = {};
 
+    // Reloading of server configs
     this.watchFile(config.files.servers, (data) => {
       this.servers = JSON.parse(data);
       if (this.conf.verbose) {
@@ -31,6 +32,7 @@ class Bot {
       }
     });
 
+    // Reloading of points
     this.watchFile(config.files.points, (data) => {
       this.points = JSON.parse(data);
       if (this.conf.verbose) {
@@ -38,6 +40,7 @@ class Bot {
       }
     });
 
+    // Let's get going
     this.addListeners();
   }
 
@@ -293,21 +296,27 @@ class Bot {
    */
   commandList(message, group) {
     if (message) {
+      // Get list of groups alowed by server
       let server = message.guild.id;
       this.servers[server] = this.servers[server] || {};
       let allowedGroups = this.servers[server].groups || [];
+
+      // Find matching commands
       return Array.from(this.commands.entries())
         .filter((pair) => {
           let trigger = pair[0];
           let command = pair[1];
 
+          // If group was given, filter by group
           if (group && command.group !== group) {
             return false;
           }
 
+          // Check command groups
           return command.group === `custom-${message.guild.id}` || allowedGroups.indexOf(command.group) > -1;
         })
         .map((pair) => {
+          // Return the trigger
           return pair[0];
         });
     } else {
@@ -440,7 +449,6 @@ class Bot {
    * Sends a message to the user
    * @param  {string}  text Message to send
    * @param  {IUser}   user User to send to
-   * @return {Promise}      Resolves upon message sent
    */
   sendToUser(text, user) {
     user.openDM()
@@ -452,6 +460,11 @@ class Bot {
       });
   }
 
+  /**
+   * Sends a mesage to the channel
+   * @param  {string}   text    Message to send
+   * @param  {IChannel} channel Channel to send to
+   */
   sendToChannel(text, channel) {
     channel.sendMessage(text);
     console.log(`<= (#${channel.name}): ${text}`);
@@ -464,9 +477,11 @@ class Bot {
    */
   watchFile(file, callback) {
     if (this.watching.has(file)) {
+      // Add callback to existing watcher
       let watch = this.watching.get(file);
       watch.callbacks.push(callback);
     } else {
+      // Create new watcher
       let watch = {
         watcher: undefined,
         callbacks: [
@@ -474,9 +489,11 @@ class Bot {
         ]
       };
 
+      // Watch file
       watch.watcher = fs.watch(file, (event, filename) => {
         if (event === 'change') {
           fs.readFile(file, (err, data) => {
+            // Check for errors first
             if (err) {
               console.error(`[ERROR] error trying to read ${file}`);
               if (this.conf.verbose) {
@@ -484,6 +501,7 @@ class Bot {
               }
               return;
             }
+            // Run callbacks
             watch.callbacks.forEach((cb) => {
               try {
                 cb(data);
@@ -498,6 +516,7 @@ class Bot {
       this.watching.set(file, watch);
     }
 
+    // Do first read
     fs.readFile(file, (err, data) => {
       if (err) {
         console.error(`[ERROR] error trying to read ${file}`);
@@ -518,6 +537,7 @@ class Bot {
   unwatchFile(file, callback) {
     if (this.watching.has(file)) {
       let watch = this.watching.get(file);
+      // Remove callback
       watch.callbacks.splice(watch.callbacks.indexOf(callback), 1);
     }
   }
