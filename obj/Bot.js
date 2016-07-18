@@ -92,10 +92,14 @@ class Bot {
    * Starts the bot
    */
   start() {
-    this.d.connect({
-      token: this.conf.token,
-      reconnect: this.conf.reconnect
-    });
+    var conn = () => {
+      this.d.connect({
+        token: this.conf.token,
+        reconnect: this.conf.reconnect
+      });
+    };
+
+    conn();
 
     this.forceReload();
 
@@ -104,7 +108,9 @@ class Bot {
 
     this.d.Dispatcher.on('GATEWAY_READY', (event) => {
       console.log(`[LOGIN] Logged in as ${this.d.User.username}`);
+    });
 
+    this.d.Dispatcher.once('GATEWAY_READY', (event) => {
       // Do postinit of addons
       addonList.forEach((item) => {
         if (item) {
@@ -122,6 +128,7 @@ class Bot {
 
     this.d.Dispatcher.on('DISCONNECTED', (err) => {
       console.log(`[LOGIN] Disconnected: ${err}`);
+      conn();
     });
   }
 
