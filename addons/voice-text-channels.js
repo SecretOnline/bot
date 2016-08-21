@@ -1,6 +1,14 @@
 'use strict';
 const fs = require('fs');
 
+var linkHelp = [
+  'syntax: `~[un]link-voice-text <ID of voice channel> <name of a role>`',
+  'links (or unlinks) a voice channel to a particular role',
+  'can be used to show/hide certain text channels if the role is set up that way',
+  'to get the ID of a voice channel, right click it and select "Copy ID"',
+  'in order for this to work properly, secret_bot MUST have the "Manage Roles" permission, and its role MUST be above the ones it is setting in the roles list'
+];
+
 var _bot;
 
 var dataLocation = './data/voice-text-channels.json';
@@ -9,8 +17,8 @@ var servers = {};
 function init(bot) {
   _bot = bot;
 
-  _bot.registerCommand('link-voice-text', new _bot.Command(linkVoiceChannel, 'voice-text', _bot.Command.PermissionLevels.ADMIN));
-  _bot.registerCommand('unlink-voice-text', new _bot.Command(unlinkVoiceChannel, 'voice-text', _bot.Command.PermissionLevels.ADMIN));
+  _bot.registerCommand('link-voice-text', new _bot.Command(linkVoiceChannel, 'voice-text', _bot.Command.PermissionLevels.ADMIN, linkHelp));
+  _bot.registerCommand('unlink-voice-text', new _bot.Command(unlinkVoiceChannel, 'voice-text', _bot.Command.PermissionLevels.ADMIN, linkHelp));
 
   _bot.watchFile(dataLocation, updateChannelLinking);
 
