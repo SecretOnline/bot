@@ -14,15 +14,15 @@ function init(bot) {
 
   _bot.watchFile(dataLocation, updateChannelLinking);
 
-  _bot.discord.Dispatcher.on('VOICE_CHANEL_JOIN', voiceJoin);
-  _bot.discord.Dispatcher.on('VOICE_CHANEL_LEAVE', voiceLeave);
+  _bot.discord.Dispatcher.on('VOICE_CHANNEL_JOIN', voiceJoin);
+  _bot.discord.Dispatcher.on('VOICE_CHANNEL_LEAVE', voiceLeave);
 }
 
 function deinit() {
   _bot.unwatchFile(dataLocation, updateChannelLinking);
 
-  _bot.discord.Dispatcher.off('VOICE_CHANEL_JOIN', voiceJoin);
-  _bot.discord.Dispatcher.off('VOICE_CHANEL_LEAVE', voiceLeave);
+  _bot.discord.Dispatcher.off('VOICE_CHANNEL_JOIN', voiceJoin);
+  _bot.discord.Dispatcher.off('VOICE_CHANNEL_LEAVE', voiceLeave);
 }
 
 function updateChannelLinking(data) {
