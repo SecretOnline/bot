@@ -1,4 +1,6 @@
 'use strict';
+const fs = require('fs');
+
 var _bot;
 
 var dataLocation = './data/voice-text-channels.json';
@@ -61,13 +63,51 @@ function voiceLeave(info) {
 }
 
 function linkVoiceChannel(input) {
-  // TODO: this
+  return new Promise((resolve, reject) => {
+    var server = input.originalMessage.guild.id;
+    var parts = input.raw.split(' ');
+    var voiceChannel = parts.shift();
+    var roleName = parts.join(' ');
+
+    var role = input.originalMessage.guild.roles.find(r => r.name === roleName);
+    if (!role) {
+      resolve('role not found');
+      return;
+    }
+    // Save to file
+    servers[server] = servers[server] || {};
+    servers[server][voiceChannel] = role.id;
+
+    // Save custom commands to file
+    fs.writeFile(dataLocation, JSON.stringify(servers, null, 2), (err) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve('successfully linked channels');
+    });
+  });
 }
 
 function unlinkVoiceChannel(input) {
-  // TODO: this
-}
+  return new Promise((resolve, reject) => {
+    var server = input.originalMessage.guild.id;
+    var voiceChannel = input.raw.split(' ')[0];
 
+    // Remove references
+    servers[server] = servers[server] || {};
+    delete servers[server][voiceChannel];
+
+    // Write to file
+    fs.writeFile(dataLocation, JSON.stringify(servers, null, 2), (err) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve('successfully unlinked channels');
+    });
+  });
+}
 
 module.exports = {
   init,
