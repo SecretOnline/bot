@@ -30,6 +30,63 @@ class Input {
 
   //region Functions
 
+  /**
+   * Processes this input
+   * @return {Promise<string,Error>} Resolves with final output
+   */
+  process() {
+    return new Promise((resolve, reject) => {
+      /**
+       * Adds result to end of string and Resolves
+       * @param  {string} res String to append
+       */
+      function appendResult(res) {
+        if (output) {
+          output += ` ${res}`;
+        } else {
+          output = res;
+        }
+        resolve(output);
+      }
+
+      var quickReturn = true;
+      var output = '';
+      var words = this.t.split(' ');
+
+      // Iterate over all words
+      for (var i = 0; i < words.length; i++) {
+        let comm = this.b.getCommand(words[i], this.m);
+
+        if (comm) {
+          var newStr = '';
+          // Stop the immediate resolving
+          quickReturn = false;
+          if (words.length !== 1) {
+            newStr = words.splice(i + 1).join(' ');
+          }
+          // Make new command object and run it
+          var newIn = this.from(newStr);
+          comm.run(newIn)
+            .then(appendResult, reject);
+
+          // Since command encountered, stop here
+          break;
+        } else {
+          // If no command found, add word to string
+          if (output) {
+            output += ` ${words[i]}`;
+          } else {
+            output = words[i];
+          }
+        }
+      }
+
+      if (quickReturn) {
+        resolve(output);
+      }
+    });
+  }
+
   from(text) {
     return new Input(this.m, text);
   }
