@@ -81,7 +81,7 @@ class Command {
 
   /**
    * Help for this command
-   * @param {Input} input Input. May have empty `.raw`
+   * @param {Input} input Input. May have empty `.text`
    * @return {string} Help string
    */
   help(input) {
@@ -115,7 +115,7 @@ class Command {
           if (str.match(/{args}|{user}/)) {
             return str
               .replace(/{args}/g, res)
-              .replace(/{user}/g, input.user.username);
+              .replace(/{user}/g, input.user.name);
           } else {
             if (input) {
               return `${str} ${res}`;
