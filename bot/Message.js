@@ -6,10 +6,12 @@ class Message {
   /**
    * Creates a new Message
    * @param {User} user The user who sent this message
+   * @param {string} channel The channel the user sent the message from
    * @param {string} text The text the user sent
    */
-  constructor(user, text) {
+  constructor(user, channel, text) {
     this.u = user;
+    this.c = channel;
     this.t = text;
   }
 

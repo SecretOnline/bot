@@ -55,11 +55,24 @@ class Connection extends EventEmitter {
    * Accepts a User, Channel, or null
    * If it receives null, should identify itself
    * Strings are accepted for fallback, but behaviour is undefined (up to each connection)
-   * @param  {string|User|Channel=} target [description]
-   * @return {[type]}        [description]
+   * @param  {string|User|Channel} target Targeet to generate mention for
+   * @return {string} Mention for the target
    */
   mention(target) {
-    throw new Error('NYI');
+    throw new Error('Mention function not overridden');
+  }
+
+  /**
+   * Sends a string to the given target
+   * Accepts a User, Channel, or null
+   * If it receives null, should identify itself
+   * Strings are accepted for fallback, but behaviour is undefined (up to each connection)
+   * @param  {string|User|Channel} target Target of the message
+   * @param  {string|Message|Input} target [description]
+   * @return {Promise<,Error>} Resolves on successful sending
+   */
+  send(target, message) {
+    throw new Error('Send function not overridden');
   }
 
   //endregion

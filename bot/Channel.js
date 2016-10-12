@@ -1,13 +1,7 @@
 /**
- * Defines a user of a connection
+ * A channel in a connection
  */
-class User {
-  /**
-   * Creates a new User
-   * @param {Connection} connection The connection the user used to make this request
-   * @param {string} name Name of the user
-   * @param {string} id Unique identifier for the user for this connection
-   */
+class Channel {
   constructor(connection, name, id = name) {
     this.conn = connection;
     this.n = name;
@@ -16,16 +10,16 @@ class User {
 
   //region Properties
 
+  get connection() {
+    return this.conn;
+  }
+
   get name() {
     return this.n;
   }
 
   get id() {
     return this.i;
-  }
-
-  get connection() {
-    return this.conn;
   }
 
   //endregion
@@ -43,4 +37,4 @@ class User {
   //endregion
 }
 
-module.exports = User;
+module.exports = Channel;
