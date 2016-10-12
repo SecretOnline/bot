@@ -14,6 +14,7 @@ class Connection extends EventEmitter {
   constructor(bot, name, shortname) {
     super();
 
+    this.bot = bot;
     this.n = name;
     this.i = shortname;
     this.o = false;
@@ -50,6 +51,14 @@ class Connection extends EventEmitter {
 
   //region Functions
 
+  open() {
+    throw new Error('Open function not overridden');
+  }
+
+  close() {
+    throw new Error('Close function not overridden');
+  }
+
   /**
    * Generates a mention for the given target
    * Accepts a User, Channel, or null
@@ -75,6 +84,10 @@ class Connection extends EventEmitter {
     throw new Error('Send function not overridden');
   }
 
+  getPermissionLevel(user) {
+    throw new Error('Permission Level function not overridden');
+  }
+
   //endregion
 
   //region Private Functions
@@ -83,6 +96,7 @@ class Connection extends EventEmitter {
    * Should be called when this connection is ready to be used
    */
   _open() {
+    this.o = true;
     this.emit('open');
   }
 
@@ -90,6 +104,7 @@ class Connection extends EventEmitter {
    * Should be called when this connection isn't available for use (e.g. reconnecting)
    */
   _close() {
+    this.o = false;
     this.emit('close');
   }
 
