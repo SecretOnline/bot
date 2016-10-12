@@ -17,33 +17,7 @@ class User extends Channel {
     this.i = id;
   }
 
-  //region Properties
-
-  get name() {
-    return this.n;
-  }
-
-  get id() {
-    return this.i;
-  }
-
-  get connection() {
-    return this.conn;
-  }
-
-  //endregion
-
-  //region Functions
-
-  mention() {
-    this.conn.mention(this);
-  }
-
-  send(str) {
-    this.conn.send(this, str);
-  }
-
-  //endregion
+  // Currently no outward differnce between Channel and User
 }
 
 module.exports = User;
