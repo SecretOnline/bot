@@ -43,7 +43,7 @@ class Connection extends EventEmitter {
    */
 
   get openState() {
-    retur this.o;
+    return this.o;
   }
 
   //endregion
