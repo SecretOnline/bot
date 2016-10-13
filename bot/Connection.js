@@ -19,7 +19,9 @@ class Connection extends EventEmitter {
     this.conf = config;
     this.n = name;
     this.i = shortname;
+
     this.o = false;
+    this._servers = [];
   }
 
   //region Properties
@@ -47,6 +49,10 @@ class Connection extends EventEmitter {
 
   get openState() {
     return this.o;
+  }
+
+  get servers() {
+    return this._servers;
   }
 
   //endregion
