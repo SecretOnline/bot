@@ -1,14 +1,14 @@
 /* eslint no-console: 0 */
 
 const readline = require('readline');
-const Connection = require('../bot/Connection');
-const Channel = require('../bot/Channel');
-const User = require('../bot/User');
-const Message = require('../bot/Message');
+const Connection = require('../bot/Connection.js');
+const Channel = require('../bot/Channel.js');
+const User = require('../bot/User.js');
+const Message = require('../bot/Message.js');
 
 class ConsoleConnection extends Connection {
-  constructor(bot) {
-    super(bot, 'Console', 'c');
+  constructor(bot, config) {
+    super(bot, config, 'Console', 'c');
 
     this.rl = null;
 

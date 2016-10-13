@@ -8,13 +8,15 @@ class Connection extends EventEmitter {
   /**
    * Creates a new Connection
    * @param {Bot} bot The bot that this connection is linked to
+   * @param {Object} config Configuration for this connection
    * @param {string} Name of connection
    * @param {string} Short name. Must be unique. Should be no more than 3 characters
    */
-  constructor(bot, name, shortname) {
+  constructor(bot, config, name, shortname) {
     super();
 
     this.bot = bot;
+    this.conf = config;
     this.n = name;
     this.i = shortname;
     this.o = false;
