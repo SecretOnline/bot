@@ -11,10 +11,6 @@ class Addon {
     return Promise.reject('Addon didn\'t overwrite init');
   }
 
-  postinit() {
-    return Promise.reject('Addon didn\'t overwrite postinit');
-  }
-
   deinit() {
     return Promise.reject('Addon didn\'t overwrite deinit');
   }
