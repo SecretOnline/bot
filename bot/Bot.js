@@ -132,7 +132,7 @@ class Bot {
       console.log(`making connection ${file}`);
       let mod;
       try {
-        mod = require(`.${bot.c.paths.connections}${file}`);
+        mod = require(`../${bot.c.paths.connections}${file}`);
       } catch (e) {
         console.error('Failed to make connection');
         console.error(e);
