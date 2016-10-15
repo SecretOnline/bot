@@ -12,7 +12,7 @@ class Connection extends EventEmitter {
    * @param {string} Name of connection
    * @param {string} Short name. Must be unique. Should be no more than 3 characters
    */
-  constructor(bot, config, name, shortname) {
+  constructor(bot, config = {}, name = 'NONAME', shortname = name) {
     super();
 
     this.bot = bot;
@@ -92,7 +92,7 @@ class Connection extends EventEmitter {
     throw new Error('Send function not overridden');
   }
 
-  getPermissionLevel(user) {
+  getPermissionLevel(user, channel) {
     throw new Error('Permission Level function not overridden');
   }
 

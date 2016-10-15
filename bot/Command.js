@@ -115,7 +115,9 @@ class Command {
           if (str.match(/{args}|{user}/)) {
             return str
               .replace(/{args}/g, res)
-              .replace(/{user}/g, input.user.name);
+              .replace(/{channel}/g, input.message.channel.mention())
+              .replace(/{server}/g, input.message.server.mention())
+              .replace(/{user}/g, input.user.mention());
           } else {
             if (input) {
               return `${str} ${res}`;

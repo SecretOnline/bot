@@ -7,9 +7,10 @@ class Input {
    * @param  {Message} message Message that this input stems from
    * @param  {string=} text    Override text (uses message.text by default)
    */
-  constructor(message, text = message.text) {
+  constructor(message, bot, text = message.text) {
     this.m = message;
     this.t = text;
+    this.b = bot;
   }
 
   //region Properties
@@ -88,7 +89,7 @@ class Input {
   }
 
   from(text) {
-    return new Input(this.m, text);
+    return new Input(this.m, this.b, text);
   }
 
   //endregion

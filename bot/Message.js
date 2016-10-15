@@ -23,6 +23,10 @@ class Message {
     return this.u;
   }
 
+  get channel() {
+    return this.c;
+  }
+
   get text() {
     return this.t;
   }

@@ -26,8 +26,6 @@ class ConsoleConnection extends Connection {
       output: process.stdout
     });
 
-    console.log('starting connection');
-
     this.rl.on('line', this.onLineReceived.bind(this));
 
     this._open();
@@ -54,7 +52,7 @@ class ConsoleConnection extends Connection {
     console.log(message);
   }
 
-  getPermissionLevel(user) {
+  getPermissionLevel(user, channel) {
     return 2; // Console always has overlord status
   }
 

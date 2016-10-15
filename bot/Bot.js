@@ -1,6 +1,7 @@
 /* eslint no-console: 0 */
 
 const fs = require('fs');
+const JSONAddon = require('./JSONAddon.js');
 const Connection = require('./Connection.js');
 const Channel = require('./Channel.js');
 const Input = require('./Input.js');
@@ -19,11 +20,11 @@ class Bot {
   //region Functions
 
   start() {
-    let connectionProm = this.reloadConnections();
-    let addonProm = connectionProm
-      .then(this.reloadAddons);
-
-    return Promise.all([connectionProm, addonProm]);
+    return this.reloadConnections()
+      .then(this.reloadAddons.bind(this))
+      .then(() => {
+        console.log('[BOT] Loading complete');
+      });
   }
 
   stop() {
@@ -31,35 +32,27 @@ class Bot {
   }
 
   reloadAddons() {
-    return Promise.resolve();
-    // return this._deinitAddons(this.addons)
-    //   .catch((err) => {
-    //     console.error('Error while trying to deinit addons');
-    //     console.error(err);
-    //   })
-    //   .then(() => {
-    //     return this._listDirectory(this.c.paths.addons)
-    //       .then(this._createAddons)
-    //       .then(this._initAddons);
-    //   });
+    return this._deinitAddons(this.addons)
+      .catch((err) => {
+        console.error('Error while trying to deinit addons');
+        console.error(err);
+      })
+      .then(() => {
+        return this._listDirectory(this.c.paths.addons)
+          .then(this._createAddons.bind(this))
+          .then(this._initAddons.bind(this));
+      });
   }
 
   reloadConnections() {
     console.log('[BOT] loading connections');
     return this._listDirectory(this.c.paths.connections)
-      .then((a) => {
-        console.log('have paths');
-        return a;
-      })
       .then(this._createConnections.bind(this))
-      .then((a) => {
-        console.log('have connections');
-        return a;
-      })
       .then(this._openConnections.bind(this));
   }
 
   addCommand(trigger, command) {
+    trigger.replace(/\./g, '');
     if (this.commands.has(trigger)) {
       return false;
     } else {
@@ -110,42 +103,66 @@ class Bot {
   }
 
   _createAddons(files) {
-    return new Promise((resolve, reject) => {
-
-    });
+    let promises = files.map(file => new Promise((resolve, reject) => {
+      console.log(`[BOT] Creating addon ${file}`);
+      let AddonModule;
+      try {
+        // Create JSONAddons for .json files
+        if (file.match(/\.json$/)) {
+          fs.readFile(`./${this.c.paths.addons}${file}`, (err, data) => {
+            let addon = new JSONAddon(this, data, file);
+            this.addons.push(addon);
+            resolve(addon);
+          });
+        }
+        // Just require .js files
+        else if (file.match(/\.js$/)) {
+          AddonModule = require(`../${this.c.paths.addons}${file}`);
+          let addon = new AddonModule(this, {});
+          this.addons.push(addon);
+          resolve(addon);
+        }
+        // Default message
+        else {
+          console.error(`[BOT] Failed to create addon: ${file}, not a valid filetype`);
+          resolve();
+        }
+      } catch (e) {
+        console.error(`[BOT] Failed to create addon: ${file}`);
+        console.error(e);
+        resolve();
+        return;
+      }
+    }));
+    return Promise.all(promises);
   }
 
   _initAddons(addons) {
-    let promises = addons.map(addons => addons.init());
+    let promises = addons.map(addon => addon.init());
     return Promise.all(promises);
   }
 
   _deinitAddons(addons) {
-    let promises = addons.map(addons => addons.deinit());
+    let promises = addons.map(addon => addon.deinit());
     return Promise.all(promises);
   }
 
   _createConnections(files) {
-    console.log(this);
-    let bot = this;
     let promises = files.map(file => new Promise((resolve, reject) => {
-      console.log(`making connection ${file}`);
-      let mod;
+      console.log(`[BOT] Creating connection ${file}`);
+      let ConnectionModule;
       try {
-        mod = require(`../${bot.c.paths.connections}${file}`);
+        ConnectionModule = require(`../${this.c.paths.connections}${file}`);
+        let conn = new ConnectionModule(this, {});
+        this.connections.push(conn);
+        resolve(conn);
       } catch (e) {
-        console.error('Failed to make connection');
+        console.error(`[BOT] Failed to create connection: ${file}`);
         console.error(e);
-        reject(e);
+        resolve();
         return;
       }
-      console.log('before new');
-      let conn = new mod(this, {});
-      this.connections.push(conn);
-      console.log(conn instanceof Connection);
-      resolve(conn);
     }));
-
     return Promise.all(promises);
   }
 
@@ -163,7 +180,35 @@ class Bot {
   }
 
   _onMessage(message) {
-    console.log(message.text);
+    //TODO: Send all incoming messages to addons that want all messages
+
+    if (this.c.verbose) {
+      console.log(`${message.user.name}: ${message.text}`);
+    }
+
+    if (!message.isBot) {
+      let input = new Input(message, this);
+      input.process()
+        .catch((err) => {
+          console.error('[ERROR] processing command');
+          if (this.c.verbose) {
+            console.error(err.stack);
+          }
+
+          if (typeof err === 'string') {
+            message.user.send(err);
+          } else {
+            if (message.user.getPermissionLevel(message.channel) > 1) {
+              message.user.send(err);
+            }
+          }
+        })
+        .then((result) => {
+          if (result) {
+            message.channel.send(result);
+          }
+        });
+    }
   }
 
   //region
