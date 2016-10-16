@@ -68,7 +68,7 @@ class DiscordJSConnection extends Connection {
     if (!guild) {
       throw new Error('Unable to find guild');
     }
-    let member = guild.fetchMember(user.id);
+    let member = guild.members.find('id', user.id);
     if (!member) {
       throw new Error('Unable to find user in guild');
     }
@@ -78,11 +78,11 @@ class DiscordJSConnection extends Connection {
     }
 
     let perms = textChannel.permissionsFor(member);
-    if (perms.hasPermission('ADMINISTRATOR')) {
+    if (perms && perms.hasPermission('ADMINISTRATOR')) {
       return Command.PermissionLevels.ADMIN;
-    } else {
-      return Command.PermissionLevels.DEFAULT;
     }
+
+    return Command.PermissionLevels.DEFAULT;
   }
 
   _onMessage(message) {
