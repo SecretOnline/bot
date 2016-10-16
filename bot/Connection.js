@@ -12,16 +12,17 @@ class Connection extends EventEmitter {
    * @param {string} Name of connection
    * @param {string} Short name. Must be unique. Should be no more than 3 characters
    */
-  constructor(bot, config = {}, name = 'NONAME', shortname = name) {
+  constructor(bot, name = 'NONAME', id = name) {
     super();
 
     this.bot = bot;
-    this.conf = config;
     this.n = name;
-    this.i = shortname;
+    this.i = id;
 
     this.o = false;
     this._servers = [];
+
+    this.conf = bot.getConfig(this);
   }
 
   //region Properties

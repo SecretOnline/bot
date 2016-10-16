@@ -7,12 +7,15 @@ const Channel = require('./Channel.js');
 const Input = require('./Input.js');
 const Message = require('./Message.js');
 const User = require('./User.js');
+const Server = require('./Server.js');
 
 class Bot {
-  constructor(config) {
-    this.c = config;
+  constructor(confPath) {
+    this.c = require(`../${confPath}`);
+    this.confPath = confPath;
 
     this.commands = new Map();
+    this.servers = new Map();
     this.connections = [];
     this.addons = [];
   }
@@ -76,12 +79,50 @@ class Bot {
     }
   }
 
+  addServer(server) {
+    let id = server.id;
+    if ((!id) || (this.servers.has(id))) {
+      id = Math.floor(Math.random() * 1000000);
+
+      while (this.servers.has(id)) {
+        id = Math.floor(Math.random() * 1000000);
+      }
+      server.id = id;
+    }
+
+    this.servers.set(id, server);
+
+    return id;
+  }
+
+  removeServer(id) {
+    if (this.servers.has(id)) {
+      this.servers.remove(id);
+    }
+  }
+
   getCommand() {
 
   }
 
   listCommands() {
 
+  }
+
+  getConfig(obj) {
+    // Requires typechecking to prevent object literals being used to get/set
+    // the configuration of other objects
+    if (obj instanceof Connection) {
+      return this.c.connections[obj.id] || {};
+    }
+  }
+
+  setConfig(obj, conf) {
+    if (obj instanceof Connection) {
+      this.c.connections[obj.id] = conf;
+
+      fs.writeFile(this.confPath, JSON.stringify(this.c, null, 2));
+    }
   }
 
   //endregion
@@ -186,6 +227,10 @@ class Bot {
       console.log(`${message.user.name}: ${message.text}`);
     }
 
+    if (message.channel instanceof Channel && (!this.servers.has(message.channel.server.id))) {
+      console.error(`[ERROR] no server with id ${message.channel.server.id}`);
+    }
+
     if (!message.isBot) {
       let input = new Input(message, this);
       input.process()
@@ -211,7 +256,7 @@ class Bot {
     }
   }
 
-  //region
+  //endregion
 
 }
 

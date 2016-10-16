@@ -1,8 +1,8 @@
+/* eslint no-console: 0 */
 'use strict';
-var config = require('./bot.conf.json');
 var Bot = require('./bot/Bot.js');
 
-var bot = new Bot(config);
+var bot = new Bot('bot.conf.json');
 
 bot.start()
   .then(() => {

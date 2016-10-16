@@ -8,16 +8,23 @@ const User = require('../bot/User.js');
 const Server = require('../bot/Server.js');
 
 class ConsoleConnection extends Connection {
-  constructor(bot, config = {}) {
-    super(bot, config, 'Console', 'c');
+  constructor(bot) {
+    super(bot, 'Console', 'console');
 
     this.rl = null;
 
     // There's only one user and channel, so set here
-    this.server = new Server(this, 'console');
-    this.channel = new Channel(this, 'console');
-    this.server.addChannel(this.channel);
     this.user = new User(this, 'console');
+    this.server = new Server(this, 'console', this.conf.botId);
+    this.channel = new Channel(this, this.server, 'console');
+    this.server.addChannel(this.channel);
+
+    let id = bot.addServer(this.server);
+    if (id !== this.conf.botId) {
+      this.conf.botId = id;
+      bot.setConfig(this, this.conf);
+    }
+
   }
 
   open() {
