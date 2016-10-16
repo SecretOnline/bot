@@ -122,7 +122,7 @@ class Bot {
     // Add other groups into list for channel
     if (message.channel instanceof Channel) {
       let connConf = this.c.connections[message.channel.connection.id] || {};
-      let servConf = connConf[message.channel.server.botId];
+      let servConf = connConf.servers[message.channel.server.id];
       if (servConf) {
         // Add server-specific addons to list
         if (servConf.addons) {
@@ -143,11 +143,23 @@ class Bot {
     if (!match) {
       return false;
     }
+    let commName = match[1];
+
+    // group.trigger style commands
+    match = commName.match(/(.+)\.(.+)/);
+    if (match) {
+      if (!groups.includes(match[1])) {
+        return false;
+      }
+
+      // Filter to only the specified group
+      groups = [match[1]];
+      commName = match[2];
+    }
 
     // Actually get the command
     // TODO: Handle arrays
-    // TODO: Handle group.trigger style
-    let comm = this.commands.get(match[1]);
+    let comm = this.commands.get(commName);
     if (!comm) {
       return false;
     }
@@ -158,7 +170,8 @@ class Bot {
     }
     // Check groups
     if (!groups.includes(comm.group)) {
-      console.log(comm.group);
+      console.log('group not in');
+      console.log(groups);
       return false;
     }
 
@@ -278,7 +291,7 @@ class Bot {
         // Just require .js files
         else if (file.match(/\.js$/)) {
           AddonModule = require(`../${this.c.paths.addons}${file}`);
-          let addon = new AddonModule(this, {});
+          let addon = new AddonModule(this);
           this.addons.push(addon);
           resolve(addon);
         }
@@ -351,33 +364,26 @@ class Bot {
     }
 
     if (!message.isBot) {
-      let prefix = this.c.default.prefix;
-      try {
-        prefix = this.c.connections[message.connection.id].servers[message.server.id].prefix;
-      } catch (e) {} // Just ignore errors for now
-      if (!message.text.match(new RegExp(`^${prefix}(.+)`))) {
+      var first = message.text.split(' ')[0];
+      if (!this.getCommand(first, message)) {
         return;
       }
 
       let input = new Input(message, this);
       input.process()
-        .catch((err) => {
-          console.error('[ERROR] processing command');
-          if (this.c.verbose) {
-            console.error(err.stack);
-          }
-
-          if (typeof err === 'string') {
-            message.user.send(err);
-          } else {
-            if (message.user.getPermissionLevel(message.channel) > 1) {
-              message.user.send(err);
-            }
-          }
-        })
         .then((result) => {
           if (result) {
             message.channel.send(result);
+          }
+        }, (err) => {
+          if (err) {
+            if (typeof err === 'string') {
+              message.user.send(err);
+            }
+
+            if (this.c.verbose) {
+              console.error(err);
+            }
           }
         });
     }
