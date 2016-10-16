@@ -20,7 +20,9 @@ class Connection extends EventEmitter {
     this.i = id;
 
     this.o = false;
-    this._servers = [];
+    this.serverCache = new Map();
+    this.channelCache = new Map();
+    this.userCache = new Map();
 
     this.conf = bot.getConfig(this);
   }
@@ -50,10 +52,6 @@ class Connection extends EventEmitter {
 
   get openState() {
     return this.o;
-  }
-
-  get servers() {
-    return this._servers;
   }
 
   //endregion

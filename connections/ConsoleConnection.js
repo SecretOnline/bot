@@ -14,6 +14,7 @@ class ConsoleConnection extends Connection {
     this.rl = null;
 
     // There's only one user and channel, so set here
+    // There is the user, channel, and server caches, but it's quicker to do this
     this.user = new User(this, 'console');
     this.server = new Server(this, 'console', this.conf.botId);
     this.channel = new Channel(this, this.server, 'console');
