@@ -3,6 +3,7 @@
 const fs = require('fs');
 const JSONAddon = require('./JSONAddon.js');
 const Connection = require('./Connection.js');
+const Command = require('./Command.js');
 const Channel = require('./Channel.js');
 const Input = require('./Input.js');
 const Message = require('./Message.js');
@@ -57,6 +58,7 @@ class Bot {
   addCommand(trigger, command) {
     trigger.replace(/\./g, '');
     if (this.commands.has(trigger)) {
+      // TODO: Add support for commands with same trigger from different groups
       return false;
     } else {
       this.commands.set(trigger, command);
@@ -101,8 +103,53 @@ class Bot {
     }
   }
 
-  getCommand() {
+  getCommand(trigger, message) {
+    // Quick exit for non-string triggers
+    // TBH, not sure when this would occur, but it was in the last version of bot
+    if (typeof trigger !== 'string') {
+      return false;
+    }
 
+    let groups = this.c.default.addons;
+    let prefix = this.c.defalt.prefix;
+    let permLevel = Command.PermissionLevels.DEFAULT;
+
+    // Add other groups into list for channel
+    if (message.channel instanceof Channel) {
+      let connConf = this.c.connections[message.channel.connection.id] || {};
+      let servConf = connConf[message.channel.server.id];
+      if (servConf) {
+        // Add server-specific addons to list
+        if (servConf.addons) {
+          groups.unshift(...servConf.addons);
+        }
+        // Set the prefix, if applicable
+        if (servConf.prefix) {
+          prefix = servConf.prefix;
+        }
+      }
+      // Get the user's actual permission level for this channel
+      permLevel = message.user.getPermissionLevel(message.channel);
+    }
+
+    // Actually make sure this is a command
+    // (yes, we neded to get this far before we could check)
+    let match = trigger.match(new RegExp(`^${prefix}(.+)`));
+    if (!match) {
+      return false;
+    }
+
+    // Actually get the command
+    // TODO: Handle arrays
+    // TODO: Handle group.trigger style
+    let comm = this.commands.get(match[1]);
+
+    // Check permission level
+    if (comm.permission > permLevel) {
+      return false;
+    }
+    // Check groups
+    return groups.includes(comm.group);
   }
 
   listCommands(context, group) {
