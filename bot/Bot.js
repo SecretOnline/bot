@@ -83,14 +83,14 @@ class Bot {
   }
 
   addServer(server) {
-    let id = server.id;
+    let id = server.botId;
     if ((!id) || (this.servers.has(id))) {
       id = Math.floor(Math.random() * 1000000);
 
       while (this.servers.has(id)) {
         id = Math.floor(Math.random() * 1000000);
       }
-      server.id = id;
+      server.botId = id;
     }
 
     this.servers.set(id, server);
@@ -122,7 +122,7 @@ class Bot {
     // Add other groups into list for channel
     if (message.channel instanceof Channel) {
       let connConf = this.c.connections[message.channel.connection.id] || {};
-      let servConf = connConf[message.channel.server.id];
+      let servConf = connConf[message.channel.server.botId];
       if (servConf) {
         // Add server-specific addons to list
         if (servConf.addons) {
@@ -158,6 +158,7 @@ class Bot {
     }
     // Check groups
     if (!groups.includes(comm.group)) {
+      console.log(comm.group);
       return false;
     }
 
@@ -171,7 +172,7 @@ class Bot {
       // Get any server specific command groups
       if (context instanceof Channel) {
         let connConf = this.c.connections[context.connection.id] || {};
-        let servConf = connConf[context.server.id];
+        let servConf = connConf[context.server.botId];
         if (servConf) {
           if (servConf.addons) {
             groups.unshift(...servConf.addons);
@@ -345,11 +346,19 @@ class Bot {
       console.log(`${message.user.name}: ${message.text}`);
     }
 
-    if (message.channel instanceof Channel && (!this.servers.has(message.channel.server.id))) {
-      console.error(`[ERROR] no server with id ${message.channel.server.id}`);
+    if (message.channel instanceof Channel && (!this.servers.has(message.channel.server.botId))) {
+      console.error(`[ERROR] no server with id ${message.channel.server.botId}`);
     }
 
     if (!message.isBot) {
+      let prefix = this.c.default.prefix;
+      try {
+        prefix = this.c.connections[message.connection.id].servers[message.server.id].prefix;
+      } catch (e) {} // Just ignore errors for now
+      if (!message.text.match(new RegExp(`^${prefix}(.+)`))) {
+        return;
+      }
+
       let input = new Input(message, this);
       input.process()
         .catch((err) => {

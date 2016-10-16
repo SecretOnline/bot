@@ -4,10 +4,11 @@ const Channel = require('./Channel.js');
  * A server. Ever connection should have at least one
  */
 class Server {
-  constructor(connection, name, id = undefined) {
+  constructor(connection, name, id = name, botId = undefined) {
     this.conn = connection;
     this.n = name;
     this.i = id;
+    this.ii = botId;
 
     this.channels = [];
   }
@@ -26,10 +27,12 @@ class Server {
     return this.i;
   }
 
-  set id(val) {
-    if (!this.i) {
-      this.i = val;
-    }
+  get botId() {
+    return this.ii;
+  }
+
+  set botId(val) {
+    this.ii = val;
   }
 
   //endregion

@@ -3,7 +3,7 @@ const Command = require('./Command.js');
 
 class JSONAddon extends Addon {
   constructor(bot, data = {}, filename = 'NONAME') {
-    super(bot, {}, filename);
+    super(bot, filename);
 
     this.data = data;
     this.help = [

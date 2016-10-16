@@ -20,7 +20,7 @@ class DiscordJSConnection extends Connection {
   open() {
     this.discord.on('message', this._onMessage.bind(this));
     this.discord.once('ready', () => {
-      console.log('[djs] sucessfully logged in');
+      console.log('[djs] sucessfully logged in'); // eslint-disable-line no-console
     });
 
     this.discord.login(this.conf.token);
@@ -41,9 +41,9 @@ class DiscordJSConnection extends Connection {
   send(target, message) {
     let to;
     if (target instanceof User) {
-      to = this.userCache.get(target.id);
+      to = this.discord.users.find('id', target.id);
     } else if (target instanceof Channel) {
-      to = this.channelCache.get(target.id);
+      to = this.discord.channels.find('id', target.id);
     }
     if (!to) {
       throw new Error('[DJS] Unable to find target in caches');
@@ -89,7 +89,7 @@ class DiscordJSConnection extends Connection {
     // Find or create User
     let user = this.userCache.get(message.author.id);
     if (!user) {
-      user = new User(this, message.author.user.username, message.author.id);
+      user = new User(this, message.author.username, message.author.id);
       this.userCache.set(user.id, user);
     }
     // Find or create Channel
@@ -98,12 +98,25 @@ class DiscordJSConnection extends Connection {
       // Find or create Server
       let server = this.serverCache.get(message.guild.id);
       if (!server) {
-        server = new Server(this, message.guild.name, message.guild.id);
-        this.serverCache.add(server.id, server);
+        let bid = undefined;
+        if (this.conf.servers[message.guild.id]) {
+          bid = this.conf.servers[message.guild.id].botId;
+        }
+        server = new Server(this, message.guild.name, message.guild.id, bid);
+        this.serverCache.set(server.id, server);
+
+        // Get bot to give us its internal ID for this server
+        let id = this.bot.addServer(server);
+        if (id !== bid) {
+          this.conf.servers[server.id] = {
+            botId: id
+          };
+          this.bot.setConfig(this, this.conf);
+        }
       }
       // Create channel now that we have the server
       channel = new Channel(this, server, message.channel.name, message.channel.id);
-      this.channelCache.add(server.id, server);
+      this.channelCache.set(channel.id, channel);
     }
 
     let isBot = false;

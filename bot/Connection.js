@@ -88,6 +88,7 @@ class Connection extends EventEmitter {
    * @return {Promise<,Error>} Resolves on successful sending
    */
   send(target, message) {
+    console.log('for some arcane reason, this is the basic connection');
     throw new Error('Send function not overridden');
   }
 
