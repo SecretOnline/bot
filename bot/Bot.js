@@ -109,9 +109,13 @@ class Bot {
     if (typeof trigger !== 'string') {
       return false;
     }
+    // Quick exit for empty strings, since every message ends with one
+    if (trigger === '') {
+      return false;
+    }
 
     let groups = this.c.default.addons;
-    let prefix = this.c.defalt.prefix;
+    let prefix = this.c.default.prefix;
     let permLevel = Command.PermissionLevels.DEFAULT;
 
     // Add other groups into list for channel
@@ -143,13 +147,20 @@ class Bot {
     // TODO: Handle arrays
     // TODO: Handle group.trigger style
     let comm = this.commands.get(match[1]);
+    if (!comm) {
+      return false;
+    }
 
     // Check permission level
     if (comm.permission > permLevel) {
       return false;
     }
     // Check groups
-    return groups.includes(comm.group);
+    if (!groups.includes(comm.group)) {
+      return false;
+    }
+
+    return comm;
   }
 
   listCommands(context, group) {
@@ -246,8 +257,8 @@ class Bot {
       try {
         // Create JSONAddons for .json files
         if (file.match(/\.json$/)) {
-          fs.readFile(`./${this.c.paths.addons}${file}`, (err, data) => {
-            let addon = new JSONAddon(this, data, file);
+          fs.readFile(`./${this.c.paths.addons}${file}`, 'utf8', (err, data) => {
+            let addon = new JSONAddon(this, JSON.parse(data), file);
             this.addons.push(addon);
             resolve(addon);
           });
