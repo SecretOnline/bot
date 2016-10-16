@@ -19,9 +19,16 @@ class ConsoleConnection extends Connection {
     this.channel = new Channel(this, this.server, 'console');
     this.server.addChannel(this.channel);
 
+    if (!this.conf.servers) {
+      this.conf.servers = {};
+    }
+    if (!this.conf.servers.console) {
+      this.conf.servers.console = {};
+    }
+
     let id = bot.addServer(this.server);
-    if (id !== this.conf.botId) {
-      this.conf.botId = id;
+    if (id !== this.conf.servers.console.botId) {
+      this.conf.servers.console.botId = id;
       bot.setConfig(this, this.conf);
     }
 
