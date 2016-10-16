@@ -105,8 +105,57 @@ class Bot {
 
   }
 
-  listCommands() {
+  listCommands(context, group) {
+    if (context) {
+      let groups = this.c.default.addons;
 
+      // Get any server specific command groups
+      if (context instanceof Channel) {
+        let connConf = this.c.connections[context.connection.id] || {};
+        let servConf = connConf[context.server.id];
+        if (servConf) {
+          if (servConf.addons) {
+            groups.unshift(...servConf.addons);
+          }
+        }
+      }
+
+      return Array.from(this.commands.entries())
+        .filter((pair) => {
+          let command = pair[1];
+
+          // Only list commands for one group
+          if (group) {
+            // Multiple commands with this trigger, check each of them
+            if (Array.isArray(command)) {
+              // Find command with matching group, if not found, exit early
+              let res = command.find(comm => comm.group === group);
+              if (!res) {
+                return false;
+              }
+            }
+            // Only one
+            else if (command.group !== group) {
+              return false;
+            }
+          }
+          // List commands for all groups in context
+          else {
+            // Multiple commands with this trigger, check each of them
+            if (Array.isArray(command)) {
+              // Find command with matching group
+              return command.find(comm => groups.includes(comm.group));
+            }
+            // Only one
+            else {
+              return groups.includes(command.group);
+            }
+          }
+        })
+        .map(pair => pair[0]); // Only want the trigger for the command
+    } else {
+      return Array.from(this.commands.keys());
+    }
   }
 
   getConfig(obj) {
