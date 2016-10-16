@@ -1,4 +1,5 @@
 const EventEmitter = require('events');
+const Server = require('./Server.js');
 
 /**
  * Defines a connection to some message provider.
@@ -88,12 +89,30 @@ class Connection extends EventEmitter {
    * @return {Promise<,Error>} Resolves on successful sending
    */
   send(target, message) {
-    console.log('for some arcane reason, this is the basic connection');
     throw new Error('Send function not overridden');
   }
 
   getPermissionLevel(user, channel) {
     throw new Error('Permission Level function not overridden');
+  }
+
+  getConfig(obj) {
+    if (obj instanceof Server) {
+      return this.conf.servers[obj.id] || {};
+    }
+  }
+
+  setConfig(obj, val) {
+    let changed = false;
+
+    if (obj instanceof Server) {
+      this.conf.servers[obj.id] = val;
+      changed = true;
+    }
+
+    if (changed) {
+      this.bot.setConfig(this, this.conf);
+    }
   }
 
   //endregion

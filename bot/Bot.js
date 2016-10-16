@@ -82,28 +82,6 @@ class Bot {
     }
   }
 
-  addServer(server) {
-    let id = server.botId;
-    if ((!id) || (this.servers.has(id))) {
-      id = Math.floor(Math.random() * 1000000);
-
-      while (this.servers.has(id)) {
-        id = Math.floor(Math.random() * 1000000);
-      }
-      server.botId = id;
-    }
-
-    this.servers.set(id, server);
-
-    return id;
-  }
-
-  removeServer(id) {
-    if (this.servers.has(id)) {
-      this.servers.remove(id);
-    }
-  }
-
   getCommand(trigger, message) {
     // Quick exit for non-string triggers
     // TBH, not sure when this would occur, but it was in the last version of bot
@@ -357,10 +335,6 @@ class Bot {
 
     if (this.c.verbose) {
       console.log(`${message.user.name}: ${message.text}`);
-    }
-
-    if (message.channel instanceof Channel && (!this.servers.has(message.channel.server.botId))) {
-      console.error(`[ERROR] no server with id ${message.channel.server.botId}`);
     }
 
     if (!message.isBot) {

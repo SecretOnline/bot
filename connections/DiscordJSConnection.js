@@ -92,31 +92,27 @@ class DiscordJSConnection extends Connection {
       user = new User(this, message.author.username, message.author.id);
       this.userCache.set(user.id, user);
     }
-    // Find or create Channel
-    let channel = this.channelCache.get(message.guild.id);
-    if (!channel) {
-      // Find or create Server
-      let server = this.serverCache.get(message.guild.id);
-      if (!server) {
-        let bid = undefined;
-        if (this.conf.servers[message.guild.id]) {
-          bid = this.conf.servers[message.guild.id].botId;
-        }
-        server = new Server(this, message.guild.name, message.guild.id, bid);
-        this.serverCache.set(server.id, server);
 
-        // Get bot to give us its internal ID for this server
-        let id = this.bot.addServer(server);
-        if (id !== bid) {
-          this.conf.servers[server.id] = {
-            botId: id
-          };
-          this.bot.setConfig(this, this.conf);
+    let channel;
+    // Is a standard channel
+    if (message instanceof Discord.TextChannel) {
+      channel = this.channelCache.get(message.guild.id);
+      if (!channel) {
+        // Find or create Server
+        let server = this.serverCache.get(message.guild.id);
+        if (!server) {
+          server = new Server(this, message.guild.name, message.guild.id);
+          this.serverCache.set(server.id, server);
         }
+        // Create channel now that we have the server
+        channel = new Channel(this, server, message.channel.name, message.channel.id);
+        this.channelCache.set(channel.id, channel);
       }
-      // Create channel now that we have the server
-      channel = new Channel(this, server, message.channel.name, message.channel.id);
-      this.channelCache.set(channel.id, channel);
+    }
+    // Message was a DM, do DM things
+    else {
+      channel = user;
+
     }
 
     let isBot = false;

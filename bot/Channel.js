@@ -7,6 +7,8 @@ class Channel {
     this.s = server;
     this.n = name;
     this.i = id;
+
+    this.s.addChannel(this);
   }
 
   //region Properties
