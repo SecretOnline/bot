@@ -3,9 +3,8 @@
  * Should be extended by addons
  */
 class Addon {
-  constructor(bot, config = {}, namespace = 'NONAME') {
+  constructor(bot, namespace = 'NONAME') {
     this.bot = bot;
-    this.conf = config;
     this.ns = namespace;
     this.commands = new Map();
   }

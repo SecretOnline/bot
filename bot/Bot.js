@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const JSONAddon = require('./JSONAddon.js');
+const ScriptAddon = require('./ScriptAddon.js');
 const Connection = require('./Connection.js');
 const Command = require('./Command.js');
 const Channel = require('./Channel.js');
@@ -221,13 +222,23 @@ class Bot {
     // the configuration of other objects
     if (obj instanceof Connection) {
       return this.c.connections[obj.id] || {};
+    } else if (obj instanceof ScriptAddon) {
+      return this.c.addons[obj.namespace] || {};
     }
   }
 
   setConfig(obj, conf) {
+    let changed = false;
+
     if (obj instanceof Connection) {
       this.c.connections[obj.id] = conf;
+      changed = true;
+    } else if (obj instanceof ScriptAddon) {
+      this.c.addons[obj.namespace] = conf;
+      changed = true;
+    }
 
+    if (changed) {
       fs.writeFile(this.confPath, JSON.stringify(this.c, null, 2));
     }
   }
