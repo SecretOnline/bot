@@ -201,7 +201,7 @@ class Bot {
 
       // Get any server specific command groups
       if (message.channel instanceof Channel) {
-        let servConf = context.server.getConfig();
+        let servConf = message.channel.server.getConfig();
         if (servConf) {
           if (servConf.addons) {
             groups.unshift(...servConf.addons);

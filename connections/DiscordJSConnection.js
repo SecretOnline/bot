@@ -78,7 +78,7 @@ class DiscordJSConnection extends Connection {
     }
 
     let perms = textChannel.permissionsFor(member);
-    if (perms && perms.hasPermission('ADMINISTRATOR')) {
+    if (perms && perms.hasPermission('MANAGE_GUILD')) {
       return Command.PermissionLevels.ADMIN;
     }
 

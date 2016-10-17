@@ -71,6 +71,22 @@ let topics = {
     'for example, `~flip ~fliptable`',
     '`~fliptable` returns a unicode emote. this is then given to `~flip` to turn upside down',
     'as shown in that example, commands work from right to left, processing the \'last\' command in a message, finally making its way down to the first'
+  ],
+  using: [
+    'this section is about using secret_bot on your own servers',
+    '',
+    '**Discord**',
+    'adding secret_bot to a Discord server is extremely easy',
+    'first, you must have the \'Manage Server\' permission on the server',
+    'then type `~bot-invite` to get the invite link',
+    'follow the link, and select the server in the dropdown box',
+    'done! secret_bot should now appear in you server\'s user list. it doesn\'t require any further setup, it will work right away',
+    '',
+    '**Other Platforms**',
+    'secret_bot doesn\'t support other platforms yet',
+    '',
+    '**Custom Connections**',
+    'more information on how to add connections to secret_bot will be coming in the future, and will appear on GitHub'
   ]
 };
 
