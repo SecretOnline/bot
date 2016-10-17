@@ -34,7 +34,7 @@ class Channel {
   //region Functions
 
   mention() {
-    this.conn.mention(this);
+    return this.conn.mention(this);
   }
 
   send(str) {
