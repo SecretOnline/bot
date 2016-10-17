@@ -2,7 +2,11 @@ const Addon = require('./Addon.js');
 const Command = require('./Command.js');
 
 class JSONAddon extends Addon {
-  constructor(bot, data = {}, filename = 'NONAME') {
+  constructor(bot, data = {}, filename = 'NONAME.json') {
+    let match = filename.match(/(.*)\.json$/);
+    if (match) {
+      filename = match[1];
+    }
     super(bot, filename);
 
     this.data = data;
