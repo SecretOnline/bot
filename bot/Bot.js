@@ -103,7 +103,7 @@ class Bot {
       return false;
     }
 
-    let groups = this.c.default.addons;
+    let groups = this.c.default.addons.slice();
     let prefix = this.c.default.prefix;
     let permLevel = Command.PermissionLevels.DEFAULT;
 
@@ -176,12 +176,11 @@ class Bot {
 
   listCommands(context, group) {
     if (context) {
-      let groups = this.c.default.addons;
+      let groups = this.c.default.addons.slice();
 
       // Get any server specific command groups
       if (context instanceof Channel) {
-        let connConf = this.c.connections[context.connection.id] || {};
-        let servConf = connConf[context.server.botId];
+        let servConf = context.server.getConfig();
         if (servConf) {
           if (servConf.addons) {
             groups.unshift(...servConf.addons);
@@ -189,6 +188,7 @@ class Bot {
         }
       }
 
+      let conflicts = [];
       return Array.from(this.commands.entries())
         .filter((pair) => {
           let command = pair[1];
@@ -198,10 +198,7 @@ class Bot {
             // Multiple commands with this trigger, check each of them
             if (Array.isArray(command)) {
               // Find command with matching group, if not found, exit early
-              let res = command.find(comm => comm.group === group);
-              if (!res) {
-                return false;
-              }
+              return command.find(comm => comm.group === group);
             }
             // Only one
             else if (command.group !== group) {
@@ -213,7 +210,13 @@ class Bot {
             // Multiple commands with this trigger, check each of them
             if (Array.isArray(command)) {
               // Find command with matching group
-              return command.find(comm => groups.includes(comm.group));
+              let res = command.filter(comm => groups.includes(comm.group));
+
+              res.forEach((comm) => {
+                conflicts.push([pair[0], comm]);
+              });
+
+              return false;
             }
             // Only one
             else {
@@ -221,7 +224,8 @@ class Bot {
             }
           }
         })
-        .map(pair => pair[0]); // Only want the trigger for the command
+        .map(pair => pair[0]) // Only want the trigger for the command
+        .concat(conflicts.map(pair => `${pair[1].group}.${pair[0]}`));
     } else {
       return Array.from(this.commands.keys());
     }

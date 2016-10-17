@@ -6,8 +6,7 @@ let helpHelp = [
   'syntax: `~help [command]`',
   'finds help for the given command',
   'for a list of all commands, use `~commands`',
-  'for all commands in a group, use `~commands [group]`',
-  'to find out which group a command is in, use `~which [command]`'
+  'for all commands in a group, use `~commands [group]`'
 ];
 let whichHelp = [
   'syntax: `~which <command>`',
@@ -62,23 +61,23 @@ class Help extends ScriptAddon {
         prefix = serverConf.prefix;
       }
       if (serverConf.addons) {
-        groups.unshift(...serverConf.addons);
+        groups = groups.concat(serverConf.addons);
       }
     }
 
     let available = [];
     let reply = '';
     if (input.text) {
-      available = this.bot.listCommands(input.message, input.text);
-      reply = `secret_bot *help* -> *commands* -> ${input.text}\n` +
+      available = this.bot.listCommands(input.message.channel, input.text);
+      reply = `secret_bot *help* -> *commands* -> *${input.text}*\n` +
         `config for server: *${serverName}*\n` +
         `commands (${available.length}): ` +
         available.sort().map(item => `\`${prefix}${item}\``).join(', ');
     } else {
-      available = this.bot.listCommands(input.message);
+      available = this.bot.listCommands(input.message.channel);
       reply = `secret_bot *help* -> *commands*\n` +
         `config for server: *${serverName}*\n` +
-        `command groups enabled: ${groups.join(', ')}\n` +
+        `command groups enabled: ${groups.sort().join(', ')}\n` +
         `commands (${available.length}): ` +
         available.sort().map(item => `\`${prefix}${item}\``).join(', ');
     }
