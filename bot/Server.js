@@ -46,7 +46,7 @@ class Server {
     return this.conn.getConfig(this);
   }
 
-  setConfig(obj, val) {
+  setConfig(val) {
     this.conn.setConfig(this, val);
   }
 

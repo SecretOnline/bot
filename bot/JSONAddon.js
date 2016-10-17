@@ -20,11 +20,7 @@ class JSONAddon extends Addon {
   }
 
   deinit() {
-    this.commands.forEach((trigger, command) => {
-      this.bot.removeCommand(trigger, command);
-    });
-
-    this.commands.clear();
+    // Do nothing
   }
 
   static generateCommand(bot, ns, trigger, response) {

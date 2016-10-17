@@ -148,7 +148,8 @@ class Bot {
 
     // Actually make sure this is a command
     // (yes, we neded to get this far before we could check)
-    let match = trigger.match(new RegExp(`^${prefix}(.+)`));
+    let escapedPrefix = prefix.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&');
+    let match = trigger.match(new RegExp(`^${escapedPrefix}(.+)`));
     if (!match) {
       return false;
     }
