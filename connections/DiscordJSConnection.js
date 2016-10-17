@@ -103,6 +103,11 @@ class DiscordJSConnection extends Connection {
         if (!server) {
           server = new Server(this, message.guild.name, message.guild.id);
           this.serverCache.set(server.id, server);
+
+          // Add a friendly name to the object
+          let sConf = server.getConfig();
+          sConf.name = message.guild.name;
+          server.setConfig(sConf);
         }
         // Create channel now that we have the server
         channel = new Channel(this, server, message.channel.name, message.channel.id);
