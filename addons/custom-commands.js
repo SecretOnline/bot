@@ -125,12 +125,14 @@ class Custom extends ScriptAddon {
       let trigger = input.text.split(' ')[0];
       let prefix = this.bot.getConfig('default').prefix;
       let serverConf = message.channel.server.getConfig();
+      let group = `${message.channel.connection.id}.${message.channel.server.id}`;
       if (serverConf && serverConf.prefix) {
         prefix = serverConf.prefix;
       }
 
       if (commands[trigger]) {
         delete commands[trigger];
+        this.bot.removeCommand(trigger, group);
       }
 
       fs.writeFile(this.conf.path, JSON.stringify(this.commands, null, 2), (err) => {
