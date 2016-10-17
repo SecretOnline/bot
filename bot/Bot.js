@@ -387,15 +387,28 @@ class Bot {
   }
 
   _onMessage(message) {
-    //TODO: Send all incoming messages to addons that want all messages
+    let inputProm = new Promise((resolve, reject) => {
+      //TODO: Send all incoming messages to addons that want all messages
 
-    if (this.c.verbose) {
-      console.log(`${message.user.name}: ${message.text}`);
-    }
+      if (this.c.verbose) {
+        console.log(`${message.user.name}: ${message.text}`);
+      }
 
-    if (!message.isBot) {
-      var first = message.text.split(' ')[0];
-      if (!this.getCommand(first, message)) {
+      if (message.isBot) {
+        return;
+      }
+
+      let first = message.text.split(' ')[0];
+      let comm;
+
+      try {
+        comm = this.getCommand(first, message);
+      } catch (e) {
+        reject(e);
+        return;
+      }
+
+      if (!comm) {
         if (message.channel instanceof User) {
           message.user.send('sorry, i didn\'t recognise a command at the beginning of your message. the prefix for commands in private messages is a tilde `~`, e.g. `~help`');
         }
@@ -403,23 +416,29 @@ class Bot {
       }
 
       let input = new Input(message, this);
-      input.process()
-        .then((result) => {
-          if (result) {
-            message.channel.send(result);
-          }
-        }, (err) => {
-          if (err) {
-            if (typeof err === 'string') {
-              message.user.send(err);
-            }
+      resolve(input);
+    });
 
-            if (this.c.verbose) {
-              console.error(err);
-            }
+    return inputProm
+      .then(i => i.process())
+      .then((result) => {
+        if (result) {
+          message.channel.send(result);
+        }
+      })
+      .catch((err) => {
+        if (err) {
+          if (typeof err === 'string') {
+            message.user.send(err);
+          } else if (err instanceof Error) {
+            message.user.send(err.message);
           }
-        });
-    }
+
+          if (this.c.verbose) {
+            console.error(err);
+          }
+        }
+      });
   }
 
   //endregion

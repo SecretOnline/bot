@@ -56,7 +56,12 @@ class Input {
 
       // Iterate over all words
       for (var i = 0; i < words.length; i++) {
-        let comm = this.b.getCommand(words[i], this.m);
+        let comm;
+        try {
+          comm = this.b.getCommand(words[i], this.m);
+        } catch (e) {
+          reject(e)
+        }
 
         if (comm) {
           var newStr = '';
