@@ -77,15 +77,35 @@ class Bot {
     }
   }
 
-  removeCommand(trigger, command) {
+  removeCommand(trigger, group) {
     var comm = this.commands.get(trigger);
 
     if (comm) {
-      if (comm === command) {
-        this.commands.delete(trigger);
-        return true;
+      if (Array.isArray(comm)) {
+        let command = comm.find(c => c.group === group);
+
+        if (command) {
+          if (command.group === group) {
+            let index = comm.indexOf(command);
+            comm.splice(index, 1);
+
+            if (comm.length === 0) {
+              this.commands.delete(trigger);
+            }
+            return true;
+          } else {
+            return false;
+          }
+        } else {
+          return true;
+        }
       } else {
-        return false;
+        if (comm.group === group) {
+          this.commands.delete(trigger);
+          return true;
+        } else {
+          return false;
+        }
       }
     } else {
       return true;
