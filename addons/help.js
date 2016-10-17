@@ -20,8 +20,13 @@ let whichHelp = [
 let topics = {
   help: [
     'secret_bot has support for commands to provide help and usage information',
-    'help is accessed by using `~help <command>`',
-    'e.g. `~help help`'
+    '',
+    'help is accessed by using `~help [command]`',
+    'e.g. `~help help`, `~help topic help`',
+    '',
+    'in example commands, the angled `<>` brackets mean that this argument is required, while square `[]` brackets mean it\'s optional',
+    'for example `~help` can take an argument (the name of a command), but doesn\'t need one, so is written like `~help [command]`',
+    '`~which` requires an argument, so is written as `~which <command>` in the help'
   ],
   groups: [
     'command groups do what they say: they group commands together',
@@ -94,11 +99,18 @@ class Help extends ScriptAddon {
       }
     }
 
-    let comm = this.bot.getCommand(`${prefix}${input.text}`, input.message);
+    let escapedPrefix = prefix.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&');
+    let match = input.text.match(new RegExp(`^${escapedPrefix}(.+)`));
+    let unprefixed = input.text;
+    if (match) {
+      unprefixed = match[1];
+    }
+
+    let comm = this.bot.getCommand(`${prefix}${unprefixed}`, input.message);
     if (comm) {
-      return `\`${prefix}${input.text}\` is from ${comm.group}`;
+      return `\`${prefix}${unprefixed}\` is from ${comm.group}`;
     } else {
-      return `unknown or disallowed command: ${input.text}`;
+      return `unknown or disallowed command: ${unprefixed}`;
     }
   }
 
@@ -122,13 +134,13 @@ class Help extends ScriptAddon {
     let available = [];
     let reply = '';
     if (input.text) {
-      available = this.bot.listCommands(input.message.channel, input.text);
+      available = this.bot.listCommands(input.message, input.text);
       reply = `secret_bot *help* -> *commands* -> *${input.text}*\n` +
         `config for server: *${serverName}*\n` +
         `commands (${available.length}): ` +
         available.sort().map(item => `\`${prefix}${item}\``).join(', ');
     } else {
-      available = this.bot.listCommands(input.message.channel);
+      available = this.bot.listCommands(input.message);
       reply = `secret_bot *help* -> *commands*\n` +
         `config for server: *${serverName}*\n` +
         `command groups enabled: ${groups.sort().join(', ')}\n` +
@@ -154,13 +166,20 @@ class Help extends ScriptAddon {
         }
       }
 
+      let escapedPrefix = prefix.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&');
+      let match = input.text.match(new RegExp(`^${escapedPrefix}(.+)`));
+      let unprefixed = input.text;
+      if (match) {
+        unprefixed = match[1];
+      }
+
       let header = [
-        `secret_bot *help* -> *${input.text}*`
+        `secret_bot *help* -> *${unprefixed}*`
       ];
       let help = '';
 
       // Get command
-      let comm = this.bot.getCommand(`${prefix}${input.text}`, input.message);
+      let comm = this.bot.getCommand(`${prefix}${unprefixed}`, input.message);
       if (comm) {
         header.push(`command group: ${comm.group}`);
 
@@ -170,7 +189,7 @@ class Help extends ScriptAddon {
           return '';
         }
         if (!help) {
-          help = `no help for ${input.text} can be found`;
+          help = `no help for \`${unprefixed}\` can be found`;
         }
 
         if (comm.permission) {
@@ -192,8 +211,8 @@ class Help extends ScriptAddon {
           let rest = parts.join(' ');
           if (!rest) {
             help = [
-              'available help topics:',
-              Object.keys(topics).sort().map(item => `\`${prefix}${item}\``).join(', ')
+              'available help topics (use `~help topic <topic>` to view):',
+              Object.keys(topics).sort().map(item => `\`${item}\``).join(', ')
             ].join('\n');
           } else if (topics[rest]) {
             header[0] += ` -> *${rest}*`;
@@ -202,7 +221,7 @@ class Help extends ScriptAddon {
             help = `no help topic named ${rest}`;
           }
         } else {
-          help = `unknown or disallowed command: ${input.text}`;
+          help = `unknown or disallowed command: ${unprefixed}`;
         }
       }
 

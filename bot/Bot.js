@@ -195,12 +195,12 @@ class Bot {
     return comm;
   }
 
-  listCommands(context, group) {
-    if (context) {
+  listCommands(message, group) {
+    if (message) {
       let groups = this.c.default.addons.slice();
 
       // Get any server specific command groups
-      if (context instanceof Channel) {
+      if (message.channel instanceof Channel) {
         let servConf = context.server.getConfig();
         if (servConf) {
           if (servConf.addons) {
@@ -209,40 +209,48 @@ class Bot {
         }
       }
 
+      if (group) {
+        if (groups.includes(group)) {
+          groups = [group];
+        } else {
+          return [];
+        }
+      }
+
       let conflicts = [];
       return Array.from(this.commands.entries())
         .filter((pair) => {
           let command = pair[1];
+          // Multiple commands with this trigger, check each of them
+          if (Array.isArray(command)) {
+            // Find command with matching group
+            let res = command.filter(comm => groups.includes(comm.group));
 
-          // Only list commands for one group
-          if (group) {
-            // Multiple commands with this trigger, check each of them
-            if (Array.isArray(command)) {
-              // Find command with matching group, if not found, exit early
-              return command.find(comm => comm.group === group);
+            if (res.length === 1) {
+              // Check permission
+              if (message.user.getPermissionLevel(message.channel) < res[0].permission) {
+                return false;
+              }
+              return groups.includes(res[0].group);
             }
-            // Only one
-            else if (command.group !== group) {
-              return false;
-            }
+
+            res.forEach((comm) => {
+              // Check permission
+              if (message.user.getPermissionLevel(message.channel) < comm.permission) {
+                return;
+              }
+              conflicts.push([pair[0], comm]);
+            });
+
+            return false;
           }
-          // List commands for all groups in context
+          // Only one
           else {
-            // Multiple commands with this trigger, check each of them
-            if (Array.isArray(command)) {
-              // Find command with matching group
-              let res = command.filter(comm => groups.includes(comm.group));
-
-              res.forEach((comm) => {
-                conflicts.push([pair[0], comm]);
-              });
-
+            // Check permission
+            if (message.user.getPermissionLevel(message.channel) < command.permission) {
               return false;
             }
-            // Only one
-            else {
-              return groups.includes(command.group);
-            }
+            return groups.includes(command.group);
           }
         })
         .map(pair => pair[0]) // Only want the trigger for the command
@@ -388,6 +396,9 @@ class Bot {
     if (!message.isBot) {
       var first = message.text.split(' ')[0];
       if (!this.getCommand(first, message)) {
+        if (message.channel instanceof User) {
+          message.user.send('sorry, i didn\'t recognise a command at the beginning of your message. the prefix for commands in private messages is a tilde `~`, e.g. `~help`');
+        }
         return;
       }
 
