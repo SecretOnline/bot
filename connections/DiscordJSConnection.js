@@ -95,8 +95,8 @@ class DiscordJSConnection extends Connection {
 
     let channel;
     // Is a standard channel
-    if (message instanceof Discord.TextChannel) {
-      channel = this.channelCache.get(message.guild.id);
+    if (message.channel instanceof Discord.TextChannel) {
+      channel = this.channelCache.get(message.channel.id);
       if (!channel) {
         // Find or create Server
         let server = this.serverCache.get(message.guild.id);

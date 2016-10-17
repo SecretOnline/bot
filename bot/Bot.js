@@ -216,6 +216,8 @@ class Bot {
       return this.c.connections[obj.id] || {};
     } else if (obj instanceof ScriptAddon) {
       return this.c.addons[obj.namespace] || {};
+    } else if (obj === 'default') {
+      return this.c.default;
     }
   }
 
@@ -227,6 +229,9 @@ class Bot {
       changed = true;
     } else if (obj instanceof ScriptAddon) {
       this.c.addons[obj.namespace] = conf;
+      changed = true;
+    } else if (obj === 'default') {
+      this.c.default = conf;
       changed = true;
     }
 

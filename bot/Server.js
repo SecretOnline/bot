@@ -10,7 +10,6 @@ class Server {
     this.i = id;
 
     this.channels = [];
-    this.conf = connection.getConfig(this);
   }
 
   //region Properties
@@ -41,6 +40,14 @@ class Server {
     } else {
       throw new Error('Tried to add a non-channel object');
     }
+  }
+
+  getConfig() {
+    return this.conn.getConfig(this);
+  }
+
+  setConfig(obj, val) {
+    this.conn.setConfig(this, val);
   }
 
   //endregion
