@@ -1,4 +1,4 @@
-'use strict';
+const Channel = require('./Channel.js');
 
 var perms = {
   DEFAULT: 0,
@@ -113,10 +113,13 @@ class Command {
       return input.process()
         .then((res) => {
           if (str.match(/{args}|{user}/)) {
+            let server = input.message.channel instanceof Channel ? input.message.channel.server.name : 'private message';
+            let channel = input.message.channel instanceof Channel ? input.message.channel.mention() : 'private message';
+
             return str
               .replace(/{args}/g, res)
-              .replace(/{channel}/g, input.message.channel.mention())
-              .replace(/{server}/g, input.message.server.mention())
+              .replace(/{channel}/g, channel)
+              .replace(/{server}/g, server)
               .replace(/{user}/g, input.user.mention());
           } else {
             if (input) {
