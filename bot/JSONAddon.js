@@ -15,9 +15,7 @@ class JSONAddon extends Addon {
 
   init() {
     Object.keys(this.data).forEach((key) => {
-      let fn = Command.makeStringFunction(this.data[key]);
-      let help = JSONAddon.generateHelp(key, this.data[key]);
-      this._addCommand(key, new Command(fn, this.ns, help));
+      JSONAddon.generateCommand(this.bot, this.ns, key, this.data[key]);
     });
   }
 
@@ -27,6 +25,15 @@ class JSONAddon extends Addon {
     });
 
     this.commands.clear();
+  }
+
+  static generateCommand(bot, ns, trigger, response) {
+    let fn = Command.makeStringFunction(response);
+    let help = JSONAddon.generateHelp(trigger, response);
+    let comm = new Command(fn, ns, help);
+    bot.addCommand(trigger, comm);
+
+    return comm;
   }
 
   static generateHelp(trigger, response) {
