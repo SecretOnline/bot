@@ -68,7 +68,8 @@ class Bot {
         return false;
       }
 
-      commands.push(commands);
+      commands.push(command);
+      this.commands.set(trigger, commands);
       return true;
     } else {
       this.commands.set(trigger, command);
