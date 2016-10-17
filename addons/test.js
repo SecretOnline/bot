@@ -9,6 +9,8 @@ class Test extends ScriptAddon {
   init() {
     this.bot.addCommand('permtest', new Command(this.doTest, 'test', Command.PermissionLevels.ADMIN));
     this.bot.addCommand('reject', new Command(this.rejecter, 'test', Command.PermissionLevels.OVERLORD));
+    this.bot.addCommand('conflict', new Command(this.conflict1, 'conflict1', Command.PermissionLevels.OVERLORD));
+    this.bot.addCommand('conflict', new Command(this.conflict2, 'conflict2', Command.PermissionLevels.OVERLORD));
   }
 
   deinit() {
@@ -26,6 +28,14 @@ class Test extends ScriptAddon {
           reject(result);
         });
       });
+  }
+
+  conflict1() {
+    return 'resolved to conflict 1';
+  }
+
+  conflict2() {
+    return 'resolved to conflict 2';
   }
 }
 

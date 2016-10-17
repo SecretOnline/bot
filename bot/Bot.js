@@ -59,8 +59,17 @@ class Bot {
   addCommand(trigger, command) {
     trigger.replace(/\./g, '');
     if (this.commands.has(trigger)) {
-      // TODO: Add support for commands with same trigger from different groups
-      return false;
+      let commands = this.commands.get(trigger);
+      if (!Array.isArray(commands)) {
+        commands = [commands];
+      }
+
+      if (commands.find(c => c.group === command.group)) {
+        return false;
+      }
+
+      commands.push(commands);
+      return true;
     } else {
       this.commands.set(trigger, command);
       return true;
@@ -111,6 +120,7 @@ class Bot {
           prefix = servConf.prefix;
         }
       }
+      groups.push(`${message.channel.connection.id}.${message.channel.server.id}`);
       // Get the user's actual permission level for this channel
       permLevel = message.user.getPermissionLevel(message.channel);
     }
@@ -136,10 +146,19 @@ class Bot {
     }
 
     // Actually get the command
-    // TODO: Handle arrays
     let comm = this.commands.get(commName);
     if (!comm) {
       return false;
+    }
+
+    // Handle the array case
+    if (Array.isArray(comm)) {
+      let allowed = comm.filter(c => groups.includes(c.group));
+      // Maybe in the future give a message saying that there was a conflict
+      if (allowed.length !== 1) {
+        return false;
+      }
+      comm = allowed[0];
     }
 
     // Check permission level
@@ -148,8 +167,6 @@ class Bot {
     }
     // Check groups
     if (!groups.includes(comm.group)) {
-      console.log('group not in');
-      console.log(groups);
       return false;
     }
 
