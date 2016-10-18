@@ -1,59 +1,75 @@
-'use strict';
-var _bot;
+const ScriptAddon = require('../bot/ScriptAddon.js');
+const Command = require('../bot/Command.js');
+const Channel = require('../bot/Channel.js');
 
-var reloadHelp = 'really? you needed help for this? and you\'re the one in charge of this bot...';
-var changeCharHelp = [
+let reloadHelp = 'really? you needed help for this? and you\'re the one in charge of this bot...';
+let changePrefixHelp = [
   'syntax: `~change-char <character>`',
   'changes the character used to trigger commands',
   'default is `~`'
 ];
-var inviteHelp = 'gives you a link to invite the bot to your own discord server';
+let inviteHelp = 'gives you a link to invite the bot to your own discord server';
 
-var inviteLink = 'https://discordapp.com/oauth2/authorize?client_id=177875535391752192&scope=bot';
+let inviteLink = 'https://discordapp.com/oauth2/authorize?client_id=177875535391752192&scope=bot';
 
-function init(bot) {
-  _bot = bot;
+class Core extends ScriptAddon {
+  constructor(bot) {
+    super(bot, 'core');
+  }
 
-  _bot.registerCommand('reload', new _bot.Command(doReload, 'core', _bot.Command.PermissionLevels.OVERLORD, reloadHelp));
-  _bot.registerCommand('change-char', new _bot.Command(changeCommandChar, 'core', _bot.Command.PermissionLevels.ADMIN, changeCharHelp));
-  _bot.registerCommand('bot-invite', new _bot.Command(getInviteLink, 'core', inviteHelp));
-}
+  init() {
+    this.bot.addCommand('reload', new Command(this.doReload.bind(this), 'core', Command.PermissionLevels.OVERLORD, reloadHelp));
+    this.bot.addCommand('change-prefix', new Command(this.changeCommandPrefix.bind(this), 'core', Command.PermissionLevels.ADMIN, changePrefixHelp));
+    this.bot.addCommand('bot-invite', new Command(this.getInviteLink.bind(this), 'core', inviteHelp));
+  }
 
-function doReload() {
-  return _bot.forceReload();
-}
+  deinit() {
+    // Do nothing
+  }
 
-function changeCommandChar(input) {
-  // You need something to set it to, duh
-  if (input.raw) {
-    // Take first character of raw input
-    var character = input.raw.charAt(0);
-    var server = input.originalMessage.guild.id;
+  doReload(input) {
+    input.user.send('reloading is not suported yet');
+    return '';
+    // return this.bot.reloadAddons()
+    //   .then(() => {
+    //     input.user.send('reload complete');
+    //     return '';
+    //   });
+  }
 
-    // Set command prefix character
-    var serverConf = _bot.getServerConf(server);
-    serverConf.char = character;
-    _bot.setServerConf(server, serverConf);
+  changeCommandPrefix(input) {
+    if (!input.message.channel instanceof Channel) {
+      return 'unable to change prefix for private channels';
+    }
 
-    return `command character changed to \`${character}\``;
-  } else {
-    return 'no character specified';
+    // You need something to set it to, duh
+    if (input.text) {
+      // Take first character of raw input
+      var prefix = input.text.split(' ').shift();
+      var server = input.message.channel.server;
+
+      // Set command prefix
+      var serverConf = server.getConfig();
+      serverConf.prefix = prefix;
+      server.setConfig(serverConf);
+
+      return `command prefix changed to \`${prefix}\``;
+    } else {
+      return 'no character specified';
+    }
+  }
+
+  getInviteLink(input) {
+    // Just return link if more than this command, otherwise give a bigger description
+    if (input.message.text.split(' ').length === 1) {
+      return [
+        'here\'s the link to invite secret_bot to your own Discord server',
+        inviteLink
+      ].join('\n');
+    } else {
+      return inviteLink;
+    }
   }
 }
 
-function getInviteLink(input) {
-  // Just return link if more than this command, otherwise give a bigger description
-  if (input.originalMessage.content.split(' ').length === 1) {
-    return [
-      'here\'s the link to invite secret_bot to your own Discord server',
-      inviteLink
-    ].join('\n');
-  } else {
-    return inviteLink;
-  }
-}
-
-
-module.exports = {
-  init: init
-};
+module.exports = Core;

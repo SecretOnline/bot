@@ -1,32 +1,46 @@
+const ScriptAddon = require('../bot/ScriptAddon.js');
+const Command = require('../bot/Command.js');
+
 var flipHelp = [
   'this command will flip any text upside down',
   '(not all characters work just yet. soon(tm))',
   'example usage:',
-  '``~flip example text`',
-  '``~flip ~dance`'
+  '`~flip example text`',
+  '`~flip ~dance`'
 ];
 
-function init(bot) {
-  bot.registerCommand('flip', new bot.Command(getFlip, 'default', flipHelp));
-}
-
-function getFlip(input) {
-  return input.process()
-    .then((result) => {
-      return flip(result);
-    });
-}
-
-function flip(aString) {
-  var last = aString.length - 1;
-  var result = new Array(aString.length);
-  for (var i = last; i >= 0; --i) {
-    var c = aString.charAt(i);
-    var r = flipTable[c];
-    result[last - i] = r !== undefined ? r : c;
+class Flip extends ScriptAddon {
+  constructor(bot) {
+    super(bot, 'help');
   }
-  return result.join('');
+
+  init() {
+    this.bot.addCommand('flip', new Command(this.getFlip, 'default', flipHelp));
+  }
+
+  deinit() {
+    // Do nothing
+  }
+
+  getFlip(input) {
+    return input.process()
+      .then((result) => {
+        return Flip.flip(result);
+      });
+  }
+
+  static flip(aString) {
+    var last = aString.length - 1;
+    var result = new Array(aString.length);
+    for (var i = last; i >= 0; --i) {
+      var c = aString.charAt(i);
+      var r = flipTable[c];
+      result[last - i] = r !== undefined ? r : c;
+    }
+    return result.join('');
+  }
 }
+
 var flipTable = {
   a: '\u0250',
   b: 'q',
@@ -53,7 +67,7 @@ var flipTable = {
   '{': '}',
   '?': '\u00BF',
   '!': '\u00A1',
-  "\'": ',',
+  '\'': ',',
   '<': '>',
   '_': '\u203E',
   '"': '\u201E',
@@ -93,6 +107,4 @@ for (var i in flipTable) {
   flipTable[flipTable[i]] = i;
 }
 
-module.exports = {
-  init: init
-};
+module.exports = Flip;

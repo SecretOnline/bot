@@ -1,27 +1,42 @@
-'use strict';
-var _bot;
+const ScriptAddon = require('../bot/ScriptAddon.js');
+const Command = require('../bot/Command.js');
 
-function init(bot) {
-  _bot = bot;
+class Test extends ScriptAddon {
+  constructor(bot) {
+    super(bot, 'test');
+  }
 
-  _bot.registerCommand('permtest', new _bot.Command(doTest, 'test', _bot.Command.PermissionLevels.ADMIN));
-  _bot.registerCommand('reject', new _bot.Command(rejecter, 'test', _bot.Command.PermissionLevels.OVERLORD));
-}
+  init() {
+    this.bot.addCommand('permtest', new Command(this.doTest, 'test', Command.PermissionLevels.ADMIN));
+    this.bot.addCommand('reject', new Command(this.rejecter, 'test', Command.PermissionLevels.OVERLORD));
+    this.bot.addCommand('conflict', new Command(this.conflict1, 'conflict1', Command.PermissionLevels.OVERLORD));
+    this.bot.addCommand('conflict', new Command(this.conflict2, 'conflict2', Command.PermissionLevels.OVERLORD));
+  }
 
-function doTest() {
-  return 'permission test passed';
-}
+  deinit() {
+    // Do nothing
+  }
 
-function rejecter(input) {
-  return input.process()
-    .then((result) => {
-      return new Promise((resolve, reject) => {
-        reject(result);
+  doTest() {
+    return 'permission test passed';
+  }
+
+  rejecter(input) {
+    return input.process()
+      .then((result) => {
+        return new Promise((resolve, reject) => {
+          reject(result);
+        });
       });
-    });
+  }
+
+  conflict1() {
+    return 'resolved to conflict 1';
+  }
+
+  conflict2() {
+    return 'resolved to conflict 2';
+  }
 }
 
-
-module.exports = {
-  init: init
-};
+module.exports = Test;

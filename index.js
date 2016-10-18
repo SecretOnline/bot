@@ -1,9 +1,13 @@
+/* eslint no-console: 0 */
 'use strict';
-var Discordie = require('discordie');
-var config = require('./main.conf.json');
-var Bot = require('./obj/Bot.js');
+var Bot = require('./bot/Bot.js');
 
-var discord = new Discordie();
-var bot = new Bot(discord, config);
+var bot = new Bot('bot.conf.json');
 
-bot.start();
+bot.start()
+  .then(() => {
+    console.log('it\'s working!');
+  }, (err) => {
+    console.error('Outter error');
+    console.error(err);
+  });
