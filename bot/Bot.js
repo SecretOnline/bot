@@ -110,7 +110,6 @@ class Bot {
   }
 
   getCommand(trigger, message) {
-
     // Quick exit for non-string triggers
     // TBH, not sure when this would occur, but it was in the last version of bot
     if (typeof trigger !== 'string') {
@@ -400,11 +399,19 @@ class Bot {
       let first = message.text.split(' ')[0];
       let comm;
 
+      // Prevent triggering of markdown strikethrough
+      let strikethrough = false;
+      if (first.match(/^~~/)) {
+        strikethrough = true;
+      }
+
       try {
         comm = this.getCommand(first, message);
       } catch (e) {
-        reject(e);
-        return;
+        if (!strikethrough) {
+          reject(e);
+          return;
+        }
       }
 
       if (!comm) {
