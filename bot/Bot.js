@@ -7,9 +7,6 @@ const Connection = require('./Connection.js');
 const Command = require('./Command.js');
 const Channel = require('./Channel.js');
 const Input = require('./Input.js');
-const Message = require('./Message.js');
-const User = require('./User.js');
-const Server = require('./Server.js');
 
 class Bot {
   constructor(confPath) {
@@ -113,6 +110,7 @@ class Bot {
   }
 
   getCommand(trigger, message) {
+
     // Quick exit for non-string triggers
     // TBH, not sure when this would occur, but it was in the last version of bot
     if (typeof trigger !== 'string') {
@@ -159,7 +157,7 @@ class Bot {
     match = commName.match(/(.+)\.(.+)/);
     if (match) {
       if (!groups.includes(match[1])) {
-        return false;
+        throw new Error(`the command group \`${match[1]}\` is not enabled on this server`);
       }
 
       // Filter to only the specified group
@@ -170,7 +168,7 @@ class Bot {
     // Actually get the command
     let comm = this.commands.get(commName);
     if (!comm) {
-      return false;
+      throw new Error(`\`${prefix}${commName}\` is not a valid command`);
     }
 
     // Handle the array case
@@ -178,18 +176,19 @@ class Bot {
       let allowed = comm.filter(c => groups.includes(c.group));
       // Maybe in the future give a message saying that there was a conflict
       if (allowed.length !== 1) {
-        return false;
+        let allowedGroups = allowed.map(c => `\`${c.group}\``).join(' ');
+        throw new Error(`\`${prefix}${commName}\` is added by multiple command groups (${allowedGroups}). use \`${prefix}<group>.${commName}\` instead`);
       }
       comm = allowed[0];
     }
 
     // Check permission level
     if (comm.permission > permLevel) {
-      return false;
+      throw new Error(`you do not have the correct permissions for \`${prefix}${commName}\``);
     }
     // Check groups
     if (!groups.includes(comm.group)) {
-      return false;
+      throw new Error(`the command group \`${comm.group}\` is not enabled on this server`);
     }
 
     return comm;
@@ -409,8 +408,8 @@ class Bot {
       }
 
       if (!comm) {
-        if (message.channel instanceof User) {
-          message.user.send('sorry, i didn\'t recognise a command at the beginning of your message. the prefix for commands in private messages is a tilde `~`, e.g. `~help`');
+        if (!message.channel instanceof Channel) {
+          reject(new Error('the first word of a message must be a valid command'));
         }
         return;
       }
