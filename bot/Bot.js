@@ -174,9 +174,11 @@ class Bot {
     if (Array.isArray(comm)) {
       let allowed = comm.filter(c => groups.includes(c.group));
       // Maybe in the future give a message saying that there was a conflict
-      if (allowed.length !== 1) {
+      if (allowed.length > 1) {
         let allowedGroups = allowed.map(c => `\`${c.group}\``).join(' ');
         throw new Error(`\`${prefix}${commName}\` is added by multiple command groups (${allowedGroups}). use \`${prefix}<group>.${commName}\` instead`);
+      } else if (allowed.length === 0) {
+        throw new Error(`\`${prefix}${commName}\` is added by multiple command groups, but none of them are enabled`);
       }
       comm = allowed[0];
     }
