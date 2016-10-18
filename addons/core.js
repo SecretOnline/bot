@@ -28,11 +28,13 @@ class Core extends ScriptAddon {
   }
 
   doReload(input) {
-    return this.bot.reloadAddons()
-      .then(() => {
-        input.user.send('reload complete');
-        return '';
-      });
+    input.user.send('reloading is not suported yet');
+    return '';
+    // return this.bot.reloadAddons()
+    //   .then(() => {
+    //     input.user.send('reload complete');
+    //     return '';
+    //   });
   }
 
   changeCommandPrefix(input) {

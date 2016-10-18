@@ -341,7 +341,8 @@ class Bot {
         return;
       }
     }));
-    return Promise.all(promises);
+    return Promise.all(promises)
+      .then(ps => ps.filter(p => p)); // Eliminates the undefined addons
   }
 
   _initAddons(addons) {
@@ -370,7 +371,8 @@ class Bot {
         return;
       }
     }));
-    return Promise.all(promises);
+    return Promise.all(promises)
+      .then(ps => ps.filter(p => p)); // Eliminates the undefined connections
   }
 
   _openConnections(connections) {
