@@ -10,11 +10,15 @@ class DiscordJSConnection extends Connection {
   constructor(bot) {
     super(bot, 'discord.js', 'djs');
 
-    this.discord = new Discord.Client();
+    this.d = new Discord.Client();
 
     if (!this.conf.token) {
       throw new Error('No login token given to discord.js');
     }
+  }
+
+  get discord() {
+    return this.d;
   }
 
   open() {

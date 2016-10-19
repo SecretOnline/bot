@@ -14,7 +14,6 @@ class Bot {
     this.confPath = confPath;
 
     this.commands = new Map();
-    this.servers = new Map();
     this.connections = [];
     this.addons = [];
   }
@@ -258,6 +257,10 @@ class Bot {
     } else {
       return Array.from(this.commands.keys());
     }
+  }
+
+  getConnection(id) {
+    return this.connections.find(conn => conn.id === id);
   }
 
   getConfig(obj) {
