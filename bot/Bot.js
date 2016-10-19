@@ -210,7 +210,7 @@ class Bot {
       }
 
       if (group) {
-        if (groups.includes(group)) {
+        if (groups.find(g => group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)))) {
           groups = [group];
         } else {
           return [];
@@ -224,14 +224,14 @@ class Bot {
           // Multiple commands with this trigger, check each of them
           if (Array.isArray(command)) {
             // Find command with matching group
-            let res = command.filter(comm => groups.includes(comm.group));
+            let res = command.filter(c => groups.find(g => c.group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`))));
 
             if (res.length === 1) {
               // Check permission
               if (message.user.getPermissionLevel(message.channel) < res[0].permission) {
                 return false;
               }
-              return groups.includes(res[0].group);
+              return groups.find(g => command.group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)));
             }
 
             res.forEach((comm) => {
@@ -250,7 +250,7 @@ class Bot {
             if (message.user.getPermissionLevel(message.channel) < command.permission) {
               return false;
             }
-            return groups.includes(command.group);
+            return groups.find(g => command.group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)));
           }
         })
         .map(pair => pair[0]) // Only want the trigger for the command
