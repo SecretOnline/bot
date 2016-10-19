@@ -36,6 +36,10 @@ class Command {
       this.h = permission;
     }
 
+    if (!group.match(/^[\w._-]+$/)) {
+      throw new Error(`command groups must only contain alphanumeric characters, dashes, underscores, and full stops (periods) '${group}'`);
+    }
+
     this.g = group;
   }
 

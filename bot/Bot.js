@@ -171,7 +171,7 @@ class Bot {
 
     // Handle the array case
     if (Array.isArray(comm)) {
-      let allowed = comm.filter(c => groups.includes(c.group));
+      let allowed = comm.filter(c => groups.find(g => c.group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`))));
       // Maybe in the future give a message saying that there was a conflict
       if (allowed.length > 1) {
         let allowedGroups = allowed.map(c => `\`${c.group}\``).join(' ');
@@ -180,15 +180,16 @@ class Bot {
         throw new Error(`\`${prefix}${commName}\` is added by multiple command groups, but none of them are enabled`);
       }
       comm = allowed[0];
+    } else {
+      // Check groups
+      if (!groups.find(g => comm.group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)))) {
+        throw new Error(`the command group \`${comm.group}\` is not enabled on this server`);
+      }
     }
 
     // Check permission level
     if (comm.permission > permLevel) {
       throw new Error(`you do not have the correct permissions for \`${prefix}${commName}\``);
-    }
-    // Check groups
-    if (!groups.includes(comm.group)) {
-      throw new Error(`the command group \`${comm.group}\` is not enabled on this server`);
     }
 
     return comm;
