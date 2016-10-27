@@ -402,7 +402,15 @@ class Bot {
         console.log(`${message.user.name}: ${message.text}`);
       }
 
-      if (message.isBot) {
+
+      if (message.channel instanceof Channel) {
+        let sConf = message.channel.server.getConfig();
+        if (sConf.filter && sConf.filter.length && sConf.filter.indexOf(message.channel.id) === -1) {
+          return;
+        }
+      }
+
+      if (!message.shouldProcess) {
         return;
       }
 
@@ -431,7 +439,7 @@ class Bot {
         return;
       }
 
-      let input = new Input(message, this, text);
+      let input = new Input(message, this);
       resolve(input);
     });
 

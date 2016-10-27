@@ -79,6 +79,10 @@ class Connection extends EventEmitter {
     throw new Error('Mention function not overridden');
   }
 
+  resolveMention(str) {
+    throw new Error('Mention resolution is not overridden');
+  }
+
   /**
    * Sends a string to the given target
    * Accepts a User, Channel, or null

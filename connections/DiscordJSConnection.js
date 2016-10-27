@@ -42,6 +42,21 @@ class DiscordJSConnection extends Connection {
     }
   }
 
+  resolveMention(str) {
+    let match = str.match(/^<(?:#|@)(\d+)>$/);
+    if (!match) {
+      return false;
+    }
+
+    if (this.userCache.has(match[1])) {
+      return this.userCache.get(match[1]);
+    } else if (this.channelCache.has(match[1])) {
+      return this.channelCache.get(match[1]);
+    }
+
+    return false;
+  }
+
   send(target, message) {
     let to;
     if (target instanceof User) {
