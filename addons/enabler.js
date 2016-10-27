@@ -46,6 +46,10 @@ class Enabler extends ScriptAddon {
       return 'disabling addons is not allowed for private messages';
     }
 
+    if (input.text.match(/^core(\.[\w._-]+)?$/)) {
+      return `unable to disable \`${input.text}\``;
+    }
+
     let serverConf = input.message.channel.server.getConfig();
     if (serverConf.addons) {
       if (serverConf.addons.includes(input.text)) {

@@ -120,6 +120,7 @@ class Bot {
     }
 
     let groups = this.c.default.addons.slice();
+    groups.push('core');
     let prefix = this.c.default.prefix;
     let permLevel = Command.PermissionLevels.DEFAULT;
 
@@ -198,6 +199,7 @@ class Bot {
   listCommands(message, group) {
     if (message) {
       let groups = this.c.default.addons.slice();
+      groups.push('core');
 
       // Get any server specific command groups
       if (message.channel instanceof Channel) {
@@ -429,7 +431,7 @@ class Bot {
         return;
       }
 
-      let input = new Input(message, this);
+      let input = new Input(message, this, text);
       resolve(input);
     });
 
