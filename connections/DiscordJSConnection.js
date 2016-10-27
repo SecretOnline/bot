@@ -53,7 +53,7 @@ class DiscordJSConnection extends Connection {
       throw new Error('[DJS] Unable to find target in caches');
     }
 
-    to.sendMessage(message);
+    return to.sendMessage(message);
   }
 
   getPermissionLevel(user, channel) {

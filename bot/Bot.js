@@ -437,7 +437,7 @@ class Bot {
       .then(i => i.process())
       .then((result) => {
         if (result) {
-          message.channel.send(result);
+          return message.channel.send(result);
         }
       })
       .catch((err) => {
@@ -445,7 +445,9 @@ class Bot {
           if (typeof err === 'string') {
             message.user.send(err);
           } else if (err instanceof Error) {
-            message.user.send(err.message);
+            if (err.message.match('Forbidden')) {
+              message.user.send('secret_bot does not have the right permissions');
+            }
           }
 
           if (this.c.verbose) {

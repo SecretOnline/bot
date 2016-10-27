@@ -31,7 +31,7 @@ class User {
   }
 
   send(str) {
-    this.conn.send(this, str);
+    return this.conn.send(this, str);
   }
 
   getPermissionLevel(channel) {
