@@ -17,6 +17,6 @@
   },
   "homepage": "https://github.com/SecretOnline/bot#readme",
   "dependencies": {
-    "discordie": "^0.6.5"
+    "discord.js": "^10.0.0"
   }
 }
