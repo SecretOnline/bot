@@ -19,10 +19,10 @@ class Enabler extends ScriptAddon {
   }
 
   init() {
-    this.bot.addCommand('enable-addon', new Command(this.addToServer.bind(this), 'core', Command.PermissionLevels.ADMIN, enablerHelp));
-    this.bot.addCommand('disable-addon', new Command(this.removeFromServer.bind(this), 'core', Command.PermissionLevels.ADMIN, enablerHelp));
-    this.bot.addCommand('allow-channel', new Command(this.addToFilter.bind(this), 'core', Command.PermissionLevels.ADMIN, channelFilterHelp));
-    this.bot.addCommand('disallow-channel', new Command(this.removeFromFilter.bind(this), 'core', Command.PermissionLevels.ADMIN, channelFilterHelp));
+    this.bot.addCommand('enable-addon', new Command(this.addToServer.bind(this), 'core.enable', Command.PermissionLevels.ADMIN, enablerHelp));
+    this.bot.addCommand('disable-addon', new Command(this.removeFromServer.bind(this), 'core.enable', Command.PermissionLevels.ADMIN, enablerHelp));
+    this.bot.addCommand('allow-channel', new Command(this.addToFilter.bind(this), 'core.enable', Command.PermissionLevels.ADMIN, channelFilterHelp));
+    this.bot.addCommand('disallow-channel', new Command(this.removeFromFilter.bind(this), 'core.enable', Command.PermissionLevels.ADMIN, channelFilterHelp));
   }
 
   deinit() {

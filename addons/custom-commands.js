@@ -46,8 +46,8 @@ class Custom extends ScriptAddon {
   }
 
   init() {
-    this.bot.addCommand('add-command', new Command(this.addCommand.bind(this), 'core', Command.PermissionLevels.ADMIN, commandHelp));
-    this.bot.addCommand('remove-command', new Command(this.removeCommand.bind(this), 'core', Command.PermissionLevels.ADMIN, commandHelp));
+    this.bot.addCommand('add-command', new Command(this.addCommand.bind(this), 'core.custom', Command.PermissionLevels.ADMIN, commandHelp));
+    this.bot.addCommand('remove-command', new Command(this.removeCommand.bind(this), 'core.custom', Command.PermissionLevels.ADMIN, commandHelp));
   }
 
   deinit() {

@@ -445,6 +445,21 @@ class Bot {
 
     return inputProm
       .then(i => i.process())
+      .catch((err) => {
+        if (err) {
+          if (typeof err === 'string') {
+            message.user.send(err);
+          } else if (err instanceof Error) {
+            if (err.message.match('Forbidden')) {
+              message.user.send('secret_bot does not have the right permissions to be able to run the command');
+            }
+          }
+
+          if (this.c.verbose) {
+            console.error(err);
+          }
+        }
+      })
       .then((result) => {
         if (result) {
           return message.channel.send(result);
@@ -452,12 +467,8 @@ class Bot {
       })
       .catch((err) => {
         if (err) {
-          if (typeof err === 'string') {
-            message.user.send(err);
-          } else if (err instanceof Error) {
-            if (err.message.match('Forbidden')) {
-              message.user.send('secret_bot does not have the right permissions');
-            }
+          if (err.message.match('Forbidden')) {
+            message.user.send('secret_bot was unable to reply. are they blocked from sending messages?');
           }
 
           if (this.c.verbose) {
