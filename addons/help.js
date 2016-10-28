@@ -62,7 +62,7 @@ let topics = {
   ],
   prefixes: [
     'the prefix is the part of a command before the trigger. usually it is a single character',
-    'by default it is a tilde `~`, but it can be changed per server',
+    'by default it is a tilde `~`, but it can be changed per server with `~change-prefix`',
     'throughout the help, the tilde is used to denote a command, for example `~help topic prefixes`'
   ],
   recursive: [
