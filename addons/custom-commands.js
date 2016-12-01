@@ -8,14 +8,14 @@ let commandHelp = [
   'syntax: `~add-command <command trigger> <words to output>`',
   'syntax: `~remove-command <command trigger>`',
   'allows the addition of custom commands to each server',
-  'commands created on one server *can not* be used on another, unless the second server enables it',
+  'commands created on one server *can not* be used on another',
   'the words to output follow the same rules as JSON command loading',
   '`{args}` will be replaced by any processed text after this command',
   '`{user}` will be replaced by the name of the user who sent the command',
   '`{channel}` will be replaced by the channel the message was sent in',
   '`{server}` will be replaced by the name of the server',
   'example usage:',
-  '~add-command self-ban {user} has been banned for {args}!'
+  '~add-command self-ban {user} has been banned from {server} for {args}!'
 ];
 
 class Custom extends ScriptAddon {
@@ -46,8 +46,8 @@ class Custom extends ScriptAddon {
   }
 
   init() {
-    this.bot.addCommand('add-command', new Command(this.addCommand.bind(this), 'core', Command.PermissionLevels.ADMIN, commandHelp));
-    this.bot.addCommand('remove-command', new Command(this.removeCommand.bind(this), 'core', Command.PermissionLevels.ADMIN, commandHelp));
+    this.bot.addCommand('add-command', new Command(this.addCommand.bind(this), 'core.custom', Command.PermissionLevels.ADMIN, commandHelp));
+    this.bot.addCommand('remove-command', new Command(this.removeCommand.bind(this), 'core.custom', Command.PermissionLevels.ADMIN, commandHelp));
   }
 
   deinit() {

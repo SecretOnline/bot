@@ -60,6 +60,7 @@ class ConsoleConnection extends Connection {
 
   send(target, message) {
     console.log(message);
+    return Promise.resolve();
   }
 
   getPermissionLevel(user, channel) {

@@ -10,11 +10,15 @@ class DiscordJSConnection extends Connection {
   constructor(bot) {
     super(bot, 'discord.js', 'djs');
 
-    this.discord = new Discord.Client();
+    this.d = new Discord.Client();
 
     if (!this.conf.token) {
       throw new Error('No login token given to discord.js');
     }
+  }
+
+  get discord() {
+    return this.d;
   }
 
   open() {
@@ -38,6 +42,21 @@ class DiscordJSConnection extends Connection {
     }
   }
 
+  resolveMention(str) {
+    let match = str.match(/^<(?:#|@)(\d+)>$/);
+    if (!match) {
+      return false;
+    }
+
+    if (this.userCache.has(match[1])) {
+      return this.userCache.get(match[1]);
+    } else if (this.channelCache.has(match[1])) {
+      return this.channelCache.get(match[1]);
+    }
+
+    return false;
+  }
+
   send(target, message) {
     let to;
     if (target instanceof User) {
@@ -49,7 +68,7 @@ class DiscordJSConnection extends Connection {
       throw new Error('[DJS] Unable to find target in caches');
     }
 
-    to.sendMessage(message);
+    return to.sendMessage(message);
   }
 
   getPermissionLevel(user, channel) {

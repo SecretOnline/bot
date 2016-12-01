@@ -14,7 +14,6 @@ class Bot {
     this.confPath = confPath;
 
     this.commands = new Map();
-    this.servers = new Map();
     this.connections = [];
     this.addons = [];
   }
@@ -121,6 +120,7 @@ class Bot {
     }
 
     let groups = this.c.default.addons.slice();
+    groups.push('core');
     let prefix = this.c.default.prefix;
     let permLevel = Command.PermissionLevels.DEFAULT;
 
@@ -172,7 +172,7 @@ class Bot {
 
     // Handle the array case
     if (Array.isArray(comm)) {
-      let allowed = comm.filter(c => groups.includes(c.group));
+      let allowed = comm.filter(c => groups.find(g => c.group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`))));
       // Maybe in the future give a message saying that there was a conflict
       if (allowed.length > 1) {
         let allowedGroups = allowed.map(c => `\`${c.group}\``).join(' ');
@@ -181,15 +181,16 @@ class Bot {
         throw new Error(`\`${prefix}${commName}\` is added by multiple command groups, but none of them are enabled`);
       }
       comm = allowed[0];
+    } else {
+      // Check groups
+      if (!groups.find(g => comm.group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)))) {
+        throw new Error(`the command group \`${comm.group}\` is not enabled on this server`);
+      }
     }
 
     // Check permission level
     if (comm.permission > permLevel) {
       throw new Error(`you do not have the correct permissions for \`${prefix}${commName}\``);
-    }
-    // Check groups
-    if (!groups.includes(comm.group)) {
-      throw new Error(`the command group \`${comm.group}\` is not enabled on this server`);
     }
 
     return comm;
@@ -198,6 +199,7 @@ class Bot {
   listCommands(message, group) {
     if (message) {
       let groups = this.c.default.addons.slice();
+      groups.push('core');
 
       // Get any server specific command groups
       if (message.channel instanceof Channel) {
@@ -210,7 +212,7 @@ class Bot {
       }
 
       if (group) {
-        if (groups.includes(group)) {
+        if (groups.find(g => group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)))) {
           groups = [group];
         } else {
           return [];
@@ -224,14 +226,14 @@ class Bot {
           // Multiple commands with this trigger, check each of them
           if (Array.isArray(command)) {
             // Find command with matching group
-            let res = command.filter(comm => groups.includes(comm.group));
+            let res = command.filter(c => groups.find(g => c.group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`))));
 
             if (res.length === 1) {
               // Check permission
               if (message.user.getPermissionLevel(message.channel) < res[0].permission) {
                 return false;
               }
-              return groups.includes(res[0].group);
+              return groups.find(g => command.group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)));
             }
 
             res.forEach((comm) => {
@@ -250,7 +252,7 @@ class Bot {
             if (message.user.getPermissionLevel(message.channel) < command.permission) {
               return false;
             }
-            return groups.includes(command.group);
+            return groups.find(g => command.group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)));
           }
         })
         .map(pair => pair[0]) // Only want the trigger for the command
@@ -258,6 +260,10 @@ class Bot {
     } else {
       return Array.from(this.commands.keys());
     }
+  }
+
+  getConnection(id) {
+    return this.connections.find(conn => conn.id === id);
   }
 
   getConfig(obj) {
@@ -396,7 +402,15 @@ class Bot {
         console.log(`${message.user.name}: ${message.text}`);
       }
 
-      if (message.isBot) {
+
+      if (message.channel instanceof Channel) {
+        let sConf = message.channel.server.getConfig();
+        if (sConf.filter && sConf.filter.length && sConf.filter.indexOf(message.channel.id) === -1) {
+          return;
+        }
+      }
+
+      if (!message.shouldProcess) {
         return;
       }
 
@@ -431,17 +445,30 @@ class Bot {
 
     return inputProm
       .then(i => i.process())
-      .then((result) => {
-        if (result) {
-          message.channel.send(result);
-        }
-      })
       .catch((err) => {
         if (err) {
           if (typeof err === 'string') {
             message.user.send(err);
           } else if (err instanceof Error) {
-            message.user.send(err.message);
+            if (err.message.match('Forbidden')) {
+              message.user.send('secret_bot does not have the right permissions to be able to run the command');
+            }
+          }
+
+          if (this.c.verbose) {
+            console.error(err);
+          }
+        }
+      })
+      .then((result) => {
+        if (result) {
+          return message.channel.send(result);
+        }
+      })
+      .catch((err) => {
+        if (err) {
+          if (err.message.match('Forbidden')) {
+            message.user.send('secret_bot was unable to reply. are they blocked from sending messages?');
           }
 
           if (this.c.verbose) {

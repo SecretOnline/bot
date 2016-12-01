@@ -62,7 +62,7 @@ let topics = {
   ],
   prefixes: [
     'the prefix is the part of a command before the trigger. usually it is a single character',
-    'by default it is a tilde `~`, but it can be changed per server',
+    'by default it is a tilde `~`, but it can be changed per server with `~change-prefix`',
     'throughout the help, the tilde is used to denote a command, for example `~help topic prefixes`'
   ],
   recursive: [
@@ -96,9 +96,9 @@ class Help extends ScriptAddon {
   }
 
   init() {
-    this.bot.addCommand('commands', new Command(this.getCommands.bind(this), 'core', this.getCommands.bind(this)));
-    this.bot.addCommand('help', new Command(this.getHelp.bind(this), 'core', helpHelp));
-    this.bot.addCommand('which', new Command(this.getWhich.bind(this), 'core', whichHelp));
+    this.bot.addCommand('commands', new Command(this.getCommands.bind(this), 'core.help', this.getCommands.bind(this)));
+    this.bot.addCommand('help', new Command(this.getHelp.bind(this), 'core.help', helpHelp));
+    this.bot.addCommand('which', new Command(this.getWhich.bind(this), 'core.help', whichHelp));
   }
 
   deinit() {

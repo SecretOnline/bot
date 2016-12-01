@@ -38,7 +38,7 @@ class Channel {
   }
 
   send(str) {
-    this.conn.send(this, str);
+    return this.conn.send(this, str);
   }
 
   //endregion
