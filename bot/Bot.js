@@ -16,6 +16,7 @@ class Bot {
     this.commands = new Map();
     this.connections = [];
     this.addons = [];
+    this.allM = [];
   }
 
   //region Functions
@@ -310,6 +311,17 @@ class Bot {
     }
   }
 
+  requestAllMessages(func) {
+    this.allM.push(func);
+  }
+
+  cancelAllMessages(func) {
+    let index = this.allM.indexOf(func);
+    if (index > -1) {
+      this.allM.splice(index, 1);
+    }
+  }
+
   //endregion
 
   //region Private Functions
@@ -410,6 +422,13 @@ class Bot {
   _onMessage(message) {
     let inputProm = new Promise((resolve, reject) => {
       //TODO: Send all incoming messages to addons that want all messages
+
+      // Send all incoming messages to addons that ask for them
+      setImmediate(() => {
+        this.allM.forEach((func) => {
+          func(message);
+        });
+      });
 
       if (this.c.verbose) {
         console.log(`${message.user.name}: ${message.text}`);
