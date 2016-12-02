@@ -460,13 +460,18 @@ class Bot {
       .then(i => i.process())
       .catch((err) => {
         if (err) {
+          let errMess;
           if (typeof err === 'string') {
-            message.user.send(err);
+            errMess = err;
           } else if (err instanceof Error) {
             if (err.message.match('Forbidden')) {
-              message.user.send('secret_bot does not have the right permissions to be able to run the command');
+              errMess = 'secret_bot does not have the right permissions to be able to run the command';
+            } else {
+              errMess = err.message;
             }
           }
+
+          message.user.send(errMess);
 
           if (this.c.verbose) {
             console.error(err);
