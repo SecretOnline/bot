@@ -107,9 +107,10 @@ class Help extends ScriptAddon {
 
   getWhich(input) {
     let prefix = this.bot.getConfig('default').prefix;
+    let channel = input.message.channel;
 
-    if (input.message.channel instanceof Channel) {
-      let serverConf = input.message.channel.server.getConfig();
+    if (channel instanceof Channel) {
+      let serverConf = channel.server.getConfig();
       if (serverConf.prefix) {
         prefix = serverConf.prefix;
       }
@@ -122,9 +123,22 @@ class Help extends ScriptAddon {
       unprefixed = match[1];
     }
 
-    let comm = this.bot.getCommand(`${prefix}${unprefixed}`, input.message);
+    match = unprefixed.match(/^this\.(.*)/);
+    let secretGroup = '';
+    if (match) {
+      secretGroup = `${channel.connection.id}.${channel.server.id}.`;
+      unprefixed = match[1];
+    }
+
+    let comm = this.bot.getCommand(`${prefix}${secretGroup}${unprefixed}`, input.message);
     if (comm) {
-      return `\`${prefix}${unprefixed}\` is from ${comm.group}`;
+      let group = comm.group;
+
+      if (group === `${channel.connection.id}.${channel.server.id}`) {
+        group = 'this';
+      }
+
+      return `\`${prefix}${unprefixed}\` is from \`${group}\``;
     } else {
       return `unknown or disallowed command: ${unprefixed}`;
     }
@@ -210,11 +224,14 @@ class Help extends ScriptAddon {
 
         if (comm.permission) {
           switch (comm.permission) {
-            case 1:
+            case Command.PermissionLevels.ADMIN:
               header.push('permission required: Admin');
               break;
-            case 2:
+            case Command.PermissionLevels.OVERLORD:
               header.push('permission required: Overlord');
+              break;
+            case Command.PermissionLevels.SUPERUSER:
+              header.push('permission required: SuperUser');
               break;
           }
         }

@@ -155,6 +155,11 @@ class Bot {
     // group.trigger style commands
     match = commName.match(/(.+)\.(.+)/);
     if (match) {
+      // `this` is replaced with connection.server
+      if (match[1] === 'this') {
+        match[1] = `${message.channel.connection.id}.${message.channel.server.id}`;
+      }
+
       if (!groups.includes(match[1])) {
         throw new Error(`the command group \`${match[1]}\` is not enabled on this server`);
       }
@@ -200,6 +205,7 @@ class Bot {
     if (message) {
       let groups = this.c.default.addons.slice();
       groups.push('core');
+      let permLevel = Command.PermissionLevels.DEFAULT;
 
       // Get any server specific command groups
       if (message.channel instanceof Channel) {
@@ -209,9 +215,16 @@ class Bot {
             groups.unshift(...servConf.addons);
           }
         }
+
+        permLevel = message.user.getPermissionLevel(message.channel);
+        groups.push(`${message.channel.connection.id}.${message.channel.server.id}`);
       }
 
       if (group) {
+        if (group === 'this') {
+          group = `${message.channel.connection.id}.${message.channel.server.id}`;
+        }
+
         if (groups.find(g => group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)))) {
           groups = [group];
         } else {
@@ -230,7 +243,7 @@ class Bot {
 
             if (res.length === 1) {
               // Check permission
-              if (message.user.getPermissionLevel(message.channel) < res[0].permission) {
+              if (permLevel < res[0].permission) {
                 return false;
               }
               return groups.find(g => command.group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)));
@@ -238,7 +251,7 @@ class Bot {
 
             res.forEach((comm) => {
               // Check permission
-              if (message.user.getPermissionLevel(message.channel) < comm.permission) {
+              if (permLevel < comm.permission) {
                 return;
               }
               conflicts.push([pair[0], comm]);
@@ -249,7 +262,7 @@ class Bot {
           // Only one
           else {
             // Check permission
-            if (message.user.getPermissionLevel(message.channel) < command.permission) {
+            if (permLevel < command.permission) {
               return false;
             }
             return groups.find(g => command.group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)));

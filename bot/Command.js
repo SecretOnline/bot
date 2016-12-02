@@ -3,7 +3,8 @@ const Channel = require('./Channel.js');
 var perms = {
   DEFAULT: 0,
   ADMIN: 1,
-  OVERLORD: 2
+  OVERLORD: 2,
+  SUPERUSER: 3
 };
 
 /**
