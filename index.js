@@ -1,8 +1,10 @@
 /* eslint no-console: 0 */
 'use strict';
-var Bot = require('./bot/Bot.js');
+let Bot = require('./bot/Bot.js');
 
-var bot = new Bot('bot.conf.json');
+// Use file provided in first command line argument, or default
+let confFile = process.argv[2] || 'bot.conf.json';
+let bot = new Bot(confFile);
 
 bot.start()
   .then(() => {
