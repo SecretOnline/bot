@@ -117,15 +117,21 @@ class Command {
     return (input) => {
       return input.process()
         .then((res) => {
-          if (str.match(/{args}|{user}/)) {
+          if (str.match(/{\w+}/)) {
             let server = input.message.channel instanceof Channel ? input.message.channel.server.name : 'private message';
             let channel = input.message.channel instanceof Channel ? input.message.channel.mention() : 'private message';
 
-            return str
+            let replacement = str
               .replace(/{args}/g, res)
               .replace(/{channel}/g, channel)
               .replace(/{server}/g, server)
               .replace(/{user}/g, input.user.mention());
+
+            if (!str.match(/{args}/)) {
+              return `${replacement} ${res}`;
+            }
+            
+            return replacement;
           } else {
             if (input) {
               return `${str} ${res}`;
