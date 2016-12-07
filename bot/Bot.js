@@ -40,8 +40,25 @@ class Bot {
       })
       .then(() => {
         return this._listDirectory(this.c.paths.addons)
+          .then((files) => {
+            if (this.c.dev && this.c.dev.addons) {
+              if (this.c.dev.addons.whitelist) {
+                return files.filter(a => this.c.dev.addons.whitelist.includes(a));
+              }
+              if (this.c.dev.addons.blacklist) {
+                return files.filter(a => !this.c.dev.addons.blacklist.includes(a));
+              }
+            }
+            // If no filtering occurs, return them all
+            return files;
+          })
           .then(this._createAddons.bind(this))
-          .then(this._initAddons.bind(this));
+          .then(this._initAddons.bind(this))
+          .then((arr) => {
+            // eslint-disable-next-line no-console
+            console.log(`[BOT] loaded ${arr.length} addons`);
+            return arr;
+          });
       });
   }
 
