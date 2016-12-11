@@ -18,6 +18,7 @@ class RandomStuff extends ScriptAddon {
 
   init() {
     this.bot.addCommand('theuselessweb', new Command(this.uselessWeb.bind(this), 'randomstuff', uselessHelp));
+    this.bot.addCommand('randomcat', new Command(this.randomCat.bind(this), 'randomstuff'));
   }
 
   deinit() {
@@ -66,6 +67,14 @@ class RandomStuff extends ScriptAddon {
     }
 
     return res;
+  }
+
+  randomCat(input) {
+    return request('http://random.cat/meow')
+      .then(JSON.parse)
+      .then((res) => {
+        return res.file;
+      });
   }
 }
 
