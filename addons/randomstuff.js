@@ -44,7 +44,7 @@ class RandomStuff extends ScriptAddon {
     }, 43200000);
   }
 
-  uselessWeb(imput) {
+  uselessWeb(input) {
     if (!this.uselessWebTimeout) {
       this.loadUselessWeb();
     }
@@ -53,7 +53,12 @@ class RandomStuff extends ScriptAddon {
       throw new Error('secret_bot is still loading The Useless Web');
     }
 
-    let entry = this.theuselessweb[Math.floor(Math.random() * this.theuselessweb.length)];
+    let arr = this.theuselessweb;
+
+    // TODO: Add option to have flash enabled pages too
+    arr = this.theuselessweb.filter(i => !i[1]);
+
+    let entry = arr[Math.floor(Math.random() * arr.length)];
 
     let res = entry[0];
     if (entry[1]) {
