@@ -65,8 +65,25 @@ class Bot {
   reloadConnections() {
     console.log('[BOT] loading connections');
     return this._listDirectory(this.c.paths.connections)
+      .then((files) => {
+        if (this.c.dev && this.c.dev.connections) {
+          if (this.c.dev.connections.whitelist) {
+            return files.filter(a => this.c.dev.connections.whitelist.includes(a));
+          }
+          if (this.c.dev.connections.blacklist) {
+            return files.filter(a => !this.c.dev.connections.blacklist.includes(a));
+          }
+        }
+        // If no filtering occurs, return them all
+        return files;
+      })
       .then(this._createConnections.bind(this))
-      .then(this._openConnections.bind(this));
+      .then(this._openConnections.bind(this))
+      .then((arr) => {
+        // eslint-disable-next-line no-console
+        console.log(`[BOT] loaded ${arr.length} connections`);
+        return arr;
+      });
   }
 
   addCommand(trigger, command) {
