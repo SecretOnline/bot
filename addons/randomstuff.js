@@ -14,12 +14,15 @@ class RandomStuff extends ScriptAddon {
     this.theuselessweb = [];
     this.uselessWebTimeout = false;
     this.loadUselessWeb();
+
+    this.mahnaStage = 0;
   }
 
   init() {
     this.bot.addCommand('theuselessweb', new Command(this.uselessWeb.bind(this), 'randomstuff', uselessHelp));
     this.bot.addCommand('randomcat', new Command(this.randomCat.bind(this), 'randomstuff'));
     this.bot.addCommand('randomdog', new Command(this.randomDog.bind(this), 'randomstuff'));
+    this.bot.addCommand('mahnamahna', new Command(this.mahnamahna.bind(this), 'randomstuff', 'https://www.youtube.com/watch?v=8N_tupPBtWQ'));
   }
 
   deinit() {
@@ -86,6 +89,28 @@ class RandomStuff extends ScriptAddon {
           return `http://random.dog/${match[1]}`;
         }
       });
+  }
+
+  mahnamahna(input) {
+    let res;
+
+    switch (this.mahnaStage) {
+      case 0:
+        res = 'doo *dooooo* do do doo';
+        break;
+      case 1:
+        res = 'doo do do *doo*';
+        break;
+      case 2:
+        res = 'doo *dooooo* do do doo. do do doo. do do doo. do do do do do *doo doo dooooo* do';
+        break;
+      default:
+        res = 'you broke it';
+    }
+
+    this.mahnaStage = (this.mahnaStage + 1) % 3;
+
+    return res;
   }
 }
 
