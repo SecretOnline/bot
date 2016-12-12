@@ -19,6 +19,7 @@ class RandomStuff extends ScriptAddon {
   init() {
     this.bot.addCommand('theuselessweb', new Command(this.uselessWeb.bind(this), 'randomstuff', uselessHelp));
     this.bot.addCommand('randomcat', new Command(this.randomCat.bind(this), 'randomstuff'));
+    this.bot.addCommand('randomdog', new Command(this.randomDog.bind(this), 'randomstuff'));
   }
 
   deinit() {
@@ -74,6 +75,16 @@ class RandomStuff extends ScriptAddon {
       .then(JSON.parse)
       .then((res) => {
         return res.file;
+      });
+  }
+
+  randomDog(input) {
+    return request('http://random.dog')
+      .then((res) => {
+        let match = res.match(/<img src='([\w-_.]+\.\w+)'/);
+        if (match) {
+          return `http://random.dog/${match[1]}`;
+        }
       });
   }
 }
