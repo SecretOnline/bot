@@ -1,19 +1,28 @@
 const http = require('http');
 const https = require('https');
+const url = require('url');
 
-function req(url) {
+function req(reqObj) {
   return new Promise((resolve, reject) => {
-    if (!url.match(/^https?:\/\//)) {
+    if (!reqObj.match(/^https?:\/\//)) {
       reject('only http and https requests are allowed');
       return;
     }
 
-    let mod;
+    if (typeof reqObj === 'string') {
+      reqObj = url.parse(reqObj);
+    }
 
-    if (url.match(/^http:/)) {
+    if (!reqObj.headers) {
+      reqObj.headers = {};
+    }
+    reqObj.headers['User-Agent'] = '[BOT] secret_bot/7.x.x - https://github.com/SecretOnline/bot';
+
+    let mod;
+    if (reqObj.protocol.match(/^http:/)) {
       mod = http;
     }
-    if (url.match(/^https:/)) {
+    if (reqObj.protocol.match(/^https:/)) {
       mod = https;
     }
 
@@ -22,7 +31,7 @@ function req(url) {
       return;
     }
 
-    mod.get(url, (res) => {
+    mod.get(reqObj, (res) => {
       if (res.statusCode !== 200) {
         reject('invalid response code');
         res.resume();
