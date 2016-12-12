@@ -82,7 +82,7 @@ class RandomStuff extends ScriptAddon {
   }
 
   randomDog(input) {
-    return request('http://random.dog')
+    return request('http://random.dog', 'yes, i really do want to bypass robots.txt')
       .then((res) => {
         let match = res.match(/<img src='([\w-_.]+\.\w+)'/);
         if (match) {

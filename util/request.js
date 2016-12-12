@@ -6,8 +6,8 @@ const robots = require('robots');
 const parsers = new Map();
 const UA = '[BOT] secret_bot/7.x.x - https://github.com/SecretOnline/bot';
 
-function req(reqObj) {
-  return new Promise((resolve, reject) => {
+function req(reqObj, bypass) {
+  let prom = new Promise((resolve, reject) => {
     // Perform some checks before continuing
     // Ensure request is an object
     if (typeof reqObj === 'string') {
@@ -27,9 +27,15 @@ function req(reqObj) {
     reqObj.headers['User-Agent'] = UA;
 
     resolve(reqObj);
-  })
-  .then(checkRobots)
-  .then(doRequest);
+  });
+
+  if (bypass !== 'yes, i really want to bypass robots.txt') {
+    prom = prom.then(checkRobots);
+  }
+
+  prom = prom.then(doRequest);
+
+  return prom;
 }
 
 function checkRobots(reqObj) {
