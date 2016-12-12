@@ -1,8 +1,9 @@
 const http = require('http');
 const https = require('https');
 const url = require('url');
+const robots = require('robots');
 
-const robots = new Map();
+const parsers = new Map();
 const UA = '[BOT] secret_bot/7.x.x - https://github.com/SecretOnline/bot';
 
 function req(reqObj) {
@@ -25,96 +26,42 @@ function req(reqObj) {
     }
     reqObj.headers['User-Agent'] = UA;
 
-    return reqObj;
+    resolve(reqObj);
   })
   .then(checkRobots)
   .then(doRequest);
 }
 
-// Portions of this robots checker is from https://github.com/ekalinin/robots.js
-// Thanks to @ekalinin for that
 function checkRobots(reqObj) {
   return new Promise((resolve, reject) => {
-    // Check cached version first
-    if (robots.has(reqObj.host.toLowerCase())) {
-      if (robots.get(reqObj.host.toLowerCase())) {
-        resolve(reqObj);
-        return;
-      } else {
-        reject('robots.txt check failed');
-        return;
-      }
-    }
+    if (parsers.has(reqObj.host.toLowerCase())) {
+      let p = parsers.get(reqObj.host.toLowerCase());
 
-    // Make a request for the site's robots.txt
-    let path = reqObj.pathname;
-    let nReq = url.resolve(url.format(reqObj), '/robots.txt');
-    if (!nReq.headers) {
-      nReq.headers = {};
-    }
-    nReq.headers['User-Agent'] = UA;
-
-    // Request site's robots.txt
-    doRequest(nReq)
-      .then((file) => {
-        let lines = file.split(/\r?\n/);
-        let allowed = true;
-        let isUA = false;
-
-        for (let i = 0; i < lines.length; i++) {
-          let line = lines[i];
-
-          let c = line.indexOf('#');
-          line = line.substring(0, c);
-
-          let arr = line.split(':');
-          if (arr.length !== 2) {
-            continue;
-          }
-
-          let field = arr[0].trim().toLowerCase();
-          let value = arr[1].trim();
-
-          switch (field) {
-            case 'user-agent':
-              if (field.match(/\*|secret_bot/)) {
-                isUA = true;
-              } else {
-                isUA = false;
-              }
-              break;
-            case 'allow':
-              if (isUA) {
-                if (path.match(value)) {
-                  allowed = true;
-                }
-              }
-              break;
-            case 'disallow':
-              if (isUA) {
-                if (path.match(value)) {
-                  allowed = false;
-                }
-              }
-              break;
-            default:
-              // Unsupported option, just ignore it
-              break;
-
-          }
-        }
-
-        if (allowed) {
-          robots.set(reqObj.host.toLowerCase(), true);
+      p.canFetch('secret_bot', reqObj.pathname, (access) => {
+        if (access) {
           resolve(reqObj);
         } else {
-          robots.set(reqObj.host.toLowerCase(), false);
           reject('robots.txt check failed');
         }
-      }, () => {
-        // If request fails, assume it's because of a 404, and continue on to real request
-        return reqObj;
       });
+      return;
+    }
+
+    let parser = new robots.RobotsParser();
+    parser.setUrl(url.resolve(url.format(reqObj), '/robots.txt'), function(parser, success) {
+      if(success) {
+        parser.canFetch('secret_bot', reqObj.pathname, (access) => {
+          if (access) {
+            resolve(reqObj);
+          } else {
+            reject('robots.txt check failed');
+          }
+        });
+      } else {
+        // If robots.txt isn't found, allow requests
+        resolve(reqObj);
+      }
+    });
   });
 }
 
