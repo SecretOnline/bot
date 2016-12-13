@@ -4,7 +4,7 @@ const url = require('url');
 const robots = require('robots');
 
 const parsers = new Map();
-const UA = '[BOT] secret_bot/7.x.x - https://github.com/SecretOnline/bot';
+const UA = '[BOT] secret_bot/7.x.x - https://secretonline.co/bot/user-agent/';
 
 function req(reqObj, bypass) {
   let prom = new Promise((resolve, reject) => {
