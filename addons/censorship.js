@@ -12,10 +12,10 @@ class Censor extends ScriptAddon {
 
     fs.readFile(`./${this.conf.path}`, 'utf8', (err, data) => {
       try {
-        this.commands = JSON.parse(data);
+        this.censor = JSON.parse(data);
       } catch (e) {
-        this.commands = {};
-        fs.writeFile(this.conf.path, JSON.stringify(this.censor, null, 2));
+        this.censor = {};
+        fs.writeFile(this.conf.path, JSON.stringify(this.censor, null, 2), () => {});
         return;
       }
     });
@@ -25,17 +25,56 @@ class Censor extends ScriptAddon {
     this.f = this.onMessage.bind(this); // Yay for binding! /s
     this.bot.requestAllMessages(this.f);
     // TODO
-    // Add commands
+    this.bot.addCommand('censor-blacklist-add', new Command(this.addToBlacklist.bind(this), 'censor.blacklist', Command.PermissionLevels.ADMIN));
+    // this.bot.addCommand('censor-blacklist-remove', new Command(this.removeCommand.bind(this), 'core.custom', Command.PermissionLevels.ADMIN));
   }
 
   deinit() {
     this.bot.cancelAllMessages(this.f);
   }
 
+  addToBlacklist(input) {
+    return new Promise((resolve, reject) => {
+      let exp = input.text.match(/`(.*)`/);
+      if (!exp) {
+        reject('you must enclose the regular expression in back quotes "\\`"\ntype `~help topic regex` for help with regular expressions');
+        return;
+      }
+
+      if (!this.censor[input.message.connection.id]) {
+        this.censor[input.message.connection.id] = {};
+      }
+      if (!this.censor[input.message.connection.id][input.message.channel.server.id]) {
+        this.censor[input.message.connection.id][input.message.channel.server.id] = {};
+      }
+      if (!this.censor[input.message.connection.id][input.message.channel.server.id].blacklist) {
+        this.censor[input.message.connection.id][input.message.channel.server.id].blacklist = [];
+      }
+
+      this.censor[input.message.connection.id][input.message.channel.server.id].blacklist.push(exp[1]);
+
+      fs.writeFile(this.conf.path, JSON.stringify(this.censor, null, 2), (err) => {
+        if (err) {
+          reject('unable to write to file, changes may be lost');
+          return;
+        }
+        resolve('added ');
+      });
+    });
+  }
+
   onMessage(message) {
+    switch (message.connection.id) {
+      case 'djs':
+        this.onMessageDiscord(message);
+        break;
+    }
+  }
+
+  onMessageDiscord(message) {
     if (this.censor[message.channel.connection.id]) {
-      if (this.censor[message.channel.server.id]) {
-        let conf = this.censor[message.channel.server.id];
+      if (this.censor[message.channel.connection.id][message.channel.server.id]) {
+        let conf = this.censor[message.channel.connection.id][message.channel.server.id];
 
         if (conf.blacklist) {
           let remove = conf.blacklist.reduce((prev, str) => {
@@ -53,7 +92,11 @@ class Censor extends ScriptAddon {
 
           if (remove) {
             // TODO: Remove the message
-            console.log('would remove');
+            if (message.original.deletable) {
+              message.original.delete();
+            } else {
+              console.error(`[CENSOR] can't delete message in ${message.channel.connection.id}.${message.channel.server.id}`);
+            }
           }
         }
       }
