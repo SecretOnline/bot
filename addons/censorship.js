@@ -26,7 +26,7 @@ class Censor extends ScriptAddon {
     this.bot.requestAllMessages(this.f);
     // TODO
     this.bot.addCommand('censor-blacklist-add', new Command(this.addToBlacklist.bind(this), 'censor.blacklist', Command.PermissionLevels.ADMIN));
-    // this.bot.addCommand('censor-blacklist-remove', new Command(this.removeCommand.bind(this), 'core.custom', Command.PermissionLevels.ADMIN));
+    this.bot.addCommand('censor-blacklist-remove', new Command(this.removeFromBlacklist.bind(this), 'censor.blacklist', Command.PermissionLevels.ADMIN));
   }
 
   deinit() {
@@ -58,7 +58,43 @@ class Censor extends ScriptAddon {
           reject('unable to write to file, changes may be lost');
           return;
         }
-        resolve('added ');
+        reject(`added \`${exp[1]}\` to blacklist`);
+      });
+    });
+  }
+
+  removeFromBlacklist(input) {
+    return new Promise((resolve, reject) => {
+      let exp = input.text.match(/`(.*)`/);
+      if (!exp) {
+        reject('you must enclose the regular expression in back quotes "\\`"\ntype `~help topic regex` for help with regular expressions');
+        return;
+      }
+
+      if (!(
+        this.censor[input.message.connection.id] &&
+        this.censor[input.message.connection.id][input.message.channel.server.id] &&
+        this.censor[input.message.connection.id][input.message.channel.server.id].blacklist &&
+        this.censor[input.message.connection.id][input.message.channel.server.id].blacklist.length
+      )) {
+        reject('no words configured in the blacklist');
+        return;
+      }
+      let list = this.censor[input.message.connection.id][input.message.channel.server.id].blacklist;
+      let index = list.indexOf(exp[1]);
+
+      if (index < 0) {
+        reject(`\`${exp[1]}\` wasn't in the blacklist`);
+      }
+
+      list.splice(index, 1);
+
+      fs.writeFile(this.conf.path, JSON.stringify(this.censor, null, 2), (err) => {
+        if (err) {
+          reject('unable to write to file, changes may be lost');
+          return;
+        }
+        reject(`removed \`${exp[1]}\` from blacklist`);
       });
     });
   }
@@ -72,6 +108,10 @@ class Censor extends ScriptAddon {
   }
 
   onMessageDiscord(message) {
+    if (!message.channel.server) {
+      return;
+    }
+
     if (this.censor[message.channel.connection.id]) {
       if (this.censor[message.channel.connection.id][message.channel.server.id]) {
         let conf = this.censor[message.channel.connection.id][message.channel.server.id];
