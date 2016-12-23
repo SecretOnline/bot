@@ -9,6 +9,7 @@ class Censor extends ScriptAddon {
     this.censor = {};
     this.conf.path = this.conf.path || 'censor.conf.json';
     this.f = undefined;
+    this.linkMap = new Map();
 
     fs.readFile(`./${this.conf.path}`, 'utf8', (err, data) => {
       try {
@@ -27,6 +28,7 @@ class Censor extends ScriptAddon {
     // TODO
     this.bot.addCommand('censor-blacklist-add', new Command(this.addToBlacklist.bind(this), 'censor.blacklist', Command.PermissionLevels.ADMIN));
     this.bot.addCommand('censor-blacklist-remove', new Command(this.removeFromBlacklist.bind(this), 'censor.blacklist', Command.PermissionLevels.ADMIN));
+    this.bot.addCommand('show-links', new Command(this.showLinks.bind(this), 'censor.links'));
   }
 
   deinit() {
@@ -99,6 +101,14 @@ class Censor extends ScriptAddon {
     });
   }
 
+  showLinks(input) {
+    if (this.linkMap.has(input.text)) {
+      input.user.send(`links: ${this.linkMap.get(input.text)}`);
+    } else {
+      input.user.send(`unable to find links with an id of \`${input.text}\``);
+    }
+  }
+
   onMessage(message) {
     switch (message.connection.id) {
       case 'djs':
@@ -109,6 +119,9 @@ class Censor extends ScriptAddon {
 
   onMessageDiscord(message) {
     if (!message.channel.server) {
+      return;
+    }
+    if (message.original.author.bot) {
       return;
     }
 
@@ -131,9 +144,31 @@ class Censor extends ScriptAddon {
           }, false);
 
           if (remove) {
-            // TODO: Remove the message
             if (message.original.deletable) {
               message.original.delete();
+            } else {
+              console.error(`[CENSOR] can't delete message in ${message.channel.connection.id}.${message.channel.server.id}`);
+            }
+          }
+        }
+
+        if (conf.links && (conf.links.all || conf.links.users.includes(message.user.id))) {
+          let linkExp = /(\w+:\/\/\S+\.\S+)/ig;
+          let match = message.text.match(linkExp);
+
+          if (match) {
+            let id = message.original.id;
+            let str = match.join(' ');
+
+            this.linkMap.set(id, str);
+            setTimeout(function () {
+              this.linkMap.delete(id);
+            }, 1800000);
+
+
+            if (message.original.deletable) {
+              message.original.delete();
+              message.channel.send(`${message.user.mention()}'s message contained a link. use \`~show-links ${id}\` to see them`);
             } else {
               console.error(`[CENSOR] can't delete message in ${message.channel.connection.id}.${message.channel.server.id}`);
             }
