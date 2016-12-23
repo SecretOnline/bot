@@ -140,11 +140,11 @@ class DiscordJSConnection extends Connection {
     }
 
     let isBot = false;
-    if (user.id === this.discord.user.id) {
+    if (message.author.bot) {
       isBot = true;
     }
 
-    let m = new Message(user, channel, message.content, isBot);
+    let m = new Message(user, channel, message.content, message, isBot);
     this.emit('message', m);
   }
 }

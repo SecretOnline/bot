@@ -10,12 +10,13 @@ class Message {
    * @param {string} text The text the user sent
    * @param {boolean} isBot Whether this message was caused by the bot or not
    */
-  constructor(user, channel, text, isBot = false, shouldProcess = true) {
+  constructor(user, channel, text, originalMessage = text, isBot = false, shouldProcess = true) {
     this.u = user;
     this.c = channel;
     this.t = text;
     this.b = isBot;
     this.p = shouldProcess;
+    this.m = originalMessage;
   }
 
   //region Properties
@@ -42,6 +43,10 @@ class Message {
 
   get shouldProcess() {
     return (!this.b) || this.p;
+  }
+
+  get original() {
+    return this.m;
   }
 
   //endregion
