@@ -281,7 +281,7 @@ class Bot {
               if (permLevel < res[0].permission) {
                 return false;
               }
-              return groups.find(g => command.group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)));
+              return groups.find(g => res[0].group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)));
             }
 
             res.forEach((comm) => {
