@@ -138,7 +138,7 @@ class Censor extends ScriptAddon {
 
   showLinks(input) {
     if (this.linkMap.has(input.text)) {
-      input.user.send(`links: ${this.linkMap.get(input.text)}`);
+      input.user.send(`message: ${this.linkMap.get(input.text)}`);
     } else {
       input.user.send(`unable to find links with an id of \`${input.text}\``);
     }
@@ -307,9 +307,11 @@ class Censor extends ScriptAddon {
 
           if (match) {
             let id = message.original.id;
-            let str = match.join(' ');
+            let domains = match.map((l) => {
+              return l.match(/\/\/((?:\w+\.?)+)\/?.*$/)[1];
+            });
 
-            this.linkMap.set(id, str);
+            this.linkMap.set(id, message.text);
             setTimeout(() => {
               this.linkMap.delete(id);
             }, 1800000);
@@ -317,7 +319,7 @@ class Censor extends ScriptAddon {
 
             if (message.original.deletable) {
               message.original.delete();
-              message.channel.send(`${message.user.mention()}'s message contained a link. use \`~show-links ${id}\` to see them`);
+              message.channel.send(`${message.user.mention()}'s message contained ${domains.length > 1 ? 'links' : 'a link'} from ${domains.join(' , ')}. use \`~show-links ${id}\` to see the message (use copy/paste). this will be stored for 30 minutes`);
             } else {
               console.error(`[CENSOR] can't delete message in ${message.channel.connection.id}.${message.channel.server.id}`);
             }
