@@ -2,6 +2,29 @@ const fs = require('fs');
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
 
+const blacklistHelp = [
+  'syntax: `~censor-blacklist-<add/remove> <\\\`expression\\\`>`',
+  'allows the bot to remove messages if they match a regular expression',
+  'for help on expressions, type `~help topic regex`',
+  'messages may appear on user\'s screen before they are removed',
+  'there is nothing that secret_bot can do about this'
+];
+const showLinksHelp = [
+  'syntax `~show-links <id>`',
+  'if secret_bot removes your message because it contains links, then other users can use `~show-links` to view them',
+  'secret_bot does not remove links by default',
+  'this is a configured feature that is only used if enabled by a server admin',
+  'links are stored for 30 minutes before being removed from secret_bot'
+];
+const linkFilterHelp = [
+  'syntax: `~censor-links-<add/remove/reset> [\\\`user id\\\`]`',
+  'removes messages from certain users if those messages contain links',
+  'secret_bot then replies with a message explaining how to view those links',
+  'running `~censor-links-add all` will turn this on for all users, rather than individuals',
+  'messages from bots do not get removed',
+  '`~censor-links-reset` will remove all users from the list, essentially disabling this feature for your server'
+];
+
 class Censor extends ScriptAddon {
   constructor(bot) {
     super(bot, 'core');
@@ -26,9 +49,12 @@ class Censor extends ScriptAddon {
     this.f = this.onMessage.bind(this); // Yay for binding! /s
     this.bot.requestAllMessages(this.f);
     // TODO
-    this.bot.addCommand('censor-blacklist-add', new Command(this.addToBlacklist.bind(this), 'censor.blacklist', Command.PermissionLevels.ADMIN));
-    this.bot.addCommand('censor-blacklist-remove', new Command(this.removeFromBlacklist.bind(this), 'censor.blacklist', Command.PermissionLevels.ADMIN));
-    this.bot.addCommand('show-links', new Command(this.showLinks.bind(this), 'censor.links'));
+    this.bot.addCommand('censor-blacklist-add', new Command(this.addToBlacklist.bind(this), 'censor.blacklist', Command.PermissionLevels.ADMIN), blacklistHelp);
+    this.bot.addCommand('censor-blacklist-remove', new Command(this.removeFromBlacklist.bind(this), 'censor.blacklist', Command.PermissionLevels.ADMIN), blacklistHelp);
+    this.bot.addCommand('show-links', new Command(this.showLinks.bind(this), 'censor.links'), showLinksHelp);
+    this.bot.addCommand('censor-links-add', new Command(this.addToLinkFilter.bind(this), 'censor.links', Command.PermissionLevels.ADMIN), linkFilterHelp);
+    this.bot.addCommand('censor-links-remove', new Command(this.removeFromLinkFilter.bind(this), 'censor.links', Command.PermissionLevels.ADMIN), linkFilterHelp);
+    this.bot.addCommand('censor-links-reset', new Command(this.resetLinkFilter.bind(this), 'censor.links', Command.PermissionLevels.ADMIN), linkFilterHelp);
   }
 
   deinit() {
@@ -73,20 +99,29 @@ class Censor extends ScriptAddon {
         return;
       }
 
-      if (!(
-        this.censor[input.message.connection.id] &&
-        this.censor[input.message.connection.id][input.message.channel.server.id] &&
-        this.censor[input.message.connection.id][input.message.channel.server.id].blacklist &&
-        this.censor[input.message.connection.id][input.message.channel.server.id].blacklist.length
-      )) {
-        reject('no words configured in the blacklist');
+      if (!this.censor[input.message.connection.id]) {
+        this.censor[input.message.connection.id] = {};
+      }
+      if (!this.censor[input.message.connection.id][input.message.channel.server.id]) {
+        this.censor[input.message.connection.id][input.message.channel.server.id] = {};
+      }
+
+      let serverConf = this.censor[input.message.connection.id][input.message.channel.server.id];
+      if (!serverConf.blacklist) {
+        serverConf.blacklist = [];
+      }
+      let list = serverConf.blacklist;
+
+      if (!serverConf.blacklist.length) {
+        reject('there is nothing in the blacklist at the moment');
         return;
       }
-      let list = this.censor[input.message.connection.id][input.message.channel.server.id].blacklist;
+
       let index = list.indexOf(exp[1]);
 
       if (index < 0) {
         reject(`\`${exp[1]}\` wasn't in the blacklist`);
+        return;
       }
 
       list.splice(index, 1);
@@ -107,6 +142,120 @@ class Censor extends ScriptAddon {
     } else {
       input.user.send(`unable to find links with an id of \`${input.text}\``);
     }
+  }
+
+  addToLinkFilter(input) {
+    return new Promise((resolve, reject) => {
+      let id = input.text.match(/(?:<@!?)?(\d+)>?/)[1];
+      if (!id) {
+        reject('you must enclose the user\'s id in back quotes "\\`"');
+        return;
+      }
+
+      if (!this.censor[input.message.connection.id]) {
+        this.censor[input.message.connection.id] = {};
+      }
+      if (!this.censor[input.message.connection.id][input.message.channel.server.id]) {
+        this.censor[input.message.connection.id][input.message.channel.server.id] = {};
+      }
+
+      let serverConf = this.censor[input.message.connection.id][input.message.channel.server.id];
+      if (!serverConf.links) {
+        serverConf.links = {};
+      }
+      if (!serverConf.links.users) {
+        serverConf.links.users = [];
+      }
+
+      if (id === 'all') {
+        serverConf.links.all = true;
+      } else {
+        serverConf.links.users.push(id);
+      }
+
+      fs.writeFile(this.conf.path, JSON.stringify(this.censor, null, 2), (err) => {
+        if (err) {
+          reject('unable to write to file, changes may be lost');
+          return;
+        }
+        reject(`added \`${id}\` to the links filtering`);
+      });
+    });
+  }
+
+  removeFromLinkFilter(input) {
+    return new Promise((resolve, reject) => {
+      let id = input.text.match(/(?:<@!?)?(\d+)>?/)[1];
+      if (!id) {
+        reject('you must enclose the user\'s id in back quotes "\\`"');
+        return;
+      }
+
+      if (!this.censor[input.message.connection.id]) {
+        this.censor[input.message.connection.id] = {};
+      }
+      if (!this.censor[input.message.connection.id][input.message.channel.server.id]) {
+        this.censor[input.message.connection.id][input.message.channel.server.id] = {};
+      }
+
+      let serverConf = this.censor[input.message.connection.id][input.message.channel.server.id];
+      if (!serverConf.links) {
+        serverConf.links = {};
+      }
+      if (!serverConf.links.users) {
+        serverConf.links.users = [];
+      }
+
+      if (id === 'all') {
+        serverConf.links.all = false;
+      } else {
+        let list = serverConf.links.users;
+        let index = list.indexOf(id);
+
+        if (index < 0) {
+          reject(`\`${id}\` wasn't in the links filter`);
+          return;
+        }
+
+        list.splice(index, 1);
+        serverConf.links.users.push(id);
+      }
+
+      fs.writeFile(this.conf.path, JSON.stringify(this.censor, null, 2), (err) => {
+        if (err) {
+          reject('unable to write to file, changes may be lost');
+          return;
+        }
+        reject(`removed \`${id}\` from links filtering`);
+      });
+    });
+  }
+
+  resetLinkFilter(input) {
+    return new Promise((resolve, reject) => {
+      if (!this.censor[input.message.connection.id]) {
+        this.censor[input.message.connection.id] = {};
+      }
+      if (!this.censor[input.message.connection.id][input.message.channel.server.id]) {
+        this.censor[input.message.connection.id][input.message.channel.server.id] = {};
+      }
+
+      let serverConf = this.censor[input.message.connection.id][input.message.channel.server.id];
+
+      serverConf.links = {
+        all: false,
+        users: []
+      };
+
+
+      fs.writeFile(this.conf.path, JSON.stringify(this.censor, null, 2), (err) => {
+        if (err) {
+          reject('unable to write to file, changes may be lost');
+          return;
+        }
+        reject('link filter has been reset, no links are removed');
+      });
+    });
   }
 
   onMessage(message) {
@@ -161,7 +310,7 @@ class Censor extends ScriptAddon {
             let str = match.join(' ');
 
             this.linkMap.set(id, str);
-            setTimeout(function () {
+            setTimeout(() => {
               this.linkMap.delete(id);
             }, 1800000);
 
