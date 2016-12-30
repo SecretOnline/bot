@@ -101,7 +101,8 @@ function doRequest(reqObj) {
       }).on('end', () => {
         resolve(data);
       });
-    }).on('error', () => {
+    }).on('error', (err) => {
+      console.error(err);
       reject('error making request');
       return;
     });

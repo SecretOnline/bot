@@ -133,7 +133,7 @@ class Command {
             
             return replacement;
           } else {
-            if (input) {
+            if (res) {
               return `${str} ${res}`;
             } else {
               return str;
