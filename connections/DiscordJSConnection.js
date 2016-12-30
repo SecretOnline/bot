@@ -69,8 +69,8 @@ class DiscordJSConnection extends Connection {
     }
 
     // TODO: Check whether s_b can actually use embeds
-    const embed = new Discord.RichEmbed()
-      .setAuthor('\u200b', this.discord.user.avatarURL);
+    const embed = new Discord.RichEmbed();
+    //  .setAuthor('\u200b', this.discord.user.avatarURL);
 
     // Set embed colour
     if (this.conf.color) {
@@ -78,13 +78,16 @@ class DiscordJSConnection extends Connection {
     }
 
     // See if message is a link
+    // TODO: Possibly
     // Basic url matching regex
-    let urlRegex = /(https?:\/\/(?:\w+\.?)+\/?\S*\.(?:jpg|jpeg|png|gif(?!v)))/g;
+    let urlRegex = /(https?:\/\/(?:\w+\.?)+\/?\S*\.(?:jpe?g|png|gif(?!v)))/g;
     let match = message.match(urlRegex);
     if (match) {
+      // Use last image in message
       let last = match[match.length - 1];
       embed.setImage(last);
 
+      // If the message more than just that link, put entire message in description
       if (message !== last) {
         embed.setDescription(message);
       }
