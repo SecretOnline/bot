@@ -10,7 +10,7 @@ let changePrefixHelp = [
 ];
 let inviteHelp = 'gives you a link to invite the bot to your own discord server';
 
-let inviteLink = 'https://discordapp.com/oauth2/authorize?client_id=177875535391752192&scope=bot';
+let inviteLink = 'https://discordapp.com/oauth2/authorize?client_id=177875535391752192&scope=bot&permissions=93184';
 
 class Core extends ScriptAddon {
   constructor(bot) {
