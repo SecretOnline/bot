@@ -1,3 +1,5 @@
+const url = require('url');
+
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
 const request = require('../util/').request;
@@ -12,8 +14,11 @@ class RandomStuff extends ScriptAddon {
     super(bot, 'core');
 
     this.theuselessweb = [];
+    this.foaasCache = [];
     this.uselessWebTimeout = false;
+    this.foaasTimeout = false;
     this.loadUselessWeb();
+    this.loadFoaas();
 
     this.mahnaStage = 0;
   }
@@ -23,6 +28,7 @@ class RandomStuff extends ScriptAddon {
     this.bot.addCommand('randomcat', new Command(this.randomCat.bind(this), 'randomstuff'));
     this.bot.addCommand('randomdog', new Command(this.randomDog.bind(this), 'randomstuff'));
     this.bot.addCommand('mahnamahna', new Command(this.mahnamahna.bind(this), 'randomstuff', 'https://www.youtube.com/watch?v=8N_tupPBtWQ'));
+    this.bot.addCommand('foaas', new Command(this.foaas.bind(this), 'randomstuff', this.foaasList.bind(this)));
   }
 
   deinit() {
@@ -46,6 +52,23 @@ class RandomStuff extends ScriptAddon {
       });
     this.uselessWebTimeout = setTimeout(() => {
       this.uselessWebTimeout = false;
+    }, 43200000);
+  }
+
+  loadFoaas() {
+    let reqObj = url.parse('https://www.foaas.com/operations');
+    reqObj.headers = {Accept:'application/json'};
+    request(reqObj)
+      .then(JSON.parse)
+      // Only keep those with arguments
+      .then(r=>r.filter(i=>i.url.match(/\/(\w+)\//)))
+      .then((res) => {
+        this.foaasCache = res;
+      }, (err) => {
+        console.log(err); // eslint-disable-line no-console
+      });
+    this.foaasTimeout = setTimeout(() => {
+      this.foaasTimeout = false;
     }, 43200000);
   }
 
@@ -112,6 +135,60 @@ class RandomStuff extends ScriptAddon {
 
     return res;
   }
+
+  foaas(input) {
+    if (!this.foaasTimeout) {
+      this.loadFoaas();
+    }
+
+    return input.process()
+      .then((res) => {
+        return new Promise((resolve, reject) => {
+          let parts = res.split(' ');
+          if (!parts.length) {
+            reject('you need to specify which method of FOAAS you want to use. use `~help foaas` for more information');
+            return;
+          }
+
+          let type = parts.shift();
+          let service = this.foaasCache.find(a => (a.name === type) || (a.url.match(new RegExp(`^\\/${type}\\/.*$`))));
+          if (!service) {
+            reject('the service type was not recognised. use `~help foaas` for more information');
+            return;
+          }
+
+          if (service.fields.length < parts.length) {
+            reject('you have not given the correct numebr of fields for fucking off');
+            return;
+          }
+
+          let foaasUrl = service.url.match(/\/(\w+)\//)[1];
+          service.fields.forEach((field, index) => {
+            foaasUrl += `/${parts[index]}`;
+          });
+
+          let reqObj = url.parse(`https://www.foaas.com/${foaasUrl}`);
+          reqObj.headers = {Accept:'application/json'};
+          resolve(reqObj);
+        })
+        .then(request)
+        .then(JSON.parse)
+        .then(r=>`${r.message}\n${r.subtitle}`);
+      });
+  }
+
+  foaasList(input) {
+    let arr =  this.foaasCache
+      .map((service) => {
+        let urlName = service.url.match(/\/(\w+)\//)[1];
+        return `${urlName}: (${service.fields.length}) ${service.fields.map(f=>f.name).join(', ')}`;
+      });
+
+    arr.unshift('syntax: `~foaas <type> [arguments]`', 'Fuck Of As A Servive - https://www.foaas.com/', 'below is a list of all the services supported', '`<type>`: (<number of arguments needed>) [list of arguments]', '');
+    console.log(arr.join('\n'));
+    return arr.join('\n');
+  }
+
 }
 
 module.exports = RandomStuff;
