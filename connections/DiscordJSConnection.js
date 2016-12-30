@@ -68,7 +68,35 @@ class DiscordJSConnection extends Connection {
       throw new Error('[DJS] Unable to find target in caches');
     }
 
-    return to.sendMessage(message);
+    // TODO: Check whether s_b can actually use embeds
+    const embed = new Discord.RichEmbed()
+      .setAuthor('\u200b', this.discord.user.avatarURL);
+
+    // Set embed colour
+    if (this.conf.color) {
+      embed.setColor(this.conf.color);
+    }
+
+    // See if message is a link
+    // Basic url matching regex
+    let urlRegex = /(https?:\/\/(?:\w+\.?)+\/?\S*\.(?:jpg|jpeg|png|gif(?!v)))/g;
+    let match = message.match(urlRegex);
+    if (match) {
+      let last = match[match.length - 1];
+      embed.setImage(last);
+
+      if (message !== last) {
+        embed.setDescription(message);
+      }
+    } else {
+      embed.setDescription(message);
+    }
+
+    return to.sendEmbed(
+      embed,
+      '',
+      { disableEveryone: true }
+    );
   }
 
   getPermissionLevel(user, channel) {
