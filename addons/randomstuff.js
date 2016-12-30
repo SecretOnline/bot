@@ -157,7 +157,7 @@ class RandomStuff extends ScriptAddon {
             return;
           }
 
-          if (service.fields.length < parts.length) {
+          if (service.fields.length > parts.length) {
             reject('you have not given the correct numebr of fields for fucking off');
             return;
           }
@@ -185,7 +185,6 @@ class RandomStuff extends ScriptAddon {
       });
 
     arr.unshift('syntax: `~foaas <type> [arguments]`', 'Fuck Of As A Servive - https://www.foaas.com/', 'below is a list of all the services supported', '`<type>`: (<number of arguments needed>) [list of arguments]', '');
-    console.log(arr.join('\n'));
     return arr.join('\n');
   }
 
