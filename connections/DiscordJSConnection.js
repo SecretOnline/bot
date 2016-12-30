@@ -60,9 +60,9 @@ class DiscordJSConnection extends Connection {
   send(target, message) {
     let to;
     if (target instanceof User) {
-      to = this.discord.users.find('id', target.id);
+      to = this.discord.users.get(target.id);
     } else if (target instanceof Channel) {
-      to = this.discord.channels.find('id', target.id);
+      to = this.discord.channels.get(target.id);
     }
     if (!to) {
       throw new Error('[DJS] Unable to find target in caches');
@@ -83,15 +83,15 @@ class DiscordJSConnection extends Connection {
       }
     }
 
-    let guild = this.discord.guilds.find('id', channel.server.id);
+    let guild = this.discord.guilds.get(channel.server.id);
     if (!guild) {
       throw new Error('Unable to find guild');
     }
-    let member = guild.members.find('id', user.id);
+    let member = guild.members.get(user.id);
     if (!member) {
       throw new Error('Unable to find user in guild');
     }
-    let textChannel = guild.channels.find('id', channel.id);
+    let textChannel = guild.channels.get(channel.id);
     if (!textChannel) {
       throw new Error('Unable to find channel in guild');
     }

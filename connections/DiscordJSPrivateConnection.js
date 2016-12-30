@@ -29,7 +29,7 @@ class DiscordJSPrivateConnection extends Connection {
       console.log('[djsdm] sucessfully logged in'); // eslint-disable-line no-console
     });
 
-    this.discord.login(this.conf.pm.email, this.conf.pm.pass);
+    this.discord.login(this.conf.pm.token);
   }
 
   close() {
@@ -62,9 +62,9 @@ class DiscordJSPrivateConnection extends Connection {
   send(target, message) {
     let to;
     if (target instanceof User) {
-      to = this.discord.users.find('id', target.id);
+      to = this.discord.users.get(target.id);
     } else if (target instanceof Channel) {
-      to = this.discord.channels.find('id', target.id);
+      to = this.discord.channels.get(target.id);
     }
     if (!to) {
       throw new Error('[djsdm] Unable to find target in caches');
