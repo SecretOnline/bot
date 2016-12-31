@@ -8,15 +8,17 @@ const ScriptAddon = require('./ScriptAddon.js');
 const Command = require('./Command.js');
 const Input = require('./Input.js');
 
+const util = require('../util');
+
 class Bot {
   constructor(confPath) {
-    this.c = require(`../${confPath}`);
+    this.conf = require(`../${confPath}`);
     this.confPath = confPath;
 
     this.commands = new Map();
-    this.connections = [];
     this.addons = [];
     this.allM = [];
+    this.discord = new Discord.Client();
   }
 
   //region Functions
@@ -40,14 +42,14 @@ class Bot {
         console.error(err);
       })
       .then(() => {
-        return this._listDirectory(this.c.paths.addons)
+        return this._listDirectory(this.conf.paths.addons)
           .then((files) => {
-            if (this.c.dev && this.c.dev.addons) {
-              if (this.c.dev.addons.whitelist) {
-                return files.filter(a => this.c.dev.addons.whitelist.includes(a));
+            if (this.conf.dev && this.conf.dev.addons) {
+              if (this.conf.dev.addons.whitelist) {
+                return files.filter(a => this.conf.dev.addons.whitelist.includes(a));
               }
-              if (this.c.dev.addons.blacklist) {
-                return files.filter(a => !this.c.dev.addons.blacklist.includes(a));
+              if (this.conf.dev.addons.blacklist) {
+                return files.filter(a => !this.conf.dev.addons.blacklist.includes(a));
               }
             }
             // If no filtering occurs, return them all
@@ -65,26 +67,9 @@ class Bot {
 
   reloadConnections() {
     console.log('[BOT] loading connections');
-    return this._listDirectory(this.c.paths.connections)
-      .then((files) => {
-        if (this.c.dev && this.c.dev.connections) {
-          if (this.c.dev.connections.whitelist) {
-            return files.filter(a => this.c.dev.connections.whitelist.includes(a));
-          }
-          if (this.c.dev.connections.blacklist) {
-            return files.filter(a => !this.c.dev.connections.blacklist.includes(a));
-          }
-        }
-        // If no filtering occurs, return them all
-        return files;
-      })
-      .then(this._createConnections.bind(this))
+    return this._closeConnections()
       .then(this._openConnections.bind(this))
-      .then((arr) => {
-        // eslint-disable-next-line no-console
-        console.log(`[BOT] loaded ${arr.length} connections`);
-        return arr;
-      });
+      .then(util.promprint('[BOT] loaded connections'));
   }
 
   addCommand(trigger, command) {
@@ -154,15 +139,14 @@ class Bot {
       return false;
     }
 
-    let groups = this.c.default.addons.slice();
+    let groups = this.conf.default.addons.slice();
     groups.push('core');
-    let prefix = this.c.default.prefix;
+    let prefix = this.conf.default.prefix;
     let permLevel = Command.PermissionLevels.DEFAULT;
 
     // Add other groups into list for channel
-    if (message.channel instanceof Channel) {
-      let connConf = this.c.connections[message.channel.connection.id] || {};
-      let servConf = connConf.servers[message.channel.server.id];
+    if (message.channel instanceof Discord.GuildChannel) {
+      let servConf = this.conf.servers[message.channel.guild.id];
       if (servConf) {
         // Add server-specific addons to list
         if (servConf.addons) {
@@ -173,9 +157,9 @@ class Bot {
           prefix = servConf.prefix;
         }
       }
-      groups.push(`${message.channel.connection.id}.${message.channel.server.id}`);
+      groups.push(message.channel.guild.id);
       // Get the user's actual permission level for this channel
-      permLevel = message.user.getPermissionLevel(message.channel);
+      permLevel = this.getPermissionLevel(message);
     }
 
     // Actually make sure this is a command
@@ -192,7 +176,7 @@ class Bot {
     if (match) {
       // `this` is replaced with connection.server
       if (match[1] === 'this') {
-        match[1] = `${message.channel.connection.id}.${message.channel.server.id}`;
+        match[1] = message.channel.guild.id;
       }
 
       if (!groups.includes(match[1])) {
@@ -238,12 +222,12 @@ class Bot {
 
   listCommands(message, group) {
     if (message) {
-      let groups = this.c.default.addons.slice();
+      let groups = this.conf.default.addons.slice();
       groups.push('core');
       let permLevel = Command.PermissionLevels.DEFAULT;
 
       // Get any server specific command groups
-      if (message.channel instanceof Channel) {
+      if (message.channel instanceof Discord.TextChannel) {
         let servConf = message.channel.server.getConfig();
         if (servConf) {
           if (servConf.addons) {
@@ -251,13 +235,13 @@ class Bot {
           }
         }
 
-        permLevel = message.user.getPermissionLevel(message.channel);
-        groups.push(`${message.channel.connection.id}.${message.channel.server.id}`);
+        permLevel = this.getPermissionLevel(message);
+        groups.push(message.channel.guild.id);
       }
 
       if (group) {
         if (group === 'this') {
-          group = `${message.channel.connection.id}.${message.channel.server.id}`;
+          group = message.channel.guild.id;
         }
 
         if (groups.find(g => group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)))) {
@@ -310,33 +294,29 @@ class Bot {
     }
   }
 
-  getConnection(id) {
-    return this.connections.find(conn => conn.id === id);
-  }
-
   getConfig(obj) {
     // Requires typechecking to prevent object literals being used to get/set
     // the configuration of other objects
-    if (obj instanceof Connection) {
-      return this.c.connections[obj.id] || {};
+    if (obj instanceof Discord.Guild) {
+      return this.conf.servers[obj.id] || {};
     } else if (obj instanceof ScriptAddon) {
-      return this.c.addons[obj.namespace] || {};
+      return this.conf.addons[obj.namespace] || {};
     } else if (obj === 'default') {
-      return this.c.default;
+      return this.conf.default;
     }
   }
 
   setConfig(obj, conf) {
     let changed = false;
 
-    if (obj instanceof Connection) {
-      this.c.connections[obj.id] = conf;
+    if (obj instanceof Discord.Guild) {
+      this.conf.servers[obj.id] = conf;
       changed = true;
     } else if (obj instanceof ScriptAddon) {
-      this.c.addons[obj.namespace] = conf;
+      this.conf.addons[obj.namespace] = conf;
       changed = true;
     } else if (obj === 'default') {
-      this.c.default = conf;
+      this.conf.default = conf;
       changed = true;
     }
 
@@ -356,6 +336,67 @@ class Bot {
     if (index > -1) {
       this.allM.splice(index, 1);
     }
+  }
+
+  getPermissionLevel(message) {
+    let channel = message.channel;
+    let user = message.author;
+    // DM channels always have default perms, even for overlords
+    if (!channel instanceof Discord.TextChannel) {
+      return Command.PermissionLevels.DEFAULT;
+    }
+
+    if (this.conf.overlords) {
+      if (this.conf.overlords.includes(user.id)) {
+        return Command.PermissionLevels.OVERLORD;
+      }
+    }
+
+    let perms = channel.permissionsFor(user);
+    if (perms && perms.hasPermission('MANAGE_GUILD')) {
+      return Command.PermissionLevels.ADMIN;
+    }
+
+    return Command.PermissionLevels.DEFAULT;
+  }
+
+  send(target, message) {
+    // TODO: Check whether s_b can actually use embeds
+    const embed = new Discord.RichEmbed();
+    //  .setAuthor('\u200b', this.discord.user.avatarURL);
+
+    // Set embed colour
+    if (this.conf.color) {
+      embed.setColor(this.conf.color);
+    }
+
+    // See if message is a link
+    // TODO: Possibly
+    // Basic url matching regex
+    let urlRegex = /(https?:\/\/(?:\w+\.?)+\/?\S*\.(?:jpe?g|png|gif(?!v)))/g;
+    let match = message.match(urlRegex);
+    if (match) {
+      // Use last image in message
+      let last = match[match.length - 1];
+      embed.setImage(last);
+
+      // If the message more than just that link, put entire message in description
+      if (message !== last) {
+        // If only message, remove the link
+        if (match.length === 1) {
+          message = message.replace(match[0], '');
+        }
+        embed.setDescription(message);
+      }
+    } else {
+      embed.setDescription(message);
+    }
+
+    return target.sendEmbed(
+      embed,
+      '',
+      { disableEveryone: true }
+    );
   }
 
   //endregion
@@ -383,7 +424,7 @@ class Bot {
       try {
         // Create JSONAddons for .json files
         if (file.match(/\.json$/)) {
-          fs.readFile(`./${this.c.paths.addons}${file}`, 'utf8', (err, data) => {
+          fs.readFile(`./${this.conf.paths.addons}${file}`, 'utf8', (err, data) => {
             let addon = new JSONAddon(this, JSON.parse(data), file);
             this.addons.push(addon);
             resolve(addon);
@@ -391,7 +432,7 @@ class Bot {
         }
         // Just require .js files
         else if (file.match(/\.js$/)) {
-          AddonModule = require(`../${this.c.paths.addons}${file}`);
+          AddonModule = require(`../${this.conf.paths.addons}${file}`);
           let addon = new AddonModule(this);
           this.addons.push(addon);
           resolve(addon);
@@ -422,37 +463,13 @@ class Bot {
     return Promise.all(promises);
   }
 
-  _createConnections(files) {
-    let promises = files.map(file => new Promise((resolve, reject) => {
-      console.log(`[BOT] Creating connection ${file}`);
-      let ConnectionModule;
-      try {
-        ConnectionModule = require(`../${this.c.paths.connections}${file}`);
-        let conn = new ConnectionModule(this, {});
-        this.connections.push(conn);
-        resolve(conn);
-      } catch (e) {
-        console.error(`[BOT] Failed to create connection: ${file}`);
-        console.error(e);
-        resolve();
-        return;
-      }
-    }));
-    return Promise.all(promises)
-      .then(ps => ps.filter(p => p)); // Eliminates the undefined connections
+  _openConnections() {
+    this.discord.on('message', this._onMessage.bind(this));
+    return this.discord.login(this.conf.login.token);
   }
 
-  _openConnections(connections) {
-    let promises = connections.map(conn => conn.open());
-    connections.forEach(conn => {
-      conn.on('message', this._onMessage.bind(this));
-    });
-    return Promise.all(promises);
-  }
-
-  _closeConnections(connections) {
-    let promises = connections.map(conn => conn.close());
-    return Promise.all(promises);
+  _closeConnections() {
+    return Promise.resolve();
   }
 
   _onMessage(message) {
@@ -466,23 +483,23 @@ class Bot {
         });
       });
 
-      if (this.c.verbose) {
-        console.log(`${message.user.name}: ${message.text}`);
+      if (this.conf.verbose) {
+        console.log(`${message.author.username}: ${message.content}`);
       }
 
 
-      if (message.channel instanceof Channel) {
-        let sConf = message.channel.server.getConfig();
+      if (message.channel instanceof Discord.TextChannel) {
+        let sConf = this.getConfig(message.guild);
         if (sConf.filter && sConf.filter.length && sConf.filter.indexOf(message.channel.id) === -1) {
           return;
         }
       }
 
-      if (!message.shouldProcess) {
+      if (message.author.bot) {
         return;
       }
 
-      let first = message.text.split(' ')[0];
+      let first = message.content.split(' ')[0];
       let comm;
 
       // Prevent triggering of markdown strikethrough
@@ -501,7 +518,7 @@ class Bot {
       }
 
       if (!comm) {
-        if (!message.channel instanceof Channel) {
+        if (!message.channel instanceof Discord.TextChannel) {
           reject(new Error('the first word of a message must be a valid command'));
         }
         return;
@@ -526,25 +543,25 @@ class Bot {
             }
           }
 
-          message.user.send(errMess);
+          this.send(message.author, errMess);
 
-          if (this.c.verbose) {
+          if (this.conf.verbose) {
             console.error(err);
           }
         }
       })
       .then((result) => {
         if (result) {
-          return message.channel.send(result);
+          return this.send(message.channel, result);
         }
       })
       .catch((err) => {
         if (err) {
           if (err.message.match('Forbidden')) {
-            message.user.send('secret_bot was unable to reply. are they blocked from sending messages?');
+            this.send(message.author, 'secret_bot was unable to reply. are they blocked from sending messages?');
           }
 
-          if (this.c.verbose) {
+          if (this.conf.verbose) {
             console.error(err);
           }
         }
