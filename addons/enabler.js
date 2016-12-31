@@ -1,3 +1,5 @@
+const Discord = require('discord.js');
+
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
 
@@ -29,11 +31,11 @@ class Enabler extends ScriptAddon {
   }
 
   addToServer(input) {
-    if (!input.message.channel instanceof Channel) {
+    if (!input.message.channel instanceof Discord.TextChannel) {
       return 'enabling addons is not allowed for private messages';
     }
 
-    let serverConf = input.message.channel.server.getConfig();
+    let serverConf = this.bot.getConfig(input.message.guild);
     if (serverConf.addons) {
       if (serverConf.addons.includes(input.text)) {
         return `${input.text} is already enabled on this server`;
@@ -44,12 +46,12 @@ class Enabler extends ScriptAddon {
       serverConf.addons = [input.text];
     }
 
-    input.message.channel.server.setConfig(serverConf);
+    this.setConfig(input.message.guild, serverConf);
     return `enabled ${input.text} on this server`;
   }
 
   removeFromServer(input) {
-    if (!input.message.channel instanceof Channel) {
+    if (!input.message.channel instanceof Discord.TextChannel) {
       return 'disabling addons is not allowed for private messages';
     }
 
@@ -57,12 +59,12 @@ class Enabler extends ScriptAddon {
       return `unable to disable \`${input.text}\``;
     }
 
-    let serverConf = input.message.channel.server.getConfig();
+    let serverConf = this.bot.getConfig(input.message.guild);
     if (serverConf.addons) {
       if (serverConf.addons.includes(input.text)) {
         let index = serverConf.addons.indexOf(input.text);
         serverConf.addons.splice(index, 1);
-        input.message.channel.server.setConfig(serverConf);
+        this.setConfig(input.message.guild, serverConf);
         return `disabled ${input.text} on this server`;
       } else {
         if (this.bot.getConfig('default').addons.includes(input.text)) {
@@ -77,51 +79,81 @@ class Enabler extends ScriptAddon {
   }
 
   addToFilter(input) {
-    if (!input.message.channel instanceof Channel) {
-      return 'allowing channels is not do-able for private messages';
+    if (!input.message.channel instanceof Discord.TextChannel) {
+      return 'allowing channels is not allowed for private messages';
     }
 
-    let channel = input.message.connection.resolveMention(input.text);
-    if (!(channel && channel instanceof Channel)) {
-      return `unable to find channel \`${input.text}\``;
-    }
-
-    let serverConf = input.message.channel.server.getConfig();
+    let serverConf = this.bot.getConfig(input.message.guild);
     if (!serverConf.filter) {
       serverConf.filter = [];
-    } else if (serverConf.filter.find(i => i === channel.id)) {
-      return `channel \`${channel.mention()}\` is already in the filter`;
     }
 
-    serverConf.filter.push(channel.id);
+    let channels = input.message.mentions.channels;
 
-    input.message.channel.server.setConfig(serverConf);
-    return `added ${channel.mention()} to the list of allowed channels`;
+    if (channels.length === 0) {
+      return 'no channels were specified';
+    }
+
+    channels = channels
+      .map((channel) => {
+        if (serverConf.filter.find(i => i === channel.id)) {
+          return undefined;
+        }
+        return channel;
+      })
+      // Remove and undefineds
+      .filter(i=>i);
+
+    if (channels.length === 0) {
+      return 'all channels listed were already in the list';
+    }
+
+    channels.forEach((channel) => {
+      serverConf.filter.push(channel.id);
+    });
+
+    this.setConfig(input.message.guild, serverConf);
+    return `added ${channels.map(c=>c.toString()).join(', ')} to the list of allowed channels`;
   }
 
   removeFromFilter(input) {
-    if (!input.message.channel instanceof Channel) {
-      return 'disallowing channels is not do-able for private messages';
+    if (!input.message.channel instanceof Discord.TextChannel) {
+      return 'disallowing channels is not allowed for private messages';
     }
 
-    let serverConf = input.message.channel.server.getConfig();
-    if (!(serverConf.filter && serverConf.filter.length)) {
-      return 'no channels were in filter to begin with';
+    let serverConf = this.bot.getConfig(input.message.guild);
+    if (!serverConf.filter) {
+      serverConf.filter = [];
     }
 
-    let channel = input.message.connection.resolveMention(input.text);
-    if (!channel) {
-      return `unable to find channel \`${input.text}\``;
+    let channels = input.message.mentions.channels;
+
+    if (channels.length === 0) {
+      return 'no channels were specified';
     }
 
-    let index = serverConf.filter.indexOf(channel.id);
-    if (index < 0) {
-      return `\`${channel.mention()}\` wasn't in the filter`;
+    channels
+      .map((channel) => {
+        if (serverConf.filter.find(i => i === channel.id)) {
+          return channel;
+        }
+        return undefined;
+      })
+      // Remove and undefineds
+      .filter(i=>i);
+
+    if (channels.length === 0) {
+      return 'none of the given channels were in the list';
     }
 
-    serverConf.filter.splice(index, 1);
-    input.message.channel.server.setConfig(serverConf);
-    return `removed ${channel.mention()} from the list of allowed channels`;
+    channels.forEach((channel) => {
+      let index = serverConf.filter.indexOf(channel.id);
+      if (index > -1) {
+        serverConf.filter.splice(index, 1);
+      }
+    });
+
+    return `removed ${channels.map(c=>c.toString()).join(', ')} from the list of allowed channels`;
   }
 }
 

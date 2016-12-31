@@ -1,3 +1,5 @@
+const Discord = require('discord.js');
+
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
 
@@ -108,8 +110,8 @@ class Help extends ScriptAddon {
     let prefix = this.bot.getConfig('default').prefix;
     let channel = input.message.channel;
 
-    if (channel instanceof Channel) {
-      let serverConf = channel.server.getConfig();
+    if (channel instanceof Discord.TextChannel) {
+      let serverConf = this.bot.getConfig(input.message.guild);
       if (serverConf.prefix) {
         prefix = serverConf.prefix;
       }
@@ -125,7 +127,7 @@ class Help extends ScriptAddon {
     match = unprefixed.match(/^this\.(.*)/);
     let secretGroup = '';
     if (match) {
-      secretGroup = `${channel.connection.id}.${channel.server.id}.`;
+      secretGroup = channel.guild.id;
       unprefixed = match[1];
     }
 
@@ -133,7 +135,7 @@ class Help extends ScriptAddon {
     if (comm) {
       let group = comm.group;
 
-      if (group === `${channel.connection.id}.${channel.server.id}`) {
+      if (group === channel.guild.id) {
         group = 'this';
       }
 
@@ -149,9 +151,9 @@ class Help extends ScriptAddon {
     let groups = def.addons;
     let serverName = 'private messages';
 
-    if (input.message.channel instanceof Channel) {
-      serverName = input.message.channel.server.name;
-      let serverConf = input.message.channel.server.getConfig();
+    if (input.message.channel instanceof Discord.TextChannel) {
+      serverName = input.message.guild.name;
+      let serverConf = this.bot.getConfig(input.message.guild);
       if (serverConf.prefix) {
         prefix = serverConf.prefix;
       }
@@ -188,8 +190,8 @@ class Help extends ScriptAddon {
     if (input.text) {
       let prefix = this.bot.getConfig('default').prefix;
 
-      if (input.message.channel instanceof Channel) {
-        let serverConf = input.message.channel.server.getConfig();
+      if (input.message.channel instanceof Discord.TextChannel) {
+        let serverConf = this.bot.getConfig(input.message.guild);
         if (serverConf.prefix) {
           prefix = serverConf.prefix;
         }
@@ -275,7 +277,7 @@ class Help extends ScriptAddon {
       ].join('\n');
     }
 
-    input.user.send(response);
+    this.bot.send(input.user, response);
     return '';
   }
 }
