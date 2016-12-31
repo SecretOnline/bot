@@ -367,7 +367,7 @@ class Bot {
 
     // Set embed colour
     if (this.conf.color) {
-      embed.setColor(this.conf.color);
+      embed.setColor(this.conf.default.color);
     }
 
     // See if message is a link
