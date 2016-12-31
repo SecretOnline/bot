@@ -1,6 +1,5 @@
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
-const Channel = require('../bot/Channel.js');
 
 let reloadHelp = 'really? you needed help for this? and you\'re the one in charge of this bot...';
 let changePrefixHelp = [

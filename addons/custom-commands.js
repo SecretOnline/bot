@@ -2,7 +2,6 @@ const fs = require('fs');
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const JSONAddon = require('../bot/JSONAddon.js');
 const Command = require('../bot/Command.js');
-const Channel = require('../bot/Channel.js');
 
 let commandHelp = [
   'syntax: `~add-command <command trigger> <words to output>`',

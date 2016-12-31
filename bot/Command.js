@@ -1,5 +1,3 @@
-const Channel = require('./Channel.js');
-
 var perms = {
   DEFAULT: 0,
   ADMIN: 1,
@@ -130,7 +128,7 @@ class Command {
             if (!str.match(/{args}/)) {
               return `${replacement} ${res}`;
             }
-            
+
             return replacement;
           } else {
             if (res) {

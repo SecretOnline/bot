@@ -1,6 +1,5 @@
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
-const Channel = require('../bot/Channel.js');
 
 let enablerHelp = [
   'syntax: `~<enable/disable>-addon <addon name>`',

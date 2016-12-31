@@ -1,11 +1,11 @@
 /* eslint no-console: 0 */
-
 const fs = require('fs');
+
+const Discord = require('discord.js');
+
 const JSONAddon = require('./JSONAddon.js');
 const ScriptAddon = require('./ScriptAddon.js');
-const Connection = require('./Connection.js');
 const Command = require('./Command.js');
-const Channel = require('./Channel.js');
 const Input = require('./Input.js');
 
 class Bot {
@@ -341,7 +341,9 @@ class Bot {
     }
 
     if (changed) {
-      fs.writeFile(this.confPath, JSON.stringify(this.c, null, 2), () => {});
+      fs.writeFile(this.confPath, JSON.stringify(this.c, null, 2), (err) => {
+        console.error('[BOT] failed to write config file');
+      });
     }
   }
 
