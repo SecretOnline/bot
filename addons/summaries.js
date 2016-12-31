@@ -81,33 +81,32 @@ class Summaries extends ScriptAddon {
       ];
 
       Promise.all(promises)
-        .then(resolve, (err) => {
+        .then((res) => {
+          console.log(res);
+          let post = res[0];
+          let author = res[1];
+          let embed = new Discord.RichEmbed()
+            .setTitle(post.title)
+            .setAuthor(`/r/${post.subreddit.display_name}: ${author.name}`)
+            .setURL(post.url)
+            .addField('Score',`**${post.score}** points\n${post.ups} upvotes`, true)
+            .addField(`${post.num_comments} comments`, '\u200b', true);
+
+          if (post.is_self) {
+            embed.setDescription(truncate(post.selftext));
+          } else {
+            if (post.thumbnail) {
+              embed.setThumbnail(post.thumbnail);
+            }
+          }
+
+          input.message.connection.discord.channels.get(input.message.channel.id).sendEmbed(embed);
+
+          resolve('');
+        }, (err) => {
           reject('unable to get reddit summary');
         });
-    })
-      .then((res) => {
-        console.log(res);
-        let post = res[0];
-        let author = res[1];
-        let embed = new Discord.RichEmbed()
-          .setTitle(post.title)
-          .setAuthor(`/r/${post.subreddit.display_name}: ${author.name}`)
-          .setURL(post.url)
-          .addField('Score',`**${post.score}** points\n${post.ups} upvotes`, true)
-          .addField(`${post.num_comments} comments`, '\u200b', true);
-
-        if (post.is_self) {
-          embed.setDescription(truncate(post.selftext));
-        } else {
-          if (post.thumbnail) {
-            embed.setThumbnail(post.thumbnail);
-          }
-        }
-
-        input.message.connection.discord.channels.get(input.message.channel.id).sendEmbed(embed);
-
-        return '';
-      });
+    });
   }
 }
 
