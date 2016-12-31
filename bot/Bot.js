@@ -362,6 +362,21 @@ class Bot {
 
   send(target, message) {
     // TODO: Check whether s_b can actually use embeds
+    let embed;
+    if (message instanceof Discord.RichEmbed) {
+      embed = message;
+    } else {
+      embed = this.embedify(message);
+    }
+
+    return target.sendEmbed(
+      embed,
+      '',
+      { disableEveryone: true }
+    );
+  }
+
+  embedify(message) {
     const embed = new Discord.RichEmbed();
     //  .setAuthor('\u200b', this.discord.user.avatarURL);
 
@@ -392,11 +407,7 @@ class Bot {
       embed.setDescription(message);
     }
 
-    return target.sendEmbed(
-      embed,
-      '',
-      { disableEveryone: true }
-    );
+    return embed;
   }
 
   //endregion
