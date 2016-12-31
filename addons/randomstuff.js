@@ -29,6 +29,7 @@ class RandomStuff extends ScriptAddon {
     this.bot.addCommand('randomdog', new Command(this.randomDog.bind(this), 'randomstuff'));
     this.bot.addCommand('mahnamahna', new Command(this.mahnamahna.bind(this), 'randomstuff', 'https://www.youtube.com/watch?v=8N_tupPBtWQ'));
     this.bot.addCommand('foaas', new Command(this.foaas.bind(this), 'randomstuff', this.foaasList.bind(this)));
+    this.bot.addCommand('httpcat', new Command(this.httpcat.bind(this), 'randomstuff'));
   }
 
   deinit() {
@@ -186,6 +187,16 @@ class RandomStuff extends ScriptAddon {
 
     arr.unshift('syntax: `~foaas <type> [arguments]`', 'Fuck Of As A Servive - https://www.foaas.com/', 'below is a list of all the services supported', '`<type>`: (<number of arguments needed>) [list of arguments]', '');
     return arr.join('\n');
+  }
+
+  httpcat(input) {
+    // regex generated from list of status codes that
+    let match = input.text.match(/^10[01]|20[0-2467]|30[0-57]|4(?:44|31|2[0-69]|1[0-8]|0[0-689]|5[01])|5(?:99|0[02-46-9]|11)$/);
+    if (!match) {
+      throw `${input.text} is not an HTTP status code`;
+    }
+
+    return `https://http.cat/${input.text}.jpg`;
   }
 
 }
