@@ -7,7 +7,7 @@ class Input {
    * @param  {Message} message Message that this input stems from
    * @param  {string=} text    Override text (uses message.text by default)
    */
-  constructor(message, bot, text = message.text) {
+  constructor(message, bot, text = message.content) {
     this.m = message;
     this.t = text;
     this.b = bot;
@@ -24,7 +24,7 @@ class Input {
   }
 
   get user() {
-    return this.m.user;
+    return this.m.author;
   }
 
   //endregion
@@ -60,7 +60,7 @@ class Input {
         try {
           comm = this.b.getCommand(words[i], this.m);
         } catch (e) {
-          reject(e)
+          reject(e);
         }
 
         if (comm) {
