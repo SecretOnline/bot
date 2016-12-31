@@ -341,7 +341,7 @@ class Bot {
     }
 
     if (changed) {
-      fs.writeFile(this.confPath, JSON.stringify(this.c, null, 2));
+      fs.writeFile(this.confPath, JSON.stringify(this.c, null, 2), () => {});
     }
   }
 

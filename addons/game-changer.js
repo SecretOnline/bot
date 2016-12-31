@@ -21,7 +21,7 @@ class GameChange extends ScriptAddon {
         this.games = JSON.parse(data);
       } catch (e) {
         this.games = [];
-        fs.writeFile(this.conf.path, JSON.stringify(this.games, null, 2));
+        fs.writeFile(this.conf.path, JSON.stringify(this.games, null, 2), () => {});
         return;
       }
 

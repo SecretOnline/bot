@@ -30,7 +30,7 @@ class Custom extends ScriptAddon {
         this.commands = JSON.parse(data);
       } catch (e) {
         this.commands = {};
-        fs.writeFile(this.conf.path, JSON.stringify(this.commands, null, 2));
+        fs.writeFile(this.conf.path, JSON.stringify(this.commands, null, 2), () => {});
         return;
       }
 
