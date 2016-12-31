@@ -89,6 +89,10 @@ class DiscordJSConnection extends Connection {
 
       // If the message more than just that link, put entire message in description
       if (message !== last) {
+        // If only message, remove the link
+        if (match.length === 1) {
+          message = message.replace(match[0], '');
+        }
         embed.setDescription(message);
       }
     } else {
