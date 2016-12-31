@@ -159,7 +159,7 @@ class RandomStuff extends ScriptAddon {
           }
 
           if (service.fields.length > parts.length) {
-            reject('you have not given the correct numebr of fields for fucking off');
+            reject(`${type} requires ${service.fields.length} additionals arguments, but you gave ${parts.length}`);
             return;
           }
 
