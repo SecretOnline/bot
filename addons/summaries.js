@@ -100,7 +100,7 @@ class Summaries extends ScriptAddon {
             }
           }
 
-          input.message.connection.discord.channels.get(input.message.channel.id).sendEmbed(embed);
+          input.message.channel.send(embed);
 
           resolve('');
         }, (err) => {
