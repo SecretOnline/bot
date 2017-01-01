@@ -1,4 +1,7 @@
+const Discord = require('discord.js');
+
 var perms = {
+  DISALLOWED: -1,
   DEFAULT: 0,
   ADMIN: 1,
   OVERLORD: 2,
@@ -116,14 +119,14 @@ class Command {
       return input.process()
         .then((res) => {
           if (str.match(/{\w+}/)) {
-            let server = input.message.channel instanceof Channel ? input.message.channel.server.name : 'private message';
-            let channel = input.message.channel instanceof Channel ? input.message.channel.mention() : 'private message';
+            let server = input.message.channel instanceof Discord.TextChannel ? input.message.guild.toString() : 'private message';
+            let channel = input.message.channel instanceof Discord.TextChannel ? input.message.channel.toString() : 'private message';
 
             let replacement = str
               .replace(/{args}/g, res)
               .replace(/{channel}/g, channel)
               .replace(/{server}/g, server)
-              .replace(/{user}/g, input.user.mention());
+              .replace(/{user}/g, input.user.toString());
 
             if (!str.match(/{args}/)) {
               return `${replacement} ${res}`;

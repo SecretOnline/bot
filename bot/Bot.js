@@ -381,7 +381,7 @@ class Bot {
     //  .setAuthor('\u200b', this.discord.user.avatarURL);
 
     // Set embed colour
-    if (this.conf.color) {
+    if (this.conf.default.color) {
       embed.setColor(this.conf.default.color);
     }
 
