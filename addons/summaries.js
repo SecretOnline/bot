@@ -43,8 +43,8 @@ class Summaries extends ScriptAddon {
   }
 
   init() {
-    this.bot.addCommand('reddit-summary', new Command(this.redditSummary.bind(this), 'summaries', redditHelp));
-    this.bot.addCommand('github-summary', new Command(this.githubSummary.bind(this), 'summaries', githubHelp));
+    this.bot.addCommand('reddit', new Command(this.redditSummary.bind(this), 'summaries', redditHelp));
+    this.bot.addCommand('github', new Command(this.githubSummary.bind(this), 'summaries', githubHelp));
   }
 
   deinit() {
@@ -116,41 +116,45 @@ class Summaries extends ScriptAddon {
   }
 
   githubSummary(input) {
-    return new Promise((resolve, reject) => {
-      let match = input.text.match(githubRegex);
-      if (!match) {
-        reject(`${input.text} isn't a github url`);
-        return;
-      }
+    return input.process()
+      .then((result) => {
+        return new Promise((resolve, reject) => {
+          let match = result.match(githubRegex);
+          if (!match) {
+            reject(`${result} isn't a github url`);
+            return;
+          }
 
-      let owner = match[1];
-      let repo = match[2];
+          let owner = match[1];
+          let repo = match[2];
 
-      this.github.repos.get({owner, repo}, (err, res) => {
-        if (err) {
-          reject('error while trying to get repository details');
-          this.error(err);
-          return;
-        }
+          this.github.repos.get({owner, repo}, (err, res) => {
+            if (err) {
+              reject('error while trying to get repository details');
+              this.error(err);
+              return;
+            }
 
-        let embed = new Discord.RichEmbed()
-          .setTitle(res.name)
-          .setDescription(res.description)
-          .setAuthor(res.owner.login, res.owner.avatar_url)
-          .setURL(res.html_url);
+            let embed = new Discord.RichEmbed()
+              .setTitle(res.name)
+              .setDescription(res.description)
+              .setAuthor(res.owner.login, res.owner.avatar_url)
+              .setURL(res.html_url);
 
-        if (res.fork) {
-          embed.addField('Fork of:', `[${res.source.fullName}](${res.source.html_url})`);
-        }
+            if (res.fork) {
+              embed.addField('Fork of:', `[${res.source.fullName}](${res.source.html_url})`);
+            }
 
-        embed.addField('Stats',`**${res.forks_count}** forks\n**${res.stargazers_count}** stars\n**${res.watchers_count}** watching`, true)
-          .addField('\u200b', `Created: ${new Date(res.created_at).toDateString()}\nUpdated: ${new Date(res.updated_at).toDateString()}\n**${res.open_issues_count}** [issues or PRs](${res.html_url}/issues)`, true);
+            embed
+              .addField('Stats',`**${res.forks_count}** forks\n**${res.stargazers_count}** stars\n**${res.watchers_count}** watching`, true)
+              .addField('\u200b', `Created: ${new Date(res.created_at).toDateString()}\nUpdated: ${new Date(res.updated_at).toDateString()}\n**${res.open_issues_count}** [issues or PRs](${res.html_url}/issues)`, true);
 
-        this.bot.send(input.message.channel, embed);
+            this.bot.send(input.message.channel, embed);
 
-        resolve('');
+            resolve('');
+          });
+        });
       });
-    });
   }
 }
 
