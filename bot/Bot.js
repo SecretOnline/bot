@@ -328,8 +328,10 @@ class Bot {
     }
 
     if (changed) {
-      fs.writeFile(this.confPath, JSON.stringify(this.c, null, 2), (err) => {
-        this.error('failed to write config file');
+      fs.writeFile(this.confPath, JSON.stringify(this.conf, null, 2), (err) => {
+        if (err) {
+          this.error('failed to write config file');
+        }
       });
     }
   }

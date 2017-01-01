@@ -46,7 +46,7 @@ class Enabler extends ScriptAddon {
       serverConf.addons = [input.text];
     }
 
-    this.setConfig(input.message.guild, serverConf);
+    this.bot.setConfig(input.message.guild, serverConf);
     return `enabled ${input.text} on this server`;
   }
 
@@ -64,7 +64,7 @@ class Enabler extends ScriptAddon {
       if (serverConf.addons.includes(input.text)) {
         let index = serverConf.addons.indexOf(input.text);
         serverConf.addons.splice(index, 1);
-        this.setConfig(input.message.guild, serverConf);
+        this.bot.setConfig(input.message.guild, serverConf);
         return `disabled ${input.text} on this server`;
       } else {
         if (this.bot.getConfig('default').addons.includes(input.text)) {
@@ -112,7 +112,7 @@ class Enabler extends ScriptAddon {
       serverConf.filter.push(channel.id);
     });
 
-    this.setConfig(input.message.guild, serverConf);
+    this.bot.setConfig(input.message.guild, serverConf);
     return `added ${channels.map(c=>c.toString()).join(', ')} to the list of allowed channels`;
   }
 
