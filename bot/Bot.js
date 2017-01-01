@@ -228,15 +228,15 @@ class Bot {
     return comm;
   }
 
-  listCommands(message, group) {
+  listCommands(message, group, useObj = false) {
     if (message) {
-      let groups = this.conf.default.addons.slice();
+      let groups = this.conf.default.always.slice();
       groups.push('core');
       let permLevel = Command.PermissionLevels.DEFAULT;
 
       // Get any server specific command groups
       if (message.channel instanceof Discord.TextChannel) {
-        let servConf = message.channel.server.getConfig();
+        let servConf = this.getConfig(message.guild);
         if (servConf) {
           if (servConf.addons) {
             groups.unshift(...servConf.addons);
@@ -260,7 +260,7 @@ class Bot {
       }
 
       let conflicts = [];
-      return Array.from(this.commands.entries())
+      let commands = Array.from(this.commands.entries())
         .filter((pair) => {
           let command = pair[1];
           // Multiple commands with this trigger, check each of them
@@ -294,9 +294,13 @@ class Bot {
             }
             return groups.find(g => command.group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)));
           }
-        })
-        .map(pair => pair[0]) // Only want the trigger for the command
-        .concat(conflicts.map(pair => `${pair[1].group}.${pair[0]}`));
+        });
+
+      if (!useObj) {
+        commands = commands.map(pair => pair[0]); // Only want the trigger for the command
+        conflicts = conflicts.map(pair => `${pair[1].group}.${pair[0]}`);
+      }
+      return commands.concat(conflicts);
     } else {
       return Array.from(this.commands.keys());
     }
@@ -382,8 +386,10 @@ class Bot {
     // TODO: Check whether s_b can actually use embeds
     let embed;
     let text = '';
+    let isEmbed = false;
     if (message instanceof Discord.RichEmbed) {
       embed = message;
+      isEmbed = true;
 
       if (message.title) {
         text = message.title;
@@ -399,7 +405,7 @@ class Bot {
       embed.setColor(this.conf.default.color.error);
     }
 
-    console.log(`< ${text}`); // eslint-disable-line no-console
+    console.log(`<${isEmbed?' {embed} ':' '}${text}`); // eslint-disable-line no-console
 
     return target.sendEmbed(
       embed,

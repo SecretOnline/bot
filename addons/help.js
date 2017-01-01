@@ -91,6 +91,8 @@ let topics = {
   ]
 };
 
+let splitWordsLengthRegex = /(?:(.{1,500})(?:, |$))/g;
+
 class Help extends ScriptAddon {
   constructor(bot) {
     super(bot, 'help');
@@ -163,23 +165,51 @@ class Help extends ScriptAddon {
     }
 
     let available = [];
-    let reply = '';
+    let embed = new Discord.RichEmbed();
     if (input.text) {
-      available = this.bot.listCommands(input.message, input.text);
-      reply = `secret_bot *help* -> *commands* -> *${input.text}*\n` +
-        `config for server: *${serverName}*\n` +
-        `commands (${available.length}): ` +
-        available.sort().map(item => `\`${prefix}${item}\``).join(', ');
+      available = this.bot.listCommands(input.message, input.text, true);
+      embed.setTitle(`secret_bot *help* -> *commands* -> *${input.text}*`)
+        .setDescription(`config for server: *${serverName}*\ncommands (${available.length}):`);
     } else {
-      available = this.bot.listCommands(input.message);
-      reply = `secret_bot *help* -> *commands*\n` +
-        `config for server: *${serverName}*\n` +
-        `command groups enabled: ${groups.sort().join(', ')}\n` +
-        `commands (${available.length}): ` +
-        available.sort().map(item => `\`${prefix}${item}\``).join(', ');
+      available = this.bot.listCommands(input.message, null, true);
+      embed.setTitle('secret_bot *help* -> *commands*')
+        .setDescription(`config for server: *${serverName}*\ncommand groups enabled: ${groups.sort().join(', ')}\ncommands (${available.length}): `);
     }
 
-    this.bot.send(input.user, reply);
+    // Send commands by group
+    let groupMap = new Map();
+    available.forEach((pair) => {
+      let group = pair[1].group.split('.')[0];
+
+      if (!groupMap.has(group)) {
+        groupMap.set(group, []);
+      }
+
+      groupMap.get(group).push(pair);
+    });
+
+    Array.from(groupMap.entries())
+      .sort((set1, set2) => {
+        if (set1[0] > set2[0]) {
+          return 1;
+        } else if (set1[0] < set2[0]) {
+          return -1;
+        }
+        return 0;
+      })
+      .forEach((set) => {
+        let list = set[1].sort().map(item => `\`${prefix}${item[0]}\``).join(', ');
+        let parts = list.match(splitWordsLengthRegex);
+        parts.forEach((item, index) => {
+          embed.addField(
+            `**${set[0]}${index?' (cont.)':''}**`,
+            item
+          );
+        });
+
+      });
+
+    this.bot.send(input.user, embed);
     // Don't send anything to server channel
     return '';
   }
