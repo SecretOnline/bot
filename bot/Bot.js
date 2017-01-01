@@ -370,11 +370,21 @@ class Bot {
   send(target, message) {
     // TODO: Check whether s_b can actually use embeds
     let embed;
+    let text = '';
     if (message instanceof Discord.RichEmbed) {
       embed = message;
+
+      if (message.title) {
+        text = message.title;
+      } else if (message.description) {
+        text = message.description;
+      }
     } else {
       embed = this.embedify(message);
+      text = message;
     }
+
+    console.log(`< ${text}`); // eslint-disable-line no-console
 
     return target.sendEmbed(
       embed,
