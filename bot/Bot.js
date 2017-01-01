@@ -66,8 +66,8 @@ class Bot {
   }
 
   reloadConnections() {
-    console.log('[BOT] loading connections');
     return this._closeConnections()
+      .then(util.promprint('[BOT] loading connections'))
       .then(this._openConnections.bind(this))
       .then(util.promprint('[BOT] loaded connections'));
   }
@@ -475,7 +475,9 @@ class Bot {
 
   _openConnections() {
     this.discord.on('message', this._onMessage.bind(this));
-    return this.discord.login(this.conf.login.token);
+    console.log('[djs] Logging in');
+    return this.discord.login(this.conf.login.token)
+      .then(util.promprint('[djs] Logged in'));
   }
 
   _closeConnections() {
