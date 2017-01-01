@@ -41,11 +41,6 @@ class Summaries extends ScriptAddon {
 
   redditSummary(input) {
     return new Promise((resolve, reject) => {
-      if (input.message.connection.id !== 'djs') {
-        reject('for now, reddit summary is only available on Discord');
-        return;
-      }
-
       let match = input.text.match(redditRegex);
       if (!match) {
         reject(`${input.text} isn't a reddit url`);
@@ -82,12 +77,11 @@ class Summaries extends ScriptAddon {
 
       Promise.all(promises)
         .then((res) => {
-          console.log(res);
           let post = res[0];
           let author = res[1];
           let embed = new Discord.RichEmbed()
             .setTitle(post.title)
-            .setAuthor(`/r/${post.subreddit.display_name}: ${author.name}`)
+            .setAuthor(`${author.name} - /r/${post.subreddit.display_name}`)
             .setURL(post.url)
             .addField('Score',`**${post.score}** points\n${post.ups} upvotes`, true)
             .addField(`${post.num_comments} comments`, '\u200b', true);
@@ -100,7 +94,7 @@ class Summaries extends ScriptAddon {
             }
           }
 
-          input.message.channel.send(embed);
+          this.bot.send(input.message.channel, embed);
 
           resolve('');
         }, (err) => {
