@@ -67,6 +67,7 @@ class Bot {
           .then(this._initAddons.bind(this))
           .then((arr) => {
             this.log(`loaded ${arr.length} addons`);
+            this.log(`${this.commands.size} commands`);
             return arr;
           });
       });
@@ -607,7 +608,7 @@ class Bot {
           this.send(message.author, errMess);
 
           if (this.conf.verbose) {
-            this.error(err);
+            console.error(err); // eslint-disable-line no-console
           }
         }
       })
