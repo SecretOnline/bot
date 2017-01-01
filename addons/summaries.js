@@ -147,7 +147,7 @@ class Summaries extends ScriptAddon {
 
             embed
               .addField('Stats',`**${res.forks_count}** forks\n**${res.stargazers_count}** stars\n**${res.watchers_count}** watching`, true)
-              .addField('\u200b', `Created: ${new Date(res.created_at).toDateString()}\nUpdated: ${new Date(res.updated_at).toDateString()}\n**${res.open_issues_count}** [issues or PRs](${res.html_url}/issues)`, true);
+              .addField('\u200b', `Created: ${new Date(res.created_at).toDateString()}\nUpdated: ${new Date(res.pushed_at).toDateString()}\n**${res.open_issues_count}** [issues or PRs](${res.html_url}/issues)`, true);
 
             this.bot.send(input.message.channel, embed);
 
