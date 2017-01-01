@@ -18,8 +18,16 @@ class Bot {
     this.commands = new Map();
     this.addons = [];
     this.allM = [];
-    this.discord = new Discord.Client();
+    this._discord = new Discord.Client();
   }
+
+  //region Properties
+
+  get discord() {
+    return this._discord;
+  }
+
+  //endregion
 
   //region Functions
 
@@ -378,7 +386,7 @@ class Bot {
 
   embedify(message) {
     const embed = new Discord.RichEmbed();
-    //  .setAuthor('\u200b', this.discord.user.avatarURL);
+    //  .setAuthor('\u200b', this._discord.user.avatarURL);
 
     // Set embed colour
     if (this.conf.default.color) {
@@ -474,9 +482,9 @@ class Bot {
   }
 
   _openConnections() {
-    this.discord.on('message', this._onMessage.bind(this));
+    this._discord.on('message', this._onMessage.bind(this));
     console.log('[djs] Logging in');
-    return this.discord.login(this.conf.login.token)
+    return this._discord.login(this.conf.login.token)
       .then(util.promprint('[djs] Logged in'));
   }
 

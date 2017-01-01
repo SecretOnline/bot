@@ -14,7 +14,6 @@ class GameChange extends ScriptAddon {
     this.games = [];
     this.conf.path = this.conf.path || 'games.conf.json';
     this.timeout;
-    this.djsConn = bot.getConnection('djs');
 
     fs.readFile(`./${this.conf.path}`, 'utf8', (err, data) => {
       try {
@@ -25,15 +24,8 @@ class GameChange extends ScriptAddon {
         return;
       }
 
-      if (this.djsConn.discord.user) {
-        this.pickRandomGame();
-        console.log('[gamechange] picked first game');
-      } else {
-        this.djsConn.discord.once('ready', () => {
-          this.pickRandomGame();
-          console.log('[gamechange] picked first game');
-        });
-      }
+      this.pickRandomGame();
+      console.log('[gamechange] picked first game');
     });
   }
 
@@ -87,11 +79,7 @@ class GameChange extends ScriptAddon {
   }
 
   set(game) {
-    if (!this.djsConn) {
-      throw new Error('unable to set the game to play');
-    }
-
-    this.djsConn.discord.user.setStatus('online', game);
+    this.bot.discord.user.setGame(game);
   }
 }
 
