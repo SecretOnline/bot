@@ -454,8 +454,7 @@ class Bot {
           resolve();
         }
       } catch (e) {
-        console.error(`[BOT] Failed to create addon: ${file}`);
-        console.error(e);
+        console.error(`[ERROR] ${file}: ${e}`);
         resolve();
         return;
       }
