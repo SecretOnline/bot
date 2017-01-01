@@ -15,8 +15,10 @@ let changeColorHelp = [
   'default is `#001855`'
 ];
 let inviteHelp = 'gives you a link to invite the bot to your own discord server';
+let sourceHelp = 'displays information about secret_bot\'s source code';
 
 let inviteLink = 'https://discordapp.com/oauth2/authorize?client_id=177875535391752192&scope=bot&permissions=93184';
+let sourceLink = 'https://github.com/SecretOnline/bot';
 
 class Core extends ScriptAddon {
   constructor(bot) {
@@ -28,6 +30,7 @@ class Core extends ScriptAddon {
     this.bot.addCommand('change-prefix', new Command(this.changeCommandPrefix.bind(this), 'core', Command.PermissionLevels.ADMIN, changePrefixHelp));
     this.bot.addCommand('change-color', new Command(this.changeColor.bind(this), 'core', Command.PermissionLevels.ADMIN, changeColorHelp));
     this.bot.addCommand('bot-invite', new Command(this.getDiscordInviteLink.bind(this), 'core.invites.discord', inviteHelp));
+    this.bot.addCommand('source', new Command(this.getSourceInfo.bind(this), 'core', sourceHelp));
   }
 
   deinit() {
@@ -95,7 +98,7 @@ class Core extends ScriptAddon {
 
   getDiscordInviteLink(input) {
     // Just return link if more than this command, otherwise give a bigger description
-    if (input.message.text.split(' ').length === 1) {
+    if (input.message.content.split(' ').length === 1) {
       return [
         'here\'s the link to invite secret_bot to your own Discord server',
         inviteLink
@@ -103,6 +106,32 @@ class Core extends ScriptAddon {
     } else {
       return inviteLink;
     }
+  }
+
+  getSourceInfo(input) {
+    // Try find the summary command, just for fun
+    let prefix = this.bot.getConfig('default').prefix;
+    let channel = input.message.channel;
+
+    if (channel instanceof Discord.TextChannel) {
+      let serverConf = this.bot.getConfig(input.message.guild);
+      if (serverConf.prefix) {
+        prefix = serverConf.prefix;
+      }
+    }
+    let comm;
+    try {
+      comm = this.bot.getCommand(`${prefix}summaries.github`, input.message);
+    } catch (e) {
+      comm = null;
+    }
+
+    // return url as text if command isn't found (or not enabled)
+    if (!comm) {
+      return sourceLink;
+    }
+
+    return comm.run(input.from(sourceLink));
   }
 }
 

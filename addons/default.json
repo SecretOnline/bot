@@ -13,7 +13,6 @@
   "freeze": "{args} is now frozen",
   "melt": "{args} is no longer frozen",
   "thaw": "{args} is no longer frozen",
-  "source":"https://github.com/SecretOnline/bot",
   "projects": "https://secretonline.github.io/",
   "islove": "{args} is love, {args} is life",
   "me": "{user}",
