@@ -119,19 +119,12 @@ class Core extends ScriptAddon {
         prefix = serverConf.prefix;
       }
     }
-    let comm;
-    try {
-      comm = this.bot.getCommand(`${prefix}summaries.github`, input.message);
-    } catch (e) {
-      comm = null;
-    }
 
-    // return url as text if command isn't found (or not enabled)
-    if (!comm) {
-      return sourceLink;
-    }
-
-    return comm.run(input.from(sourceLink));
+    return input.from(`${prefix}summaries.github ${sourceLink}`)
+      .process()
+      .catch(() => {
+        return sourceLink;
+      });
   }
 }
 
