@@ -1,6 +1,7 @@
 // This addon only works for Discord at the moment
 const Discord = require('discord.js');
 const snoowrap = require('snoowrap');
+const github = require('github');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
@@ -13,9 +14,13 @@ const truncate = require('../util').truncate;
 //   reddit.com/r/<id>[/comments/<id>]
 //   <subreddit>.reddit.com/<id>
 let redditRegex = /https?:\/\/(?:(?:redd\.it\/(\w+))|(?:\w+\.)reddit\.com\/r\/\w+\/comments\/(\w+)(\/[^\s/]+\/\w+)?|(\w+\.)reddit\.com\/(\w+)\/)/;
+let githubRegex = /(?:https?:\/\/github.com\/)?([\w-]+)\/([\w-]+)/;
 
 let redditHelp = [
   'Gets info about a reddit thread or comment'
+];
+let githubHelp = [
+  'Gets info about a Github repository'
 ];
 
 class Summaries extends ScriptAddon {
@@ -23,16 +28,23 @@ class Summaries extends ScriptAddon {
     super(bot, 'summaries');
 
     this.snoo = new snoowrap({
-      userAgent: this.conf.reddit.useragent,
+      userAgent: 'nodejs:secret_bot:7.x.x (by /u/secret_online)',
       clientId: this.conf.reddit.id,
       clientSecret: this.conf.reddit.secret,
       refreshToken: this.conf.reddit.refresh,
       accessToken: this.conf.reddit.access
     });
+
+    this.github = new github({
+      headers: {
+        'user-agent': 'secret_bot/7.x.x - by @secret_online'
+      }
+    });
   }
 
   init() {
-    this.bot.addCommand('reddit-summary', new Command(this.redditSummary.bind(this), 'summaries', redditHelp));
+    this.bot.addCommand('reddit', new Command(this.redditSummary.bind(this), 'summaries', redditHelp));
+    this.bot.addCommand('github', new Command(this.githubSummary.bind(this), 'summaries', githubHelp));
   }
 
   deinit() {
@@ -101,6 +113,48 @@ class Summaries extends ScriptAddon {
           reject('unable to get reddit summary');
         });
     });
+  }
+
+  githubSummary(input) {
+    return input.process()
+      .then((result) => {
+        return new Promise((resolve, reject) => {
+          let match = result.match(githubRegex);
+          if (!match) {
+            reject(`${result} isn't a github url`);
+            return;
+          }
+
+          let owner = match[1];
+          let repo = match[2];
+
+          this.github.repos.get({owner, repo}, (err, res) => {
+            if (err) {
+              reject('error while trying to get repository details');
+              this.error(err);
+              return;
+            }
+
+            let embed = new Discord.RichEmbed()
+              .setTitle(res.name)
+              .setDescription(res.description)
+              .setAuthor(res.owner.login, res.owner.avatar_url)
+              .setURL(res.html_url);
+
+            if (res.fork) {
+              embed.addField('Fork of:', `[${res.source.fullName}](${res.source.html_url})`);
+            }
+
+            embed
+              .addField('Stats',`**${res.forks_count}** forks\n**${res.stargazers_count}** stars\n**${res.watchers_count}** watching`, true)
+              .addField('\u200b', `Created: ${new Date(res.created_at).toDateString()}\nUpdated: ${new Date(res.pushed_at).toDateString()}\n**${res.open_issues_count}** [issues or PRs](${res.html_url}/issues)`, true);
+
+            this.bot.send(input.message.channel, embed);
+
+            resolve('');
+          });
+        });
+      });
   }
 }
 
