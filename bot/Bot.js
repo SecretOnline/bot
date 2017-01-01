@@ -1,4 +1,3 @@
-/* eslint no-console: 0 */
 const fs = require('fs');
 
 const Discord = require('discord.js');
@@ -36,7 +35,7 @@ class Bot {
     return this.reloadConnections()
       .then(this.reloadAddons.bind(this))
       .then(() => {
-        console.log('[BOT] Loading complete');
+        this.log('Loading complete');
       });
   }
 
@@ -47,8 +46,8 @@ class Bot {
   reloadAddons() {
     return this._deinitAddons(this.addons)
       .catch((err) => {
-        console.error('Error while trying to deinit addons');
-        console.error(err);
+        this.error('Error while trying to deinit addons');
+        this.error(err);
       })
       .then(() => {
         return this._listDirectory(this.conf.paths.addons)
@@ -67,8 +66,7 @@ class Bot {
           .then(this._createAddons.bind(this))
           .then(this._initAddons.bind(this))
           .then((arr) => {
-            // eslint-disable-next-line no-console
-            console.log(`[BOT] loaded ${arr.length} addons`);
+            this.log(`loaded ${arr.length} addons`);
             return arr;
           });
       });
@@ -331,7 +329,7 @@ class Bot {
 
     if (changed) {
       fs.writeFile(this.confPath, JSON.stringify(this.c, null, 2), (err) => {
-        console.error('[BOT] failed to write config file');
+        this.error('failed to write config file');
       });
     }
   }
@@ -425,20 +423,26 @@ class Bot {
       id = 'BOT';
     } else if (from instanceof Addon) {
       id = from.namespace;
+    } else if (typeof from === 'string') {
+      id = from;
     }
 
     let out = `[${id}] ${message}`;
     if (error) {
       out = `[ERROR]${out}`;
-      console.error(out);
+      console.error(out); // eslint-disable-line no-console
     } else {
-      console.log(out);
+      console.log(out); // eslint-disable-line no-console
     }
     return out;
   }
 
   error(message, from) {
     return this.log(message, from, true);
+  }
+
+  logWrite(message, from = this, error = false) {
+    // TODO: add message to log file
   }
 
   //endregion
@@ -449,7 +453,7 @@ class Bot {
     return new Promise((resolve, reject) => {
       fs.readdir(path, (err, data) => {
         if (err) {
-          console.error(err);
+          this.error(`unable to read directory ${path}`);
           reject(err);
           return;
         }
@@ -461,7 +465,7 @@ class Bot {
 
   _createAddons(files) {
     let promises = files.map(file => new Promise((resolve, reject) => {
-      console.log(`[BOT] Creating addon ${file}`);
+      this.log(`Creating addon ${file}`);
       let AddonModule;
       try {
         // Create JSONAddons for .json files
@@ -481,11 +485,11 @@ class Bot {
         }
         // Default message
         else {
-          console.error(`[BOT] Failed to create addon: ${file}, not a valid filetype`);
+          this.error(`Failed to create addon: ${file}, not a valid filetype`);
           resolve();
         }
       } catch (e) {
-        console.error(`[ERROR] ${file}: ${e}`);
+        this.error(`${file}: ${e}`);
         resolve();
         return;
       }
@@ -506,9 +510,9 @@ class Bot {
 
   _openConnections() {
     this._discord.on('message', this._onMessage.bind(this));
-    console.log('[djs] Logging in');
+    this.log('Logging in', 'djs');
     return this._discord.login(this.conf.login.token)
-      .then(util.promprint('[djs] Logged in'));
+      .then(util.promprint('Logged in', 'djs'));
   }
 
   _closeConnections() {
@@ -527,7 +531,9 @@ class Bot {
       });
 
       if (this.conf.verbose) {
-        console.log(`${message.author.username}: ${message.content}`);
+        if (!(message.author.id === this._discord.user.id)) {
+          console.log(`> ${message.author.username}: ${message.content}`); // eslint-disable-line no-console
+        }
       }
 
 
@@ -589,7 +595,7 @@ class Bot {
           this.send(message.author, errMess);
 
           if (this.conf.verbose) {
-            console.error(err);
+            this.error(err);
           }
         }
       })
@@ -605,7 +611,7 @@ class Bot {
           }
 
           if (this.conf.verbose) {
-            console.error(err);
+            this.error(err);
           }
         }
       });

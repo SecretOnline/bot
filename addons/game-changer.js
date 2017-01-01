@@ -25,7 +25,6 @@ class GameChange extends ScriptAddon {
       }
 
       this.pickRandomGame();
-      console.log('[gamechange] picked first game');
     });
   }
 
@@ -40,7 +39,7 @@ class GameChange extends ScriptAddon {
   updateGamesList(data) {
     try {
       this.games = JSON.parse(data);
-      console.log('[gamechange] loaded games');
+      this.log('loaded games');
     } catch (e) {
       this.games = this.games || [];
     }
@@ -79,6 +78,7 @@ class GameChange extends ScriptAddon {
   }
 
   set(game) {
+    this.log(`set game to ${game}`);
     this.bot.discord.user.setGame(game);
   }
 }

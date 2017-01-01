@@ -49,7 +49,7 @@ class RandomStuff extends ScriptAddon {
           }
         }
       }, (err) => {
-        console.log(err); // eslint-disable-line no-console
+        this.log(err);
       });
     this.uselessWebTimeout = setTimeout(() => {
       this.uselessWebTimeout = false;
@@ -66,7 +66,7 @@ class RandomStuff extends ScriptAddon {
       .then((res) => {
         this.foaasCache = res;
       }, (err) => {
-        console.log(err); // eslint-disable-line no-console
+        this.log(err);
       });
     this.foaasTimeout = setTimeout(() => {
       this.foaasTimeout = false;

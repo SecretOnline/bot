@@ -296,7 +296,7 @@ class Censor extends ScriptAddon {
             if (message.original.deletable) {
               message.original.delete();
             } else {
-              console.error(`[CENSOR] can't delete message in ${message.channel.connection.id}.${message.channel.server.id}`); // eslint-disable-line no-console
+              this.error(`can't delete message in ${message.channel.connection.id}.${message.channel.server.id}`); // eslint-disable-line no-console
             }
           }
         }
@@ -321,7 +321,7 @@ class Censor extends ScriptAddon {
               message.original.delete();
               message.channel.send(`${message.user.mention()}'s message contained ${domains.length > 1 ? 'links' : 'a link'} from ${domains.join(' , ')}. use \`~show-links ${id}\` to see the message (use copy/paste). this will be stored for 30 minutes`);
             } else {
-              console.error(`[CENSOR] can't delete message in ${message.channel.connection.id}.${message.channel.server.id}`); // eslint-disable-line no-console
+              this.error(`can't delete message in ${message.channel.connection.id}.${message.channel.server.id}`); // eslint-disable-line no-console
             }
           }
         }

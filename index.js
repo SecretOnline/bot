@@ -7,9 +7,7 @@ let confFile = process.argv[2] || 'bot.conf.json';
 let bot = new Bot(confFile);
 
 bot.start()
-  .then(() => {
-    console.log('it\'s working!');
-  }, (err) => {
-    console.error('Outter error');
+  .catch((err) => {
+    console.error('fatal error while starting secret_bot');
     console.error(err);
   });
