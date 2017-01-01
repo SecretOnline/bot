@@ -1,8 +1,10 @@
 const fs = require('fs');
+
+const Discord = require('discord.js');
+
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const JSONAddon = require('../bot/JSONAddon.js');
 const Command = require('../bot/Command.js');
-const Channel = require('../bot/Channel.js');
 
 let commandHelp = [
   'syntax: `~add-command <command trigger> <words to output>`',
@@ -34,12 +36,9 @@ class Custom extends ScriptAddon {
         return;
       }
 
-      Object.keys(this.commands).forEach((connection) => {
-        Object.keys(this.commands[connection]).forEach((server) => {
-          let group = `${connection}.${server}`;
-          Object.keys(this.commands[connection][server]).forEach((trigger) => {
-            JSONAddon.generateCommand(this.bot, group, trigger, this.commands[connection][server][trigger]);
-          });
+      Object.keys(this.commands).forEach((server) => {
+        Object.keys(this.commands[server]).forEach((trigger) => {
+          JSONAddon.generateCommand(this.bot, server, trigger, this.commands[server][trigger]);
         });
       });
     });
@@ -58,27 +57,22 @@ class Custom extends ScriptAddon {
     return new Promise((resolve, reject) => {
       // Ensure custom commands can be used
       let message = input.message;
-      if (!message.channel instanceof Channel) {
+      if (!message.channel instanceof Discord.TextChannel) {
         reject('custom commands can\'t be used in direct messages');
       }
 
       // Get the list of commands for this server, making empty objects where needed
-      let connection = this.commands[message.channel.connection.id];
-      if (!connection) {
-        connection = {};
-        this.commands[message.channel.connection.id] = connection;
-      }
-      let commands = connection[message.channel.server.id];
+      let commands = this.commands[message.guild.id];
       if (!commands) {
         commands = {};
-        connection[message.channel.server.id] = commands;
+        this.commands[message.guild.id] = commands;
       }
 
       let parts = input.text.split(' ');
       let trigger = parts.shift();
       let response = parts.join(' ');
       let prefix = this.bot.getConfig('default').prefix;
-      let serverConf = message.channel.server.getConfig();
+      let serverConf = this.bot.getConfig(message.guild);
       if (serverConf && serverConf.prefix) {
         prefix = serverConf.prefix;
       }
@@ -89,7 +83,7 @@ class Custom extends ScriptAddon {
       }
 
       commands[trigger] = response;
-      let group = `${message.channel.connection.id}.${message.channel.server.id}`;
+      let group = message.guild.id;
       JSONAddon.generateCommand(this.bot, group, trigger, response);
 
       fs.writeFile(this.conf.path, JSON.stringify(this.commands, null, 2), (err) => {
@@ -106,26 +100,21 @@ class Custom extends ScriptAddon {
     return new Promise((resolve, reject) => {
       // Ensure custom commands can be used
       let message = input.message;
-      if (!message.channel instanceof Channel) {
+      if (!message.channel instanceof Discord.TextChannel) {
         reject('custom commands can\'t be used in direct messages');
       }
 
       // Get the list of commands for this server, making empty objects where needed
-      let connection = this.commands[message.channel.connection.id];
-      if (!connection) {
-        connection = {};
-        this.commands[message.channel.connection.id] = connection;
-      }
-      let commands = connection[message.channel.server.id];
+      let commands = this.commands[message.guild.id];
       if (!commands) {
         commands = {};
-        connection[message.channel.server.id] = commands;
+        this.commands[message.guild.id] = commands;
       }
 
       let trigger = input.text.split(' ')[0];
       let prefix = this.bot.getConfig('default').prefix;
-      let serverConf = message.channel.server.getConfig();
-      let group = `${message.channel.connection.id}.${message.channel.server.id}`;
+      let serverConf = this.bot.getConfig(message.guild);
+      let group = message.guild.id;
       if (serverConf && serverConf.prefix) {
         prefix = serverConf.prefix;
       }
