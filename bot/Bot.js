@@ -168,6 +168,8 @@ class Bot {
       groups.push(message.channel.guild.id);
       // Get the user's actual permission level for this channel
       permLevel = this.getPermissionLevel(message);
+    } else {
+      groups.unshift(...this.conf.default.addons);
     }
 
     // Actually make sure this is a command
@@ -245,6 +247,8 @@ class Bot {
 
         permLevel = this.getPermissionLevel(message);
         groups.push(message.channel.guild.id);
+      } else {
+        groups.unshift(...this.conf.default.addons);
       }
 
       if (group) {
