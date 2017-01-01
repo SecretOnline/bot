@@ -179,7 +179,7 @@ class Help extends ScriptAddon {
         available.sort().map(item => `\`${prefix}${item}\``).join(', ');
     }
 
-    this.bot.send(input.user.reply);
+    this.bot.send(input.user, reply);
     // Don't send anything to server channel
     return '';
   }
