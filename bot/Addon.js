@@ -19,6 +19,14 @@ class Addon {
   deinit() {
     return Promise.reject('Addon didn\'t overwrite deinit');
   }
+
+  log(message) {
+    return this.bot.log(message, this);
+  }
+
+  error(message) {
+    return this.bot.error(message, this);
+  }
 }
 
 module.exports = Addon;

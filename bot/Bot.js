@@ -3,6 +3,7 @@ const fs = require('fs');
 
 const Discord = require('discord.js');
 
+const Addon = require('./Addon.js');
 const JSONAddon = require('./JSONAddon.js');
 const ScriptAddon = require('./ScriptAddon.js');
 const Command = require('./Command.js');
@@ -416,6 +417,28 @@ class Bot {
     }
 
     return embed;
+  }
+
+  log(message, from = this, error = false) {
+    let id;
+    if (from instanceof Bot) {
+      id = 'BOT';
+    } else if (from instanceof Addon) {
+      id = from.namespace;
+    }
+
+    let out = `[${id}] ${message}`;
+    if (error) {
+      out = `[ERROR]${out}`;
+      console.error(out);
+    } else {
+      console.log(out);
+    }
+    return out;
+  }
+
+  error(message, from) {
+    return this.log(message, from, true);
   }
 
   //endregion
