@@ -147,7 +147,7 @@ class Bot {
       return false;
     }
 
-    let groups = this.conf.default.addons.slice();
+    let groups = this.conf.default.always.slice();
     groups.push('core');
     let prefix = this.conf.default.prefix;
     let permLevel = Command.PermissionLevels.DEFAULT;
@@ -303,15 +303,23 @@ class Bot {
   }
 
   getConfig(obj) {
+    let conf;
     // Requires typechecking to prevent object literals being used to get/set
     // the configuration of other objects
     if (obj instanceof Discord.Guild) {
-      return this.conf.servers[obj.id] || {};
+      if (this.conf.servers[obj.id]) {
+        conf = this.conf.servers[obj.id];
+      } else {
+        conf = this._newConfig(obj);
+        this.setConfig(obj, conf);
+      }
     } else if (obj instanceof ScriptAddon) {
-      return this.conf.addons[obj.namespace] || {};
+      conf =  this.conf.addons[obj.namespace] || {};
     } else if (obj === 'default') {
-      return this.conf.default;
+      conf = this.conf.default;
     }
+
+    return conf;
   }
 
   setConfig(obj, conf) {
@@ -370,7 +378,7 @@ class Bot {
     return Command.PermissionLevels.DEFAULT;
   }
 
-  send(target, message) {
+  send(target, message, error = false) {
     // TODO: Check whether s_b can actually use embeds
     let embed;
     let text = '';
@@ -385,6 +393,10 @@ class Bot {
     } else {
       embed = this.embedify(message);
       text = message;
+    }
+
+    if (error) {
+      embed.setColor(this.conf.default.color.error);
     }
 
     console.log(`< ${text}`); // eslint-disable-line no-console
@@ -402,7 +414,7 @@ class Bot {
 
     // Set embed colour
     if (this.conf.default.color) {
-      embed.setColor(this.conf.default.color);
+      embed.setColor(this.conf.default.color.normal);
     }
 
     // See if message is a link
@@ -532,6 +544,17 @@ class Bot {
     return Promise.resolve();
   }
 
+  _newConfig(obj) {
+    let def = this.conf.default;
+    if (obj instanceof Discord.Guild) {
+      return {
+        name: obj.name,
+        prefix: def.prefix,
+        addons: def.addons.slice()
+      };
+    }
+  }
+
   _onMessage(message) {
     let inputProm = new Promise((resolve, reject) => {
       //TODO: Send all incoming messages to addons that want all messages
@@ -605,7 +628,7 @@ class Bot {
             }
           }
 
-          this.send(message.author, errMess);
+          this.send(message.author, errMess, true);
 
           if (this.conf.verbose) {
             console.error(err); // eslint-disable-line no-console
@@ -620,7 +643,7 @@ class Bot {
       .catch((err) => {
         if (err) {
           if (err.message.match('Forbidden')) {
-            this.send(message.author, 'secret_bot was unable to reply. are they blocked from sending messages?');
+            this.send(message.author, this.embedify('secret_bot was unable to reply. are they blocked from sending messages?'), true);
           }
 
           if (this.conf.verbose) {
