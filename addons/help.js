@@ -180,6 +180,11 @@ class Help extends ScriptAddon {
     let groupMap = new Map();
     available.forEach((pair) => {
       let group = pair[1].group.split('.')[0];
+      if (input.message.channel instanceof Discord.TextChannel) {
+        if (group === input.message.guild.id) {
+          group = 'this';
+        }
+      }
 
       if (!groupMap.has(group)) {
         groupMap.set(group, []);
