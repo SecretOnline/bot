@@ -571,6 +571,12 @@ class Bot {
       }, {});
   }
 
+  _setServerConfig(serverId, conf) {
+    this.serverConf.set(serverId, conf);
+
+    return this._writeServerConf(serverId);
+  }
+
   _writeServerConf(server) {
     return new Promise((resolve, reject) => {
       let conf = this.serverConf.get(server);
