@@ -14,11 +14,15 @@ let rmModeHelp = [
 
 ];
 
+// Store removing/removed message IDs in cache for up-to 1 minute
+let cacheStoreTime = 60 * 1000;
+
 class MessMan extends ScriptAddon {
   constructor(bot) {
     super(bot, 'messages');
 
     this.mConf = {};
+    this.rmMessageCache = new Map();
     this.conf.path = this.conf.path || 'messages.conf.json';
     this.timeout;
 
@@ -27,19 +31,17 @@ class MessMan extends ScriptAddon {
         this.mConf = JSON.parse(data);
       } catch (e) {
         this.mConf = {};
-        fs.writeFile(this.conf.path, JSON.stringify(this.games, null, 2), () => {});
+        fs.writeFile(this.conf.path, JSON.stringify(this.mConf, null, 2), () => {});
         return;
       }
-
-      this.pickRandomGame();
     });
   }
 
   init() {
     this.f = this.onMessage.bind(this); // Yay for binding! /s
-    this.bot.requestAllMessages(this.f);
+    this.bot.requestAllMessages(this.f, true);
 
-    this.bot.addCommand('rm', new Command(this.doRm.bind(this), 'discord.messages'));
+    this.bot.addCommand('rm', new Command(this.doRm.bind(this), 'discord.messages', rmHelp));
     // this.bot.addCommand('mk', new Command(this.doMk.bind(this), 'discord.messages'));
     // this.bot.addCommand('rm-mode', new Command(this.changeMode.bind(this), 'discord.messages'), Command.PermissionLevels.DEFAULT);
   }
@@ -49,11 +51,39 @@ class MessMan extends ScriptAddon {
   }
 
   doRm(input) {
-    console.log('in rm handler');
+    this.rmMessageCache.set(input.message.id, setTimeout(() => {
+      if (this.rmMessageCache.has(input.message.id)) {
+        this.rmMessageCache.delete(input.message.id);
+      }
+    }, cacheStoreTime));
+
+    // Output nothing
+    return input.process();
   }
 
   onMessage(message) {
-    console.log('in all handler');
+    let toDelete = false;
+    let conf = this.mConf[message.guild.id];
+
+    if (conf && conf.rmMode) {
+      if (!this.rmMessageCache.has(message.id)) {
+        toDelete = true;
+      }
+    } else {
+      if (this.rmMessageCache.has(message.id)) {
+        toDelete = true;
+      }
+    }
+
+    if (toDelete) {
+      this.rmMessageCache.delete(message.id);
+      if (message.deletable) {
+        message.delete()
+          .catch(() => {
+            this.error(`failed to delete message ${message.id}`);
+          });
+      }
+    }
   }
 }
 
