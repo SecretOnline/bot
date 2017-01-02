@@ -19,6 +19,7 @@ class Support extends ScriptAddon {
 
   init() {
     this.bot.addCommand('support', new Command(this.getSupport.bind(this), 'core.help.support', Command.PermissionLevels.ADMIN, supportHelp));
+    this.bot.addCommand('support-close', new Command(this.closeSupport.bind(this), 'support'));
   }
 
   deinit() {
@@ -86,7 +87,7 @@ class Support extends ScriptAddon {
       .then(([channel, role, invite]) => {
         let chanEmbed = new Discord.RichEmbed()
           .setTitle('new support request')
-          .setDescription(supportRole.toString())
+          .setDescription('@everyone')
           .addField('Reason', input.text)
           .addField('User', `${message.author.toString()}`, true)
           .addField('Server', `${message.guild.name}\n${message.guild.id}`, true);
@@ -96,13 +97,54 @@ class Support extends ScriptAddon {
           .addField('Reason', input.text);
 
         return Promise.all([
-          this.bot.send(channel, chanEmbed),
+          this.bot.send(channel, chanEmbed, false, false),
           this.bot.send(message.author, userEmbed)
         ]);
       })
       .then(() => {
         return '';
       });
+  }
+
+  closeSupport(input) {
+    if (!input.message.channel instanceof Discord.TextChannel) {
+      return 'this command must be done in a server';
+    }
+
+    let message = input.message;
+    let conf = this.getConfig('default');
+
+    if (message.guild.id !== conf.server) {
+      return 'this command is invalid on this server';
+    }
+    if (!message.channel.name.match(/support-\w+/)) {
+      return 'this command is invalid in this channel';
+    }
+
+    let server = this.discord.guilds.get(conf.server);
+
+    if (!server.available) {
+      return 'error communicating with Discord. not sure how this message got through';
+    }
+
+    let id = message.channel.name;
+    let role = message.guild.roles.find('name', id);
+    if (!role) {
+      return 'unable to find role, requesting manual action';
+    }
+
+    setTimeout(() => {
+      message.channel.delete();
+      role.delete();
+    }, 10000);
+
+    let embed = new Discord.RichEmbed()
+      .setTitle('All done!')
+      .setDescription('this channel will self-destruct in 10 seconds');
+
+    this.bot.send(message.channel, embed);
+
+    return '';
   }
 }
 

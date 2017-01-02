@@ -387,7 +387,7 @@ class Bot {
     return Command.PermissionLevels.DEFAULT;
   }
 
-  send(target, message, error = false) {
+  send(target, message, error = false, disableEveryone = true) {
     // TODO: Check whether s_b can actually use embeds
     let embed;
     let text = '';
