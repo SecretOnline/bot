@@ -564,8 +564,11 @@ class Bot {
 
     return Array.from(this.serverConf.entries())
       .reduce((obj, pair) => {
-        obj[pair[0]] = pair[1]['addon-conf'][addon.namespace];
-      });
+        if (pair[1]['addon-conf'][addon.namespace]) {
+          obj[pair[0]] = pair[1]['addon-conf'][addon.namespace];
+        }
+        return obj;
+      }, {});
   }
 
   _writeServerConf(server) {
