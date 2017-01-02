@@ -11,21 +11,10 @@ class GameChange extends ScriptAddon {
   constructor(bot) {
     super(bot, 'game-change');
 
-    this.games = [];
-    this.conf.path = this.conf.path || 'games.conf.json';
+    this.games = this.getConfig('default');
     this.timeout;
 
-    fs.readFile(`./${this.conf.path}`, 'utf8', (err, data) => {
-      try {
-        this.games = JSON.parse(data);
-      } catch (e) {
-        this.games = [];
-        fs.writeFile(this.conf.path, JSON.stringify(this.games, null, 2), () => {});
-        return;
-      }
-
-      this.pickRandomGame();
-    });
+    this.pickRandomGame();
   }
 
   init() {
