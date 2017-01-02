@@ -24,24 +24,15 @@ class Custom extends ScriptAddon {
   constructor(bot) {
     super(bot, 'custom');
 
-    this.commands = {};
-    this.conf.path = this.conf.path || 'custom-commands.conf.json';
+    this.commands = this.getConfig();
 
-    fs.readFile(`./${this.conf.path}`, 'utf8', (err, data) => {
-      try {
-        this.commands = JSON.parse(data);
-      } catch (e) {
-        this.commands = {};
-        fs.writeFile(this.conf.path, JSON.stringify(this.commands, null, 2), () => {});
-        return;
-      }
-
+    if (this.commands) {
       Object.keys(this.commands).forEach((server) => {
         Object.keys(this.commands[server]).forEach((trigger) => {
           JSONAddon.generateCommand(this.bot, server, trigger, this.commands[server][trigger]);
         });
       });
-    });
+    }
   }
 
   init() {
@@ -62,10 +53,9 @@ class Custom extends ScriptAddon {
       }
 
       // Get the list of commands for this server, making empty objects where needed
-      let commands = this.commands[message.guild.id];
+      let commands = this.getConfig(message.guild);
       if (!commands) {
         commands = {};
-        this.commands[message.guild.id] = commands;
       }
 
       let parts = input.text.split(' ');
@@ -86,13 +76,10 @@ class Custom extends ScriptAddon {
       let group = message.guild.id;
       JSONAddon.generateCommand(this.bot, group, trigger, response);
 
-      fs.writeFile(this.conf.path, JSON.stringify(this.commands, null, 2), (err) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve(`added \`${prefix}${trigger}\` to server`);
-      });
+      this.setConfig(message.guild, commands)
+        .then(() => {
+          resolve(`added \`${prefix}${trigger}\` to server`);
+        });
     });
   }
 
@@ -105,10 +92,9 @@ class Custom extends ScriptAddon {
       }
 
       // Get the list of commands for this server, making empty objects where needed
-      let commands = this.commands[message.guild.id];
+      let commands = this.getConfig(message.guild);
       if (!commands) {
         commands = {};
-        this.commands[message.guild.id] = commands;
       }
 
       let trigger = input.text.split(' ')[0];
@@ -124,13 +110,10 @@ class Custom extends ScriptAddon {
         this.bot.removeCommand(trigger, group);
       }
 
-      fs.writeFile(this.conf.path, JSON.stringify(this.commands, null, 2), (err) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve(`removed \`${prefix}${trigger}\` from server`);
-      });
+      this.setConfig(message.guild, commands)
+        .then(() => {
+          resolve(`removed \`${prefix}${trigger}\` from server`);
+        });
     });
   }
 }
