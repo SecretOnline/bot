@@ -330,9 +330,13 @@ class Bot {
     if (obj instanceof Discord.Guild) {
       return this._getServerConfig(obj);
     } else if (obj instanceof ScriptAddon) {
-      return this._getAddonConfig(obj, server);
+      if (server === 'default') {
+        return this._getDefaultConfig()['addon-conf'][obj.namespace];
+      } else {
+        return this._getAddonConfig(obj, server);
+      }
     } else if (obj === 'default') {
-      return this._getDefaultConfig('default');
+      return this._getDefaultConfig();
     }
 
     throw 'invalid object, can not get config';
