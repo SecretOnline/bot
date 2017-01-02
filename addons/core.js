@@ -83,10 +83,10 @@ class Core extends ScriptAddon {
         return `${color} isn't a hex colour`;
       }
 
-      var server = input.message.channel.server;
+      var server = input.message.guild;
 
       // Set command prefix
-      var serverConf = server.getConfig();
+      var serverConf = this.bot.getConfig(server);
       serverConf.color = color;
       this.bot.setConfig(server, serverConf);
 

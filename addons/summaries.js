@@ -27,6 +27,8 @@ class Summaries extends ScriptAddon {
   constructor(bot) {
     super(bot, 'summaries');
 
+    this.conf = this.bot.getConfig('default')['addon-conf'][this.ns];
+
     this.snoo = new snoowrap({
       userAgent: 'nodejs:secret_bot:7.x.x (by /u/secret_online)',
       clientId: this.conf.reddit.id,

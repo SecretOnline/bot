@@ -302,7 +302,7 @@ class Help extends ScriptAddon {
     } else {
       response = [
         'secret_bot *help*',
-        'secret_bot v7.1.x - the objectively better update',
+        'secret_bot v7.3.x - the con(f)spiracy update',
         '',
         'help for individual commands can be found by using `~help <command>`',
         'more help topics can be found at `~help topic`',

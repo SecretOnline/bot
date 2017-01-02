@@ -1,4 +1,3 @@
-const fs = require('fs');
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
 
@@ -41,20 +40,7 @@ class MessMan extends ScriptAddon {
   constructor(bot) {
     super(bot, 'messages');
 
-    this.mConf = {};
     this.rmMessageCache = new Map();
-    this.conf.path = this.conf.path || 'messages.conf.json';
-    this.timeout;
-
-    fs.readFile(`./${this.conf.path}`, 'utf8', (err, data) => {
-      try {
-        this.mConf = JSON.parse(data);
-      } catch (e) {
-        this.mConf = {};
-        fs.writeFile(this.conf.path, JSON.stringify(this.mConf, null, 2), () => {});
-        return;
-      }
-    });
   }
 
   init() {
@@ -72,8 +58,7 @@ class MessMan extends ScriptAddon {
 
   doRm(input) {
     let toDelete = false;
-    let message = input.message;
-    let conf = this.mConf[message.guild.id];
+    let conf = this.getConfig(input.message.guild);
 
     // If rm mode is set, don't worry. It'll be taken care of
     if (!(conf && conf.rmMode)) {
@@ -94,8 +79,7 @@ class MessMan extends ScriptAddon {
 
   doKeep(input) {
     let toKeep = false;
-    let message = input.message;
-    let conf = this.mConf[message.guild.id];
+    let conf = this.getConfig(input.message.guild);
 
     // If rm mode is set do the thing
     if (conf && conf.rmMode) {
@@ -116,11 +100,9 @@ class MessMan extends ScriptAddon {
 
   changeMode(input) {
     return new Promise((resolve, reject) => {
-      let message = input.message;
-      let conf = this.mConf[message.guild.id];
+      let conf = this.getConfig(input.message.guild);
       if (!conf) {
         conf = {};
-        this.mConf[message.guild.id] = conf;
       }
       let out;
 
@@ -130,14 +112,9 @@ class MessMan extends ScriptAddon {
       } else {
         out = 'messages with commands will be kept after processed';
       }
-      
-      fs.writeFile(this.conf.path, JSON.stringify(this.mConf, null, 2), (err) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        resolve(out);
-      });
+
+      this.setConfig(conf, input.message.guild);
+      resolve(out);
     });
   }
 
@@ -147,7 +124,7 @@ class MessMan extends ScriptAddon {
     }
 
     let toDelete = false;
-    let conf = this.mConf[message.guild.id];
+    let conf = this.getConfig(message.guild);
 
     if (conf && conf.rmMode) {
       if (this.rmMessageCache.has(message.id)) {

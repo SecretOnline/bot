@@ -1,5 +1,3 @@
-const fs = require('fs');
-
 const Discord = require('discord.js');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
