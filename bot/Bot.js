@@ -553,6 +553,21 @@ class Bot {
     return configs;
   }
 
+  _getServerConfig(serverId) {
+    return this.serverConf.get(serverId);
+  }
+
+  _getAddonConfig(addon, serverId) {
+    if (serverId) {
+      return this.serverConf.get(serverId)['addon-conf'][addon.namespace];
+    }
+
+    return Array.from(this.serverConf.entries())
+      .reduce((obj, pair) => {
+        obj[pair[0]] = pair[1]['addon-conf'][addon.namespace];
+      });
+  }
+
   _createAddons(files) {
     let promises = files.map(file => new Promise((resolve, reject) => {
       this.log(`Creating addon ${file}`);
