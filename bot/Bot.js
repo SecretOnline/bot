@@ -325,41 +325,29 @@ class Bot {
   }
 
   getConfig(obj, server) {
-    let conf;
     // Requires typechecking to prevent object literals being used to get/set
     // the configuration of other objects
     if (obj instanceof Discord.Guild) {
-      this._getServerConfig(obj.id);
+      return this._getServerConfig(obj);
     } else if (obj instanceof ScriptAddon) {
-      conf =  this._getAddonConfig(obj, server);
+      return this._getAddonConfig(obj, server);
     } else if (obj === 'default') {
-      conf = this._getServerConfig('default');
+      return this._getDefaultConfig('default');
     }
-    
-    return conf;
+
+    throw 'invalid object, can not get config';
   }
 
-  setConfig(obj, conf) {
-    let changed = false;
-
+  setConfig(obj, conf, server) {
     if (obj instanceof Discord.Guild) {
-      this.conf.servers[obj.id] = conf;
-      changed = true;
+      return this._setServerConfig(obj, conf);
     } else if (obj instanceof ScriptAddon) {
-      this.conf.addons[obj.namespace] = conf;
-      changed = true;
+      return this._setAddonConfig(obj, conf, server);
     } else if (obj === 'default') {
-      this.conf.default = conf;
-      changed = true;
+      return this._setDefaultConfig(conf);
     }
 
-    if (changed) {
-      fs.writeFile(this.confPath, JSON.stringify(this.conf, null, 2), (err) => {
-        if (err) {
-          this.error('failed to write config file');
-        }
-      });
-    }
+    throw 'invalid object, can not set config';
   }
 
   requestAllMessages(func, processed = null) {
@@ -548,13 +536,22 @@ class Bot {
     return configs;
   }
 
-  _getServerConfig(serverId) {
-    return this.serverConf.get(serverId);
+  _getDefaultConfig() {
+    return this.serverConf.get('default');
   }
 
-  _getAddonConfig(addon, serverId) {
-    if (serverId) {
-      return this.serverConf.get(serverId)['addon-conf'][addon.namespace];
+  _getServerConfig(server) {
+    if (!this.serverConf.has(server.id)) {
+      this.serverConf.set(server.id, this._newServerConf(server));
+      this._writeServerConf(server)
+        .catch(() => {});
+    }
+    return this.serverConf.get(server.id);
+  }
+
+  _getAddonConfig(addon, server) {
+    if (server) {
+      return this.getConfig(server)['addon-conf'][addon.namespace];
     }
 
     return Array.from(this.serverConf.entries())
@@ -566,27 +563,33 @@ class Bot {
       }, {});
   }
 
-  _setServerConfig(serverId, conf) {
-    this.serverConf.set(serverId, conf);
+  _setDefaultConfig(conf) {
+    this.serverConf.set('default', conf);
 
-    return this._writeServerConf(serverId);
+    return this._writeServerConf({id: 'default'});
   }
 
-  _setAddonConfig(addon, conf, serverId) {
+  _setServerConfig(server, conf) {
+    this.serverConf.set(server.id, conf);
+
+    return this._writeServerConf(server);
+  }
+
+  _setAddonConfig(addon, conf, server) {
     return new Promise((resolve, reject) => {
-      if (serverId) {
-        let serverConf = this.serverConf.get(serverId);
+      if (server) {
+        let serverConf = this.getConfig(server);
         serverConf['addon-conf'][addon.namespace] = conf;
 
-        return this._writeServerConf(serverId);
+        return this._writeServerConf(server);
       }
 
       let promises = Object.keys(conf)
-        .map((server) => {
-          let serverConf = this.serverConf.get(server);
+        .map((s) => {
+          let serverConf = this.getConfig(s);
           serverConf['addon-conf'][addon.namespace] = conf;
 
-          return this._writeServerConf(server);
+          return this._writeServerConf(s);
         });
 
       return Promise.all(promises);
@@ -595,20 +598,31 @@ class Bot {
 
   _writeServerConf(server) {
     return new Promise((resolve, reject) => {
-      let conf = this.serverConf.get(server);
+      let conf = this.serverConf.get(server.id);
 
       fs.writeFile(
-        `${this.conf.paths.conf}${server}.conf.json`,
+        `${this.conf.paths.conf}${server.id}.conf.json`,
         JSON.stringify(conf, null, 2),
         (err) => {
           if (err) {
             reject(err);
-            this.error(`unable to write ${server}.conf.json`);
+            this.error(`unable to write ${server.id}.conf.json`);
             return;
           }
           resolve();
         });
     });
+  }
+
+  _newServerConf(guild) {
+    let defaultConf = this.getConfig('default');
+    return {
+      name: guild.name,
+      prefix: defaultConf.prefix,
+      color: defaultConf.color,
+      addons: defaultConf.addons.slice(),
+      'addon-conf': {}
+    };
   }
 
   _createAddons(files) {
@@ -637,7 +651,6 @@ class Bot {
           resolve();
         }
       } catch (e) {
-        console.error(e);
         this.error(`${file}: ${e}`);
         resolve();
         return;
