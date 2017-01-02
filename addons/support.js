@@ -12,7 +12,7 @@ let supportHelp = [
 
 class Support extends ScriptAddon {
   constructor(bot) {
-    super(bot, 'core');
+    super(bot, 'support');
 
     this.discord = bot.discord;
   }
@@ -50,13 +50,26 @@ class Support extends ScriptAddon {
     });
     let channelProm = roleProm
       .then((role) => {
-        return server.createChannel(`support-${id}`, 'text', {
-          overwrites: [
-            {id: supportRole.id, type: 11264},
-            {id: role.id, type: 3072}
-          ]
+        let templateChannel = server.channels.get(conf['template-channel']);
+        return templateChannel.clone(`support-${id}`)
+        .then((channel) => {
+          return Promise.all([
+            channel.overwritePermissions(supportRole, {
+              'READ_MESSAGES': true,
+              'SEND_MESSAGES': true,
+              'MANAGE_MESSAGES': true
+            }),
+            channel.overwritePermissions(role, {
+              'READ_MESSAGES': true,
+              'SEND_MESSAGES': true
+            })
+          ])
+            .then(() => {
+              return channel;
+            });
         });
       });
+
     let inviteProm = channelProm
       .then((channel) => {
         return channel.createInvite({
@@ -64,8 +77,6 @@ class Support extends ScriptAddon {
           maxUses: 2
         });
       });
-
-
 
     return Promise.all([
       channelProm,
@@ -81,7 +92,7 @@ class Support extends ScriptAddon {
           .addField('Server', `${message.guild.name}\n${message.guild.id}`, true);
         let userEmbed = new Discord.RichEmbed()
           .setTitle('new support request')
-          .setDescription(`a new support request has been created. here is an invite to a channel where you can het help: ${invite.toString()}`)
+          .setDescription(`a new support request has been created. here is an invite to a channel where you can get help: ${invite.toString()}`)
           .addField('Reason', input.text);
 
         return Promise.all([
