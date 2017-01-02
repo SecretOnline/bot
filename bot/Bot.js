@@ -353,8 +353,8 @@ class Bot {
     }
   }
 
-  requestAllMessages(func) {
-    this.allM.push(func);
+  requestAllMessages(func, processed = null) {
+    this.allM.push({func, processed});
   }
 
   cancelAllMessages(func) {
@@ -568,8 +568,20 @@ class Bot {
   _allHandlers(message, processed = false) {
     // Send all incoming messages to addons that ask for them
     setImmediate(() => {
-      this.allM.forEach((func) => {
-        func(message, processed);
+      this.allM.forEach((handler) => {
+        // Is handler fussy?
+        if (handler.processed !== null) {
+          // If handler wants only processed
+          if (handler.processed && processed) {
+            handler.func(message, processed);
+          } else
+          // If handler only wants non-processed
+          if (!handler.processed && !processed) {
+            handler.func(message, processed);
+          }
+        } else {
+          handler.func(message, processed);
+        }
       });
     });
   }
