@@ -330,9 +330,13 @@ class Bot {
     if (obj instanceof Discord.Guild) {
       return this._getServerConfig(obj);
     } else if (obj instanceof ScriptAddon) {
-      return this._getAddonConfig(obj, server);
+      if (server === 'default') {
+        return this._getDefaultConfig()['addon-conf'][obj.namespace];
+      } else {
+        return this._getAddonConfig(obj, server);
+      }
     } else if (obj === 'default') {
-      return this._getDefaultConfig('default');
+      return this._getDefaultConfig();
     }
 
     throw 'invalid object, can not get config';
@@ -383,7 +387,7 @@ class Bot {
     return Command.PermissionLevels.DEFAULT;
   }
 
-  send(target, message, error = false) {
+  send(target, message, error = false, disableEveryone = true) {
     // TODO: Check whether s_b can actually use embeds
     let embed;
     let text = '';
@@ -715,15 +719,26 @@ class Bot {
 
   _onMessage(message) {
     let inputProm = new Promise((resolve, reject) => {
-      //TODO: Send all incoming messages to addons that want all messages
 
+      if (this.conf.dev && this.conf.dev.server) {
+        if (message.channel instanceof Discord.TextChannel) {
+          if (message.guild.id === this.conf.dev.server) {
+            if (this.conf.dev.channel && (this.conf.dev.channel !== message.channel.id)) {
+              return;
+            }
+          } else {
+            return;
+          }
+        } else {
+          return;
+        }
+      }
 
       if (this.conf.verbose) {
         if (!(message.author.id === this._discord.user.id)) {
           console.log(`> ${message.author.username}: ${message.content}`); // eslint-disable-line no-console
         }
       }
-
 
       if (message.channel instanceof Discord.TextChannel) {
         let sConf = this.getConfig(message.guild);
