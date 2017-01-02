@@ -85,6 +85,14 @@ secret_bot uses the tilde `~` at the beginning of commands. If you want to chang
 
 Soon the colour of secret_bot's messages (well, the line to the left of them) will be able to be changed using `~change-color`. If you're trying to keep a colour theme with your bots, this will be useful for you.
 
+#### Support
+
+Need to actually talk to a human? secret_bot features a support line, where you can talk to an actual person if you encounter a big problem.
+
+Please only use support when it's absolutely necessary. secret_bot is a hobby project, so the time I spend answering support questions is time I could be spending doing far more productive things.
+
+To use the support, type `~support` and your reason (e.g. `~support No commands are working, and I don't know what to do!`). You will be sent a message with an invite link to join a support channel. To finish a support session, use `~support-close`.
+
 ### Adding your own commands
 
 This section covers the basic usage available to server admins. For anything more complex, you'll have to [write some code](https://github.com/SecretOnline/bot#adding-an-addon).
