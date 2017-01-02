@@ -324,23 +324,18 @@ class Bot {
     }
   }
 
-  getConfig(obj) {
+  getConfig(obj, server) {
     let conf;
     // Requires typechecking to prevent object literals being used to get/set
     // the configuration of other objects
     if (obj instanceof Discord.Guild) {
-      if (this.conf.servers[obj.id]) {
-        conf = this.conf.servers[obj.id];
-      } else {
-        conf = this._newConfig(obj);
-        this.setConfig(obj, conf);
-      }
+      this._getServerConfig(obj.id);
     } else if (obj instanceof ScriptAddon) {
-      conf =  this.conf.addons[obj.namespace] || {};
+      conf =  this._getAddonConfig(obj, server);
     } else if (obj === 'default') {
-      conf = this.conf.default;
+      conf = this._getServerConfig('default');
     }
-
+    
     return conf;
   }
 
@@ -517,7 +512,7 @@ class Bot {
       this.log(`Loading config ${file}`);
       try {
         // Create JSONAddons for .json files'
-        let match = file.match(/\.conf\.json$/);
+        let match = file.match(/^(.*)\.conf\.json$/);
         if (match) {
           fs.readFile(`./${this.conf.paths.conf}${file}`, 'utf8', (err, data) => {
             if (err) {
@@ -642,6 +637,7 @@ class Bot {
           resolve();
         }
       } catch (e) {
+        console.error(e);
         this.error(`${file}: ${e}`);
         resolve();
         return;
@@ -665,7 +661,9 @@ class Bot {
     this._discord.on('message', this._onMessage.bind(this));
     this.log('Logging in', 'djs');
     return this._discord.login(this.conf.login.token)
-      .then(util.promprint('Logged in', 'djs'));
+      .then(() => {
+        this.log('Logged in', 'djs');
+      });
   }
 
   _closeConnections() {
@@ -774,7 +772,7 @@ class Bot {
             }
           }
 
-          this.send(message.author, errMess, true);
+          //this.send(message.author, errMess, true);
 
           if (this.conf.verbose) {
             console.error(err); // eslint-disable-line no-console
@@ -789,7 +787,7 @@ class Bot {
       .catch((err) => {
         if (err) {
           if (err.message.match('Forbidden')) {
-            this.send(message.author, this.embedify('secret_bot was unable to reply. are they blocked from sending messages?'), true);
+            //this.send(message.author, this.embedify('secret_bot was unable to reply. are they blocked from sending messages?'), true);
           }
 
           if (this.conf.verbose) {
