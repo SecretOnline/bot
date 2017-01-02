@@ -783,7 +783,7 @@ class Bot {
             }
           }
 
-          //this.send(message.author, errMess, true);
+          this.send(message.author, errMess, true);
 
           if (this.conf.verbose) {
             console.error(err); // eslint-disable-line no-console
@@ -798,7 +798,7 @@ class Bot {
       .catch((err) => {
         if (err) {
           if (err.message.match('Forbidden')) {
-            //this.send(message.author, this.embedify('secret_bot was unable to reply. are they blocked from sending messages?'), true);
+            this.send(message.author, this.embedify('secret_bot was unable to reply. are they blocked from sending messages?'), true);
           }
 
           if (this.conf.verbose) {
