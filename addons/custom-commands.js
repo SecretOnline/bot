@@ -61,11 +61,8 @@ class Custom extends ScriptAddon {
       let parts = input.text.split(' ');
       let trigger = parts.shift();
       let response = parts.join(' ');
-      let prefix = this.bot.getConfig('default').prefix;
       let serverConf = this.bot.getConfig(message.guild);
-      if (serverConf && serverConf.prefix) {
-        prefix = serverConf.prefix;
-      }
+      let prefix = serverConf.prefix;
 
       if (commands[trigger]) {
         resolve(`\`${prefix}${trigger}\` is already a command`);
@@ -76,10 +73,10 @@ class Custom extends ScriptAddon {
       let group = message.guild.id;
       JSONAddon.generateCommand(this.bot, group, trigger, response);
 
-      this.setConfig(message.guild, commands)
+      this.setConfig(commands, message.guild)
         .then(() => {
           resolve(`added \`${prefix}${trigger}\` to server`);
-        });
+        }, reject);
     });
   }
 
@@ -110,10 +107,10 @@ class Custom extends ScriptAddon {
         this.bot.removeCommand(trigger, group);
       }
 
-      this.setConfig(message.guild, commands)
+      this.setConfig(commands, message.guild)
         .then(() => {
           resolve(`removed \`${prefix}${trigger}\` from server`);
-        });
+        }, reject);
     });
   }
 }
