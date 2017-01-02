@@ -114,7 +114,38 @@ class MessMan extends ScriptAddon {
     return input.process();
   }
 
-  onMessage(message) {
+  changeMode(input) {
+    return new Promise((resolve, reject) => {
+      let message = input.message;
+      let conf = this.mConf[message.guild.id];
+      if (!conf) {
+        conf = {};
+        this.mConf[message.guild.id] = conf;
+      }
+      let out;
+
+      conf.rmMode = !conf.rmMode;
+      if (conf.rmMode) {
+        out = 'messages with commands will now be removed once finished';
+      } else {
+        out = 'messages with commands will be kept after processed';
+      }
+      
+      fs.writeFile(this.conf.path, JSON.stringify(this.mConf, null, 2), (err) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(out);
+      });
+    });
+  }
+
+  onMessage(message, processed) {
+    if (!processed) {
+      return;
+    }
+
     let toDelete = false;
     let conf = this.mConf[message.guild.id];
 
