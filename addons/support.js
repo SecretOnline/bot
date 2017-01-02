@@ -87,10 +87,12 @@ class Support extends ScriptAddon {
       .then(([channel, role, invite]) => {
         let chanEmbed = new Discord.RichEmbed()
           .setTitle('new support request')
-          .setDescription('@everyone')
+          .setDescription('hey @everyone, we need someone over here!')
           .addField('Reason', input.text)
           .addField('User', `${message.author.toString()}`, true)
-          .addField('Server', `${message.guild.name}\n${message.guild.id}`, true);
+          .addField('Server', `${message.guild.name}\n${message.guild.id}`, true)
+          .addField('Channel', `${message.channel.name}\n${message.channel.id}`, true)
+          .setFooter('type `~support-close` when you\'re finished and i\'ll clean up');
         let userEmbed = new Discord.RichEmbed()
           .setTitle('new support request')
           .setDescription(`a new support request has been created. here is an invite to a channel where you can get help: ${invite.toString()}`)
