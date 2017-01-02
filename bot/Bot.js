@@ -568,6 +568,24 @@ class Bot {
       });
   }
 
+  _writeServerConf(server) {
+    return new Promise((resolve, reject) => {
+      let conf = this.serverConf.get(server);
+
+      fs.writeFile(
+        `${this.conf.paths.conf}${server}.conf.json`,
+        JSON.stringify(conf, null, 2),
+        (err) => {
+          if (err) {
+            reject(err);
+            this.error(`unable to write ${server}.conf.json`);
+            return;
+          }
+          resolve();
+        });
+    });
+  }
+
   _createAddons(files) {
     let promises = files.map(file => new Promise((resolve, reject) => {
       this.log(`Creating addon ${file}`);
