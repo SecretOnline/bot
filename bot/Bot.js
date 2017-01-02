@@ -15,6 +15,8 @@ class Bot {
     this.conf = require(`../${confPath}`);
     this.confPath = confPath;
 
+    this.serverConf = new Map();
+
     this.commands = new Map();
     this.addons = [];
     this.allM = [];
@@ -32,7 +34,9 @@ class Bot {
   //region Functions
 
   start() {
-    return this.reloadConnections()
+    return Promise.resolve()
+      .then(this.reloadConfig.bind(this))
+      .then(this.reloadConnections.bind(this))
       .then(this.reloadAddons.bind(this))
       .then(() => {
         this.log('Loading complete');
@@ -41,6 +45,16 @@ class Bot {
 
   stop() {
 
+  }
+
+  reloadConfig() {
+    return this._listDirectory(this.conf.paths.conf)
+      .then(this._loadConfig.bind(this))
+      .then(this._initConfig.bind(this))
+      .then((arr) => {
+        this.log(`loaded ${arr.length} config files`);
+        return arr;
+      });
   }
 
   reloadAddons() {
@@ -496,6 +510,47 @@ class Bot {
         resolve(data);
       });
     });
+  }
+
+  _loadConfig(files) {
+    let promises = files.map(file => new Promise((resolve, reject) => {
+      this.log(`Loading config ${file}`);
+      try {
+        // Create JSONAddons for .json files'
+        let match = file.match(/\.conf\.json$/);
+        if (match) {
+          fs.readFile(`./${this.conf.paths.conf}${file}`, 'utf8', (err, data) => {
+            if (err) {
+              this.error(`${file} read error: ${err}`);
+              resolve();
+              return;
+            }
+            resolve({
+              name: match[1],
+              data: JSON.parse(data)
+            });
+          });
+        }
+        // Default message
+        else {
+          this.error(`${file} is not a valid filetype for configs. must be \`*.conf.json\``);
+          resolve();
+        }
+      } catch (e) {
+        this.error(`${file}: ${e}`);
+        resolve();
+        return;
+      }
+    }));
+    return Promise.all(promises)
+      .then(ps => ps.filter(p => p)); // Eliminates the undefined configs
+  }
+
+  _initConfig(configs) {
+    configs.forEach((conf) => {
+      this.serverConf.set(conf.name, conf.data);
+    });
+    return configs;
   }
 
   _createAddons(files) {
