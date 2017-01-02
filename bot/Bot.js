@@ -353,8 +353,8 @@ class Bot {
     }
   }
 
-  requestAllMessages(func) {
-    this.allM.push(func);
+  requestAllMessages(func, processed = null) {
+    this.allM.push({func, processed});
   }
 
   cancelAllMessages(func) {
@@ -565,16 +565,31 @@ class Bot {
     }
   }
 
+  _allHandlers(message, processed = false) {
+    // Send all incoming messages to addons that ask for them
+    setImmediate(() => {
+      this.allM.forEach((handler) => {
+        // Is handler fussy?
+        if (handler.processed !== null) {
+          // If handler wants only processed
+          if (handler.processed && processed) {
+            handler.func(message, processed);
+          } else
+          // If handler only wants non-processed
+          if (!handler.processed && !processed) {
+            handler.func(message, processed);
+          }
+        } else {
+          handler.func(message, processed);
+        }
+      });
+    });
+  }
+
   _onMessage(message) {
     let inputProm = new Promise((resolve, reject) => {
       //TODO: Send all incoming messages to addons that want all messages
 
-      // Send all incoming messages to addons that ask for them
-      setImmediate(() => {
-        this.allM.forEach((func) => {
-          func(message);
-        });
-      });
 
       if (this.conf.verbose) {
         if (!(message.author.id === this._discord.user.id)) {
@@ -613,6 +628,9 @@ class Bot {
       }
 
       if (!comm) {
+        // Send command to listeners that want all messages
+        this._allHandlers(message, false);
+
         if (!message.channel instanceof Discord.TextChannel) {
           reject(new Error('the first word of a message must be a valid command'));
         }
@@ -660,6 +678,10 @@ class Bot {
             this.error(err);
           }
         }
+      })
+      .then(() => {
+        // Send command to listeners that want all messages
+        this._allHandlers(message, true);
       });
   }
 
