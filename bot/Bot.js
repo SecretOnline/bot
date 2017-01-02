@@ -168,7 +168,7 @@ class Bot {
 
     // Add other groups into list for channel
     if (message.channel instanceof Discord.GuildChannel) {
-      let servConf = this.conf.servers[message.channel.guild.id];
+      let servConf = this.getConfig(message.guild);
       if (servConf) {
         // Add server-specific addons to list
         if (servConf.addons) {
