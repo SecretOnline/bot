@@ -577,6 +577,27 @@ class Bot {
     return this._writeServerConf(serverId);
   }
 
+  _setAddonConfig(addon, conf, serverId) {
+    return new Promise((resolve, reject) => {
+      if (serverId) {
+        let serverConf = this.serverConf.get(serverId);
+        serverConf['addon-conf'][addon.namespace] = conf;
+
+        return this._writeServerConf(serverId);
+      }
+
+      let promises = Object.keys(conf)
+        .map((server) => {
+          let serverConf = this.serverConf.get(server);
+          serverConf['addon-conf'][addon.namespace] = conf;
+
+          return this._writeServerConf(server);
+        });
+
+      return Promise.all(promises);
+    });
+  }
+
   _writeServerConf(server) {
     return new Promise((resolve, reject) => {
       let conf = this.serverConf.get(server);
