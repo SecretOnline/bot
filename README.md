@@ -1,6 +1,6 @@
 # secret_bot
 
-version 6.x.x
+version 7.3.x
 
 * [Add the bot to your server](https://github.com/SecretOnline/bot#using-secret_bot)
 * [Basic usage for server admins](https://github.com/SecretOnline/bot#basic-setup-and-use)
@@ -15,7 +15,7 @@ It features recursive command processing, so you can chain commands in one messa
 
 ## Using secret_bot
 
-If you want to use secret_bot on your Discord server, you can [authorize the bot](https://discordapp.com/oauth2/authorize?client_id=177875535391752192&scope=bot) to join your server by clicking that link. You need to have the Manage Server permssion to be able to add it to a server. Once authorized, it should be available right away.
+If you want to use secret_bot on your Discord server, you can [authorize the bot](https://discordapp.com/oauth2/authorize?client_id=177875535391752192&scope=bot&permissions=93184) to join your server by clicking that link. You need to have the Manage Server permssion to be able to add it to a server. Once authorized, it should be available right away.
 
 If you want to run your own version of the bot (or do some development), then you will need to clone this repository. For this, you'll need `git`, and since the bot runs on `node`, you'll need that as well.
 
@@ -24,19 +24,17 @@ $ git clone https://github.com/SecretOnline/bot.git
 $ cd bot && npm install
 ```
 
-You will need to configure the bot before it can run. I'll explain that in [a later section](https://github.com/SecretOnline/bot#using-the-cloneddevelopment-bot).
+You will need to configure the bot before it can run. I'll explain that in [a later section](https://github.com/SecretOnline/bot#using-the-cloned-development-bot).
 
 ## Why another rewrite?
 
-Version 6 adds the ability for commands to access the rest of the bot, so a command can theoretically call another command. It also means they can do more than just return text, they can have other side effects as well. Commands also have a group, which allows server admins to enable/disable groups of commands if they want/don't want them.
-
-With that, this version also brings the return of custom commands, known in versions 3/4 as the alias system. This provides an easy way for server admins to add their own basic call/response commands.
+Version 7 builds upon the ability for commands to access the rest of the bot, so a command can [call another command](https://github.com/SecretOnline/bot/commit/ae5281902341a43902b0158bc9f4f7c5fa27c497#diff-051ac24927ac63174d3fd41cdf2098eaR123). It also means they can do more than just return text, they can have [other side effects as well](https://github.com/SecretOnline/bot/commit/67c195c59aa970058f3f73dc009d893e3d998e53#diff-d62dce5120621199a95203fd01539030R212). Commands also have a group, which allows server admins to enable/disable groups of commands if they want/don't want them.
 
 It also has a more formal help system, meaning it is easier to find out about a particular command.
 
 The permissions system has been simplified. When an addon creates a command, it can specify one of three permission levels. **DEFAULT** is the default level, and means that this command can be run by anyone with typing permission. **ADMIN** refers to anyone with the Manage Server permission on the Discord server. **OVERLORD** means the owner of the bot, specified in the main bot configuration. Since permissions are done per-server, you might be able to run some commands on one server, but not on another.
 
-Finally, secret_bot can be used on multiple Discord servers. While it *could* in previous versions, it could have led to some strange behaviours. Servers can enable and disable groups of commands per server.
+Finally, secret_bot can be used on multiple Discord servers. Each server has its own configuration.
 
 ## Adding an addon
 
@@ -69,36 +67,42 @@ Commands loaded by JSON are added to a command group with the same name as the f
 
 Any javascript files in the `./addons/` directory will also be loaded.
 
-Script files must be valid Node.js modules, and should export an `init` function, and optionally a `deinit` function. The `init` is called when the module is loaded, and `deinit` when the bot is being reloaded (note: may not happen on shutdown).
+Version 7 changes script loading in a breaking way from v6. Old v6 modules will not load (but also won't crash the bot).
+
+Script files must be valid Node.js modules, and should export a class that [extends `ScriptAddon`](https://github.com/SecretOnline/bot/blob/17c6ab52c1b64afe7485edc5e79ece79214deb79/addons/core.js#L3)
 
 This differs from previous versions of secret_bot, where commands were directly specified in the module's exports.
 
 ```js
-module.exports = {
-  init: yourInitFunction,
-  deinit: yourDeinitFunction
+const ScriptAddon = require('../bot/ScriptAddon');
+const Command = require('../bot/Command');
+class YourCoolAddon extends ScriptAddon {
+  // ...
+}
+module.exports = YourCoolAddon;
+```
+
+Each addon must have two functions: `init` and `deinit`. For now, the `deinit` function isn't used, so you can leave it empty.
+
+The `init` function is where you add
+
+```js
+init() {
+  this.bot.addCommand('reallycool', new Command(coolFunction, 'cool'));
 }
 ```
 
-The `init` function is passed an instance of a Bot, which you can use to register commands.
+The `Command` class is a more formal definition of a command than in previous iterations of secret_bot. The constructor takes up to 4 parameters, shown below.
 
 ```js
-function init(bot) {
-  bot.registerCommand('reallycool', new bot.Command(coolFunction, 'cool'));
-}
-```
-
-The `bot.Command` class is a more formal definition of a command than in previous iterations of secret_bot. The constructor takes up to 4 parameters, shown below.
-
-```js
-new bot.Command(funct, group, bot.Command.PermissionLevels.DEFAULT, 'help');
+new Command(funct, group, bot.Command.PermissionLevels.DEFAULT, 'help');
 // funct      {function, string}        function this command calls when being processed
 // group      {string}                  name of the group this command belongs to
 // permission {integer}                 optional. permission level required for this command
 // help       {string, Array, function} optional. more on this a bit further down
 ```
 
-`funct` is given a `bot.Input`, which reflects the user's input for this command. If `funct` is a string, it is treated the same as if it were specified by JSON.
+`funct` is given an `Input`, which reflects the user's input for this command. If `funct` is a string, it is treated the same as if it were specified by JSON.
 
 secret_bot supports [Promises](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise). If `funct` returns a promise, it will wait for resolution before moving on to the next step.
 
@@ -112,7 +116,7 @@ It's probably a lot easier to explain with examples. Go check out the `addons/` 
 
 #### Basic setup and use
 
-Clicked the link ([here it is again](https://discordapp.com/oauth2/authorize?client_id=177875535391752192&scope=bot))? Added the bot? Great. Let's have a look at some commands.
+Clicked the link ([here it is again](https://discordapp.com/oauth2/authorize?client_id=177875535391752192&scope=bot&permissions=93184))? Added the bot? Great. Let's have a look at some commands.
 
 The first command you should know is `~commands`. It sends you a DM (direct message) with a list of all the commands you can use on the server you typed the command in. You'll notice that the bot comes with some command groups enabled by default (core, default, emotes, faces, flipping). To have a look at what each command group adds, just add the name of the group to the command (`~commands core`). If you want to find out which group a particular command belongs to, you can use `~which` (`~which help`). For further help on a command, you can use `~help <command>. Some commands may not have any help associated with them.
 
@@ -158,40 +162,42 @@ secret_online: ~remove-command example-command
 
 ### Using the cloned/development bot
 
-You will still need to authorize the bot to join your server. However, you will need to set up a couple of files so the bot will actually run.
+You will still need to authorize the bot to join your server. However, you will need to set up a couple of files so the bot will actually run. Some parts are left over from previous iterations of the bot. I am working on cleaning it up.
 
 #### main.conf.json
 
 ```js
 {
-  "token": "<bot's discord token>", // used for login
-  "reconnect": true, // boolean, whether the bot should try to reconnect if its connection drops
-  "verbose": true, // more verbose logging
-  "files": {
-    "servers": "servers.conf.json", // file to store per-server configuration
-    "addons": "./addons/" // addons directory, NYI
+  "paths": {
+    "addons": "addons/",
+    "connections": "connections/",
+    "conf": "conf/"
   },
-  "overlords": [ // a list of user ids who have access to ALL enabled commands
-    "<user id>"
+  "default": {
+    "always": [
+      "a list of command groups that can not be disabled"
+    ]
+  }
+  "login": {
+    "token": "your discord token"
+  },
+  "overlords": [
+    "a list of user IDs that can run all commands all the time"
   ]
 }
 ```
 
-#### servers.conf.json
+#### default.conf.json
 
 ```js
 {
-  "_default": {
-    "char": "~", // default command character
-    "groups": [ // a list of command groups that are enabled by default
-      "core", // commands that affect how bot runs in your server
-      "default", // some basic commands for people to use
-      "emotes", // some basic emotes, mostly those that aren't in faces
-      "faces", // ~lenny
-      "flipping" // for all your table flipping needs
-    ]
-  }
+  "name": "", // not actually needed here, but some addons might end up using it
+  "prefix": "~", // the character that servers will use at the beginning of commands by default
+  "color": "#7289DA", // a colour for most Discord embeds
+  "addons": [], // a list of command groups that are added to servers by default
+  "addon-conf": {} // an empty object, just keep it here for safety
 }
+
 ```
 
 ## Previous versions of secret_bot
