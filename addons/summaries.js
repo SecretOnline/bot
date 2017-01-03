@@ -9,7 +9,7 @@ const Command = require('../bot/Command.js');
 
 const truncate = require('../util').truncate;
 
-google.resultsPerPage = 5;
+google.resultsPerPage = 8;
 
 // This is a monstrosity
 // Matches:
@@ -177,13 +177,13 @@ class Summaries extends ScriptAddon {
             }
 
             let embed = new Discord.RichEmbed()
-            .setDescription('temp')
-            .setTitle('temp')
-              .setAuthor(res, 'https://developers.google.com/identity/images/g-logo.png');
+              .setAuthor(res, 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png');
 
-            result.links.forEach((item) => {
-              embed.addField(item.title, `${item.href}\n ${truncate(item.description)}`);
-            });
+            result.links
+              .filter(item => item.title && item.href)
+              .forEach((item) => {
+                embed.addField(item.title, `${item.href}\n ${truncate(item.description)}`);
+              });
 
             this.bot.send(input.message.channel, embed);
           });
