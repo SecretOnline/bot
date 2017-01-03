@@ -19,8 +19,11 @@
   "homepage": "https://github.com/SecretOnline/bot#readme",
   "dependencies": {
     "discord.js": "^11.0.0",
+    "eslint": "^3.12.2",
+    "eslint-rc": "github:secretonline/eslint-rc",
     "github": "^7.2.0",
     "google": "^2.1.0",
+    "js-beautify": "^1.6.8",
     "robots": "^0.9.4",
     "snoowrap": "^1.11.3"
   }
