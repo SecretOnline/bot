@@ -33,7 +33,6 @@ class Comm extends ScriptAddon {
     this.bot.addCommand('raw', new Command(this.raw.bind(this), 'default', sayHelp));
     this.bot.addCommand('wiki', new Command(this.getWikiLink.bind(this), 'default', linkHelp));
     this.bot.addCommand('yt', new Command(this.getYtLink.bind(this), 'default', linkHelp));
-    this.bot.addCommand('google', new Command(this.getGoogleLink.bind(this), 'default', linkHelp));
     this.bot.addCommand('lmgtfy', new Command(this.getLmgtfyLink.bind(this), 'default', linkHelp));
     this.bot.addCommand('roll', new Command(this.getRoll.bind(this), 'default', rollHelp));
     this.bot.addCommand('reverse', new Command(this.reverse.bind(this), 'default', reverseHelp));
@@ -118,21 +117,6 @@ class Comm extends ScriptAddon {
         return url;
       });
 
-  }
-
-  getGoogleLink(input) {
-    return input.process()
-      .then((result) => {
-        var url = 'https://www.google.com/';
-        if (result) {
-          url += 'search?q=' + result;
-        }
-        url = url.replace(/ /g, '+');
-        url = encodeURI(url);
-        url = url.replace(/'/g, '%27');
-
-        return url;
-      });
   }
 
   getLmgtfyLink(input) {
