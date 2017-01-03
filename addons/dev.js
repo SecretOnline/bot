@@ -4,10 +4,17 @@ const eslint = require('eslint');
 const beautifier = require('js-beautify').js_beautify;
 
 const eslintrc = require('eslint-rc/.eslintrc.json');
-// const jsbeautifyrc = require('eslint-rc/.jsbeautifyrc.json');
+const jsbeautifyrc = require('eslint-rc/.jsbeautifyrc.json');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
+
+let beautifyHelp = [
+  'beautifies a JavaScript code block',
+  'if given a message ID, `~beautify` will use that message',
+  'otherwise, it scans the past 10 messages in the channel',
+  'the jsbeautifyrc file can be found at https://github.com/SecretOnline/eslint-rc/blob/master/.jsbeautifyrc.json'
+];
 
 class Dev extends ScriptAddon {
   constructor(bot) {
@@ -15,7 +22,7 @@ class Dev extends ScriptAddon {
   }
 
   init() {
-    this.bot.addCommand('beautify', new Command(this.beautify.bind(this), 'dev'));
+    this.bot.addCommand('beautify', new Command(this.beautify.bind(this), 'dev'), beautifyHelp);
   }
 
   deinit() {
@@ -50,7 +57,7 @@ class Dev extends ScriptAddon {
 
           match = message.content.match(/```js\n([\w\W]*)\n```/);
           if (match) {
-            resolve(`\`\`\`js\n${beautifier(match[1])}\n\`\`\``);
+            resolve(`\`\`\`js\n${beautifier(match[1], jsbeautifyrc)}\n\`\`\``);
           } else {
             reject('message didn\'t contain a js code block');
             return;
