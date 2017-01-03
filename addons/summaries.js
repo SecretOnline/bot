@@ -2,11 +2,14 @@
 const Discord = require('discord.js');
 const snoowrap = require('snoowrap');
 const github = require('github');
+const google = require('google');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
 
 const truncate = require('../util').truncate;
+
+google.resultsPerPage = 5;
 
 // This is a monstrosity
 // Matches:
@@ -21,6 +24,9 @@ let redditHelp = [
 ];
 let githubHelp = [
   'Gets info about a Github repository'
+];
+let googleHelp = [
+  'Gets the first 5 results of a Google search'
 ];
 
 class Summaries extends ScriptAddon {
@@ -47,6 +53,7 @@ class Summaries extends ScriptAddon {
   init() {
     this.bot.addCommand('reddit', new Command(this.redditSummary.bind(this), 'summaries', redditHelp));
     this.bot.addCommand('github', new Command(this.githubSummary.bind(this), 'summaries', githubHelp));
+    this.bot.addCommand('google', new Command(this.googleSummary.bind(this), 'summaries', googleHelp));
   }
 
   deinit() {
@@ -154,6 +161,31 @@ class Summaries extends ScriptAddon {
             this.bot.send(input.message.channel, embed);
 
             resolve('');
+          });
+        });
+      });
+  }
+
+  googleSummary(input) {
+    return input.process()
+      .then((res) => {
+        return new Promise((resolve, reject) => {
+          google(res, (err, result) => {
+            if (err) {
+              reject('google search failed');
+              return;
+            }
+
+            let embed = new Discord.RichEmbed()
+            .setDescription('temp')
+            .setTitle('temp')
+              .setAuthor(res, 'https://developers.google.com/identity/images/g-logo.png');
+
+            result.links.forEach((item) => {
+              embed.addField(item.title, `${item.href}\n ${truncate(item.description)}`);
+            });
+
+            this.bot.send(input.message.channel, embed);
           });
         });
       });
