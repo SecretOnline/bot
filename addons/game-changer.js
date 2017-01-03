@@ -1,4 +1,3 @@
-const fs = require('fs');
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
 
@@ -18,7 +17,7 @@ class GameChange extends ScriptAddon {
   }
 
   init() {
-    this.bot.addCommand('change-game', new Command(this.changeGame.bind(this), 'discord.misc', Command.PermissionLevels.OVERLORD));
+    this.bot.addCommand('change-game', new Command(this.changeGame.bind(this), 'core', Command.PermissionLevels.OVERLORD));
   }
 
   deinit() {
