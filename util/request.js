@@ -14,12 +14,6 @@ function req(reqObj, bypass) {
       reqObj = url.parse(reqObj);
     }
 
-    // Check protocols
-    if (!reqObj.protocol.match(/^https?:/)) {
-      reject('only http and https requests are allowed');
-      return;
-    }
-
     // Set user agent
     if (!reqObj.headers) {
       reqObj.headers = {};
@@ -47,7 +41,7 @@ function checkRobots(reqObj) {
         if (access) {
           resolve(reqObj);
         } else {
-          reject('robots.txt check failed');
+          reject(new Error(`robots.txt check failed for ${reqObj.href}`));
         }
       });
       return;
@@ -60,7 +54,7 @@ function checkRobots(reqObj) {
           if (access) {
             resolve(reqObj);
           } else {
-            reject('robots.txt check failed');
+            reject(new Error(`robots.txt check failed for ${reqObj.href}`));
           }
         });
       } else {
@@ -82,13 +76,15 @@ function doRequest(reqObj) {
     }
 
     if (!mod) {
-      reject('unable to figure out which protocol to use');
+      reject(new Error(`unknown protocol "${reqObj.protocol}" on request to ${reqObj.href}`));
       return;
     }
 
     mod.get(reqObj, (res) => {
       if (res.statusCode !== 200) {
-        reject('invalid response code');
+        let err = new Error(`invalid response code: "${res.statusCode}" on request to ${reqObj.href}`);
+        err.code = res.statusCode;
+        reject(err);
         res.resume();
         return;
       }
@@ -102,8 +98,7 @@ function doRequest(reqObj) {
         resolve(data);
       });
     }).on('error', (err) => {
-      console.error(err);
-      reject('error making request');
+      reject(err);
       return;
     });
   });
