@@ -11,12 +11,6 @@ const truncate = require('../util').truncate;
 
 google.resultsPerPage = 8;
 
-// This is a monstrosity
-// Matches:
-//   redd.it/<id>
-//   reddit.com/r/<id>[/comments/<id>]
-//   <subreddit>.reddit.com/<id>
-let redditRegex = /https?:\/\/(?:(?:redd\.it\/(\w+))|(?:\w+\.)reddit\.com\/r\/\w+\/comments\/(\w+)(\/[^\s/]+\/\w+)?|(\w+\.)reddit\.com\/(\w+)\/)/;
 let githubRegex = /(?:https?:\/\/github.com\/)?([\w-]+)\/([\w-]+)/;
 
 let redditHelp = [
@@ -62,66 +56,115 @@ class Summaries extends ScriptAddon {
 
   redditSummary(input) {
     return new Promise((resolve, reject) => {
-      let match = input.text.match(redditRegex);
-      if (!match) {
-        reject(`${input.text} isn't a reddit url`);
-        return;
-      }
-
-      let postId, commentId, post, comment;
-      // Short URL
-      if (match[1]) {
-        postId = match[1];
-      } else
-      // Normal URL
-      if (match[2]) {
-        postId = match[2];
-        commentId = match[3];
-      } else
-      // subreddit subdomain
-      if (match[4]) {
-        postId = match[5];
-      } else {
-        reject('expression error trying to get reddit summary');
-        return;
-      }
-
-      post = this.snoo.getSubmission(postId);
-      if (commentId) {
-        comment = this.snoo.getComment(commentId);
-      }
-
-      let promises = [
-        post.fetch(),
-        post.author.fetch()
+      let exps = [
+        [/redd\.it\/([a-z0-9]+)$/, 'post'],
+        [/(?:reddit\.com)?\/?r\/(\w+)\/?$/, 'subreddit'],
+        [/(?:reddit\.com)?\/?u\/(\w+)\/?$/, 'user'],
+        [/(?:reddit\.com)?\/?r\/\w+\/comments\/([a-z0-9]+)\/\w+\/?$/, 'post'],
+        [/(?:reddit\.com)?\/?r\/\w+\/comments\/([a-z0-9]+)\/\w+\/([a-z0-9]+)\/?$/, 'comment'],
       ];
+      let p = exps.find((pair) => {
+        return input.text.match(pair[0]);
+      });
 
-      Promise.all(promises)
-        .then((res) => {
-          let post = res[0];
-          let author = res[1];
-          let embed = new Discord.RichEmbed()
-            .setTitle(post.title)
-            .setAuthor(`${author.name} - /r/${post.subreddit.display_name}`)
-            .setURL(post.url)
-            .addField('Score',`**${post.score}** points\n${post.ups} upvotes`, true)
-            .addField(`${post.num_comments} comments`, '\u200b', true);
+      let prom;
+      let match = input.text.match(p[0]);
+      switch (p[1]) {
+        case 'post':
+          prom = this._redditGetPostInfo(match[1]);
+          break;
+        case 'comment':
+          prom = this._redditGetCommentInfo(match[1], match[2]);
+          break;
+        case 'user':
+          prom = this._redditGetUserInfo(match[1]);
+          break;
+        case 'subreddit':
+          prom = this._redditGetSubInfo(match[1]);
+          break;
+        default:
+          throw 'link was not valid';
+      }
 
-          if (post.is_self) {
-            embed.setDescription(truncate(post.selftext));
-          } else {
-            if (post.thumbnail) {
-              embed.setThumbnail(post.thumbnail);
-            }
-          }
-
+      prom
+        .then((embed) => {
           this.bot.send(input.message.channel, embed);
-
           resolve('');
-        }, (err) => {
-          reject('unable to get reddit summary');
-        });
+        }, reject);
     });
+  }
+
+  _redditGetPostInfo(id) {
+    return this.snoo.getSubmission(id)
+      .fetch()
+      .then((post) => {
+        let embed = new Discord.RichEmbed()
+          .setTitle(`${post.title} - /r/${post.subreddit.display_name}`)
+          .setAuthor(`/u/${post.author.name}`)
+          .setURL(post.url)
+          .addField('Score',`**${post.score}** points\n${post.ups} upvotes`, true)
+          .addField(`[${post.num_comments} comments](https://reddit.com${post.permalink})`, '\u200b', true);
+
+        if (post.is_self) {
+          embed.setDescription(truncate(post.selftext));
+        } else {
+          if (post.thumbnail) {
+            embed.setThumbnail(post.thumbnail);
+          }
+        }
+
+        return embed;
+      });
+  }
+
+  _redditGetCommentInfo(postId, commentId) {
+    let postProm = this.snoo.getSubmission(postId).fetch();
+    let commProm = this.snoo.getComment(commentId).fetch();
+    return Promise.all([
+      postProm,
+      commProm
+    ])
+      .then(([post, comment]) => {
+        let embed = new Discord.RichEmbed()
+          .setTitle(`Comment on ${post.title} - /r/${post.subreddit.display_name}`)
+          .setDescription(truncate(comment.body))
+          .setAuthor(`/u/${comment.author.name}`)
+          .setURL(`https://reddit.com${post.permalink}${comment.id}`)
+          .addField('Comment Score',`**${comment.score}** points\n${comment.ups} upvotes`, true);
+
+        return embed;
+      });
+  }
+
+  _redditGetUserInfo(name) {
+    return this.snoo.getUser(name)
+      .fetch()
+      .then((user) => {
+        let embed = new Discord.RichEmbed()
+          .setTitle(`/u/${user.name}`)
+          .setURL(`https://reddit.com/u/${user.name}`)
+          .addField('Karma',`**${user.link_karma}** link karma\n${user.comment_karma} comment karma`, true);
+
+        return embed;
+      });
+  }
+
+  _redditGetSubInfo(name) {
+    return this.snoo.getSubreddit(name)
+      .fetch()
+      .then((sub) => {
+        let embed = new Discord.RichEmbed()
+          .setTitle(`/r/${sub.display_name} - ${sub.title}`)
+          .setDescription(truncate(sub.description))
+          .setURL(`https://reddit.com${sub.url}`)
+          .addField('Users',`**${sub.subscribers}** subs\n${sub.accounts_active} there now`, true);
+
+        if (sub.header_img) {
+          embed.setThumbnail(sub.header_img);
+        }
+
+        return embed;
+      });
   }
 
   githubSummary(input) {
