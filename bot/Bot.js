@@ -369,7 +369,7 @@ class Bot {
     let channel = message.channel;
     let user = message.author;
     // DM channels always have default perms, even for overlords
-    if (!channel instanceof Discord.TextChannel) {
+    if (!(channel instanceof Discord.TextChannel)) {
       return Command.PermissionLevels.DEFAULT;
     }
 
@@ -773,7 +773,7 @@ class Bot {
         // Send command to listeners that want all messages
         this._allHandlers(message, false);
 
-        if (!message.channel instanceof Discord.TextChannel) {
+        if (!(message.channel instanceof Discord.TextChannel)) {
           reject(new Error('the first word of a message must be a valid command'));
         }
         return;
