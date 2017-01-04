@@ -27,7 +27,7 @@ class Support extends ScriptAddon {
   }
 
   getSupport(input) {
-    if (!input.message.channel instanceof Discord.TextChannel) {
+    if (!(input.message.channel instanceof Discord.TextChannel)) {
       return 'this command must be done in a server';
     }
 
@@ -109,7 +109,7 @@ class Support extends ScriptAddon {
   }
 
   closeSupport(input) {
-    if (!input.message.channel instanceof Discord.TextChannel) {
+    if (!(input.message.channel instanceof Discord.TextChannel)) {
       return 'this command must be done in a server';
     }
 

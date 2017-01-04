@@ -1,5 +1,4 @@
 // This addon only works for Discord at the moment
-const Discord = require('discord.js');
 const linter = require('eslint').linter;
 const beautifier = require('js-beautify').js_beautify;
 

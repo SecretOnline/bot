@@ -1,6 +1,8 @@
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
 
+const request = require('../util').request;
+
 class Test extends ScriptAddon {
   constructor(bot) {
     super(bot, 'test');
@@ -11,6 +13,7 @@ class Test extends ScriptAddon {
     this.bot.addCommand('reject', new Command(this.rejecter, 'test', Command.PermissionLevels.OVERLORD));
     this.bot.addCommand('conflict', new Command(this.conflict1, 'conflict1', Command.PermissionLevels.OVERLORD));
     this.bot.addCommand('conflict', new Command(this.conflict2, 'conflict2', Command.PermissionLevels.OVERLORD));
+    this.bot.addCommand('http-status-code', new Command(this.httpStatus, 'test', Command.PermissionLevels.OVERLORD));
   }
 
   deinit() {
@@ -36,6 +39,17 @@ class Test extends ScriptAddon {
 
   conflict2() {
     return 'resolved to conflict 2';
+  }
+
+  httpStatus(input) {
+    let code = input.text.match(/^(\d{3})$/);
+    if (!code) {
+      return 'must supply an HTTP status code';
+    }
+    return request(`https://httpbin.org/status/${code[1]}`)
+      .then((res) => {
+        return `got response: ${res}`;
+      });
   }
 }
 

@@ -31,7 +31,7 @@ class Enabler extends ScriptAddon {
   }
 
   addToServer(input) {
-    if (!input.message.channel instanceof Discord.TextChannel) {
+    if (!(input.message.channel instanceof Discord.TextChannel)) {
       return 'enabling addons is not allowed for private messages';
     }
 
@@ -51,7 +51,7 @@ class Enabler extends ScriptAddon {
   }
 
   removeFromServer(input) {
-    if (!input.message.channel instanceof Discord.TextChannel) {
+    if (!(input.message.channel instanceof Discord.TextChannel)) {
       return 'disabling addons is not allowed for private messages';
     }
 
@@ -79,7 +79,7 @@ class Enabler extends ScriptAddon {
   }
 
   addToFilter(input) {
-    if (!input.message.channel instanceof Discord.TextChannel) {
+    if (!(input.message.channel instanceof Discord.TextChannel)) {
       return 'allowing channels is not allowed for private messages';
     }
 
@@ -117,7 +117,7 @@ class Enabler extends ScriptAddon {
   }
 
   removeFromFilter(input) {
-    if (!input.message.channel instanceof Discord.TextChannel) {
+    if (!(input.message.channel instanceof Discord.TextChannel)) {
       return 'disallowing channels is not allowed for private messages';
     }
 

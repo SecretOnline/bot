@@ -46,7 +46,7 @@ class Custom extends ScriptAddon {
     return new Promise((resolve, reject) => {
       // Ensure custom commands can be used
       let message = input.message;
-      if (!message.channel instanceof Discord.TextChannel) {
+      if (!(message.channel instanceof Discord.TextChannel)) {
         reject('custom commands can\'t be used in direct messages');
       }
 
@@ -82,7 +82,7 @@ class Custom extends ScriptAddon {
     return new Promise((resolve, reject) => {
       // Ensure custom commands can be used
       let message = input.message;
-      if (!message.channel instanceof Discord.TextChannel) {
+      if (!(message.channel instanceof Discord.TextChannel)) {
         reject('custom commands can\'t be used in direct messages');
       }
 

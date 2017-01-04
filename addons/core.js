@@ -48,7 +48,7 @@ class Core extends ScriptAddon {
   }
 
   changeCommandPrefix(input) {
-    if (!input.message.channel instanceof Discord.TextChannel) {
+    if (!(input.message.channel instanceof Discord.TextChannel)) {
       return 'unable to change prefix for private messages';
     }
 
@@ -70,7 +70,7 @@ class Core extends ScriptAddon {
   }
 
   changeColor(input) {
-    if (!input.message.channel instanceof Discord.TextChannel) {
+    if (!(input.message.channel instanceof Discord.TextChannel)) {
       return 'unable to change color for private messages';
     }
 
