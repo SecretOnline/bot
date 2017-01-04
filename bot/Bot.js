@@ -794,7 +794,7 @@ class Bot {
             if (err.message.match('Forbidden')) {
               errMess = 'secret_bot does not have the right permissions to be able to run the command';
             } else {
-              errMess = err.message;
+              errMess = util.truncate(err.message, 100);
             }
           }
 
