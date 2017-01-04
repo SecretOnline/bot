@@ -224,6 +224,7 @@ class Summaries extends ScriptAddon {
 
             result.links
               .filter(item => item.title && item.href)
+              .splice(0, 5)
               .forEach((item) => {
                 embed.addField(item.title, `${item.href}\n ${truncate(item.description)}`);
               });
