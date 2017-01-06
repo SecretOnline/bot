@@ -1,3 +1,4 @@
+const Discord = require('discord.js');
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
 
@@ -86,7 +87,16 @@ class MetService extends ScriptAddon {
           });
       })
       .then((data) => {
-        // TODO: Output the data
+        let today = data.days.shift();
+        let name = today.riseSet.location.replace(/ AWS/g, '');
+
+        let embed = new Discord.RichEmbed()
+          .setTitle(name)
+          .setAuthor('Metservice', 'https://pbs.twimg.com/profile_images/585643069799804928/tSRlnatP.png')
+          .setDescription(`**${today.dow}, ${today.date}**\n${today.forecast}\nMax: ${today.max} Min: ${today.min}`);
+
+        this.bot.send(input.message.channel, embed);
+        return '';
       });
   }
 }
