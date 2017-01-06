@@ -5,6 +5,7 @@ const Command = require('../bot/Command.js');
 const request = require('../util').request;
 
 let urlBase = 'http://www.metservice.com/publicData/localForecast';
+// A set of extra info for each weather type
 let extras = {
   'fine': {
     icon: 'http://about.metservice.com/assets/img/icon-exp/sunny.png',
@@ -69,8 +70,7 @@ let extras = {
 };
 let metserviceHelp = [
   'syntax: `~metservice <location>`',
-  'Gets the weather forecast for a New Zealand town',
-  'MetService only deals in forecasts in New Zealand',
+  'Gets the weather forecast for a New Zealand town/city',
   'http://www.metservice.com/national/home'
 ];
 
@@ -82,7 +82,7 @@ class MetService extends ScriptAddon {
   }
 
   init() {
-    this.bot.addCommand('metservice', new Command(this.getWeatherData.bind(this), 'nz'));
+    this.bot.addCommand('metservice', new Command(this.getWeatherData.bind(this), 'nz', metserviceHelp));
   }
 
   deinit() {
@@ -106,6 +106,7 @@ class MetService extends ScriptAddon {
           throw 'you must give a place to get the weather of';
         }
 
+        // Load the list of aliases
         let aliases = new Map();
         if (defConf.aliases) {
           Object.keys(defConf.aliases)
@@ -123,7 +124,7 @@ class MetService extends ScriptAddon {
         // Get the proper place name that the MetService API actually understands
         let name = res;
 
-        let match = name.match(/<@!?(\d+)>/)
+        let match = name.match(/<@!?(\d+)>/);
         if (match) {
           name = match[1];
         }
@@ -160,6 +161,7 @@ class MetService extends ScriptAddon {
             return require('../example-metservice-data.conf.json');
           });
       })
+      // Output
       .then((data) => {
         let today = data.days.shift();
         let name = today.riseSet.location.replace(/ AWS/g, '');
@@ -196,6 +198,9 @@ class MetService extends ScriptAddon {
 
         this.bot.send(input.message.channel, embed);
         return '';
+      })
+      .catch(() => {
+        throw 'unable to get the weather information';
       });
   }
 }
