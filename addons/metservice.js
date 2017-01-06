@@ -4,6 +4,75 @@ const Command = require('../bot/Command.js');
 
 const request = require('../util').request;
 
+let extras = {
+  'fine': {
+    icon: 'http://about.metservice.com/assets/img/icon-exp/sunny.png',
+    color: '#FEE054',
+    emoji: '☀'
+  },
+  'partly cloudy': {
+    icon: 'http://about.metservice.com/assets/img/icon-exp/part-cloud.png',
+    color: '#DFE1D3',
+    emoji: '🌥'
+  },
+  'cloudy': {
+    icon: 'http://about.metservice.com/assets/img/icon-exp/cloud.png',
+    color: '#D4D6C8',
+    emoji: '☁'
+  },
+  'few showers': {
+    icon: 'http://about.metservice.com/assets/img/icon-exp/few-showers.png',
+    color: '#29E2FF',
+    emoji: '🌦'
+  },
+  'showers': {
+    icon: 'http://about.metservice.com/assets/img/icon-exp/showers.png',
+    color: '#35E5FF',
+    emoji: '🌧'
+  },
+  'rain': {
+    icon: 'http://about.metservice.com/assets/img/icon-exp/rain.png',
+    color: '#4BA4B3',
+    emoji: '⛆'
+  },
+  'drizzle': {
+    icon: 'http://about.metservice.com/assets/img/icon-exp/drizzle.png',
+    color: '#39E5FF',
+    emoji: '🌦'
+  },
+  'fog': {
+    icon: 'http://about.metservice.com/assets/img/icon-exp/fog.png',
+    color: '#B5D6DD',
+    emoji: '🌫'
+  },
+  'snow': {
+    icon: 'http://about.metservice.com/assets/img/icon-exp/snow.png',
+    color: '#FEFFFF',
+    emoji: '❄'
+  },
+  'wind': {
+    icon: 'http://about.metservice.com/assets/img/icon-exp/wind.png',
+    color: '#C7CBB5',
+    emoji: '🌬'
+  },
+  'thunder': {
+    icon: 'http://about.metservice.com/assets/img/icon-exp/thunder.png',
+    color: '#FFDF4E',
+    emoji: '🌩'
+  },
+  'hail': {
+    icon: 'http://about.metservice.com/assets/img/icon-exp/hail.png',
+    color: '#DFE1D3',
+    emoji: '🌨'
+  }
+};
+let metserviceHelp = [
+  'syntax: `~metservice <location>`',
+  'Gets the weather forecast for a New Zealand town',
+  'MetService only deals in forecasts in New Zealand',
+  'http://www.metservice.com/national/home'
+];
+
 class MetService extends ScriptAddon {
   constructor(bot) {
     super(bot, 'metservice');
@@ -89,11 +158,32 @@ class MetService extends ScriptAddon {
       .then((data) => {
         let today = data.days.shift();
         let name = today.riseSet.location.replace(/ AWS/g, '');
+        let todayEmoji;
+        let ex;
+
+        if (extras[today.forecastWord.toLowerCase()]) {
+          ex = extras[today.forecastWord.toLowerCase()];
+
+          if (ex.emoji) {
+            todayEmoji = ex.emoji;
+          }
+        }
 
         let embed = new Discord.RichEmbed()
-          .setTitle(name)
-          .setAuthor('Metservice', 'https://pbs.twimg.com/profile_images/585643069799804928/tSRlnatP.png')
-          .setDescription(`**${today.dow}, ${today.date}**\n${today.forecast}\nMax: ${today.max} Min: ${today.min}`);
+          .setAuthor(`Metservice - ${name}`, 'https://pbs.twimg.com/profile_images/585643069799804928/tSRlnatP.png')
+          .setTitle(`${todayEmoji?`${todayEmoji} `:''}${today.dow}, ${today.date}`)
+          .setDescription(`Max: *${today.max}*°C Min: *${today.min}*°C\n${today.forecast}`);
+
+        if (ex) {
+          embed
+            .setThumbnail(ex.icon)
+            .setColor(ex.color);
+        }
+
+        data.days.forEach((day) => {
+          let emoji = extras[day.forecastWord.toLowerCase()] ? extras[day.forecastWord.toLowerCase()].emoji : '';
+          embed.addField(`${emoji?`${emoji} `:''}${day.dow}, ${day.date}`, `Max: *${day.max}*°C Min: *${day.min}*°C\n${day.forecast}`);
+        });
 
         this.bot.send(input.message.channel, embed);
         return '';
