@@ -90,18 +90,20 @@ class MetService extends ScriptAddon {
   }
 
   getWeatherData(input) {
+    let message = input.message;
+    let defConf = this.getConfig('default');
+    let servConf;
+    if (message.guild) {
+      servConf = this.getConfig(message.guild);
+    }
+
+    let usr;
+
     return input.process()
       // Get the neame of the place
       .then((res) => {
         if (!res) {
           throw 'you must give a place to get the weather of';
-        }
-
-        let message = input.message;
-        let defConf = this.getConfig('default');
-        let servConf;
-        if (message.guild) {
-          servConf = this.getConfig(message.guild);
         }
 
         let aliases = new Map();
@@ -121,11 +123,13 @@ class MetService extends ScriptAddon {
         // Get the proper place name that the MetService API actually understands
         let name = res;
 
-        if (message.mentions.users && message.mentions.users.length) {
-          name = message.mentions.users[0].id;
+        let match = name.match(/<@!?(\d+)>/)
+        if (match) {
+          name = match[1];
         }
 
         if (aliases.has(name)) {
+          usr = name;
           name = aliases.get(name);
         }
 
@@ -161,6 +165,10 @@ class MetService extends ScriptAddon {
         let name = today.riseSet.location.replace(/ AWS/g, '');
         let todayEmoji;
         let ex;
+
+        if (usr && defConf.privatize && defConf.privatize[usr]) {
+          name = defConf.privatize[usr];
+        }
 
         if (extras[today.forecastWord.toLowerCase()]) {
           ex = extras[today.forecastWord.toLowerCase()];
