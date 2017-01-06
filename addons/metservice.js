@@ -6,6 +6,8 @@ const request = require('../util').request;
 class MetService extends ScriptAddon {
   constructor(bot) {
     super(bot, 'metservice');
+
+    this.weatherCache = new Map();
   }
 
   init() {
@@ -62,7 +64,26 @@ class MetService extends ScriptAddon {
       })
       // Get the weather data
       .then((name) => {
-        // TODO: Make request
+        // Get stuff from the cache if it exists
+        if (this.weatherCache.has(name)) {
+          return this.weatherCache.get(name);
+        }
+
+        return Promise.resolve(`${urlBase}${name}`)
+          // .then(request)
+          // .then(JSON.parse)
+          // .then((res) => {
+          //   // Add to cache, so request isn't made for another hour
+          //   this.weatherCache.set(name, res);
+          //   setTimeout(() => {
+          //     this.weatherCache.delete(name);
+          //   }, 2*60*60*1000);
+          //   return res;
+          // });
+          // While testing, use a local copy of a request, instead of getting fresh data ll the time
+          .then(() => {
+            return require('../example-metservice-data.conf.json');
+          });
       })
       .then((data) => {
         // TODO: Output the data
