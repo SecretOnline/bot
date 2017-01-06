@@ -153,20 +153,21 @@ class MetService extends ScriptAddon {
           `${urls.local}${name}`,
         ])
           // .then((urls) => {
+          //   // Actually request
           //   return urls.map(url => request(url));
           // })
           // .then((responses) => {
           //   return responses.map(res => JSON.parse(res));
           // })
           // .then((res) => {
-          //   // Add to cache, so request isn't made for another hour
+          //   // Add to cache, so request isn't made for another 2 hours
           //   this.weatherCache.set(name, res);
           //   setTimeout(() => {
           //     this.weatherCache.delete(name);
           //   }, 2*60*60*1000);
           //   return res;
           // });
-          // While testing, use a local copy of a request, instead of getting fresh data ll the time
+          // While testing, use a local copy of a request, instead of getting fresh data all the time
           .then(() => {
             return require('../example-metservice-data.conf.json');
           });
@@ -174,6 +175,12 @@ class MetService extends ScriptAddon {
       // Output
       .then(([forecast, now]) => {
         let today = forecast.days.shift();
+        let toSplice = 1;
+        if (today.dow === 'Friday') {
+          toSplice = 2;
+        }
+
+        forecast.days = forecast.days.splice(0, toSplice);
         let name = today.riseSet.location.replace(/ AWS/g, '');
         let todayEmoji;
         let ex;
@@ -203,14 +210,28 @@ class MetService extends ScriptAddon {
             .setColor(ex.color);
         }
 
-        embed.addField('Forecasts', '\u200b');
+        let forecastTitle;
+        switch (today.dow) {
+          case 'Friday':
+          case 'Saturday':
+            forecastTitle = 'Weekend Forecast';
+            break;
+          default:
+            forecastTitle = 'Tomorrow\'s Forecast';
+        }
 
+        let forecastDesc = [];
         forecast.days.forEach((day) => {
           let emoji = extras[day.forecastWord.toLowerCase()] ? extras[day.forecastWord.toLowerCase()].emoji : '';
-          embed
-            .addField(`${emoji?`${emoji} `:''}${day.dow}, ${day.date}`, day.forecast, true)
-            .addField('\u200b', `Max: *${day.max}*°C\nMin: *${day.min}*°C`, true);
+
+          forecastDesc.push(`${emoji?`${emoji} `:''}**${day.dow}, ${day.date}**`);
+          forecastDesc.push(`*${day.max}*°C / *${day.min}*°C`);
+          forecastDesc.push(day.forecast);
         });
+
+        embed.addField(forecastTitle, forecastDesc.join('\n'));
+
+
 
         this.bot.send(input.message.channel, embed);
         return '';
