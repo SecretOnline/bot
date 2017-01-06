@@ -4,7 +4,10 @@ const Command = require('../bot/Command.js');
 
 const request = require('../util').request;
 
-let urlBase = 'http://www.metservice.com/publicData/localForecast';
+let urls = {
+  forecast: 'http://www.metservice.com/publicData/localForecast',
+  local: 'http://www.metservice.com/publicData/localObs_'
+};
 // A set of extra info for each weather type
 let extras = {
   'fine': {
@@ -145,9 +148,16 @@ class MetService extends ScriptAddon {
           return this.weatherCache.get(name);
         }
 
-        return Promise.resolve(`${urlBase}${name}`)
-          // .then(request)
-          // .then(JSON.parse)
+        return Promise.all([
+          `${urls.forecast}${name}`,
+          `${urls.local}${name}`,
+        ])
+          // .then((urls) => {
+          //   return urls.map(url => request(url));
+          // })
+          // .then((responses) => {
+          //   return responses.map(res => JSON.parse(res));
+          // })
           // .then((res) => {
           //   // Add to cache, so request isn't made for another hour
           //   this.weatherCache.set(name, res);
@@ -162,8 +172,8 @@ class MetService extends ScriptAddon {
           });
       })
       // Output
-      .then((data) => {
-        let today = data.days.shift();
+      .then(([forecast, now]) => {
+        let today = forecast.days.shift();
         let name = today.riseSet.location.replace(/ AWS/g, '');
         let todayEmoji;
         let ex;
@@ -183,7 +193,9 @@ class MetService extends ScriptAddon {
         let embed = new Discord.RichEmbed()
           .setAuthor(`Metservice - ${name}`, 'https://pbs.twimg.com/profile_images/585643069799804928/tSRlnatP.png')
           .setTitle(`${todayEmoji?`${todayEmoji} `:''}${today.dow}, ${today.date}`)
-          .setDescription(`Max: *${today.max}*°C Min: *${today.min}*°C\n${today.forecast}`);
+          .setDescription(today.forecast)
+          .addField('Info', `Wind: ${now.threeHour.windSpeed}km/h (${now.threeHour.windDirection})\nRainfall: ${now.threeHour.rainfall}mm\nHumidity: ${now.threeHour.humidity}`, true)
+          .addField('Temperatures', `Now: **${now.threeHour.temp}**°C (Feels like ${now.threeHour.windChill}°C)\nMax: *${today.max}*°C\nMin: *${today.min}*°C`, true);
 
         if (ex) {
           embed
@@ -191,9 +203,13 @@ class MetService extends ScriptAddon {
             .setColor(ex.color);
         }
 
-        data.days.forEach((day) => {
+        embed.addField('Forecasts', '\u200b');
+
+        forecast.days.forEach((day) => {
           let emoji = extras[day.forecastWord.toLowerCase()] ? extras[day.forecastWord.toLowerCase()].emoji : '';
-          embed.addField(`${emoji?`${emoji} `:''}${day.dow}, ${day.date}`, `Max: *${day.max}*°C Min: *${day.min}*°C\n${day.forecast}`);
+          embed
+            .addField(`${emoji?`${emoji} `:''}${day.dow}, ${day.date}`, day.forecast, true)
+            .addField('\u200b', `Max: *${day.max}*°C\nMin: *${day.min}*°C`, true);
         });
 
         this.bot.send(input.message.channel, embed);
