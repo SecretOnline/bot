@@ -4,6 +4,7 @@ const Command = require('../bot/Command.js');
 
 const request = require('../util').request;
 
+let urlBase = 'http://www.metservice.com/publicData/localForecast';
 let extras = {
   'fine': {
     icon: 'http://about.metservice.com/assets/img/icon-exp/sunny.png',
@@ -89,7 +90,7 @@ class MetService extends ScriptAddon {
   }
 
   getWeatherData(input) {
-    input.process()
+    return input.process()
       // Get the neame of the place
       .then((res) => {
         if (!res) {
