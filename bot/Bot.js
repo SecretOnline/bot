@@ -21,6 +21,8 @@ class Bot {
     this.addons = [];
     this.allM = [];
     this._discord = new Discord.Client();
+
+    this.editCache = new Map();
   }
 
   //region Properties
@@ -674,6 +676,7 @@ class Bot {
 
   _openConnections() {
     this._discord.on('message', this._onMessage.bind(this));
+    this._discord.on('messageUpdate', this._onEdit.bind(this));
     this.log('Logging in', 'djs');
     return this._discord.login(this.conf.login.token)
       .then(() => {
@@ -825,6 +828,16 @@ class Bot {
         // Send command to listeners that want all messages
         this._allHandlers(message, true);
       });
+  }
+
+  _onEdit(oldMessage, newMessage) {
+    if (!this.editCache.has(oldMessage.id)) {
+      return;
+    }
+
+    this.editCache.delete(oldMessage.id);
+
+    // TODO: Run the edited command
   }
 
   //endregion
