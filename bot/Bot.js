@@ -720,65 +720,46 @@ class Bot {
     });
   }
 
-  _onMessage(message) {
-    let inputProm = new Promise((resolve, reject) => {
+  _shouldProcess(message) {
+    // Ignore bot messages
+    // Maybe later, allow certain bots to access certain functionality, but for now a full block
+    if (message.author.bot) {
+      return false;
+    }
 
-      if (this.conf.dev && this.conf.dev.server) {
-        if (message.channel instanceof Discord.TextChannel) {
-          if (message.guild.id === this.conf.dev.server) {
-            if (this.conf.dev.channel && (this.conf.dev.channel !== message.channel.id)) {
-              return;
-            }
-          } else {
-            return;
-          }
-        } else {
-          return;
-        }
+    // If a development channel is specified, restrict to just that
+    if (this.conf.dev && this.conf.dev.channel && (this.conf.dev.channel !== message.channel.id)) {
+      return false;
+    }
+
+    // Server-only stuff
+    if (message.guild) {
+      let sConf = this.getConfig(message.guild);
+
+      // Check to see if channel has been blacklisted on server
+      if (sConf.filter && sConf.filter.includes(message.channel.id)) {
+        return false;
       }
 
+      // Do a strikethrough check
+      if (sConf.prefix === '~' && message.content.match(/^~~/)) {
+        return false;
+      }
+    }
+  }
+
+  _onMessage(message) {
+    let inputProm = new Promise((resolve, reject) => {
+      // Log everything that comes into bot
       if (this.conf.verbose) {
         if (!(message.author.id === this._discord.user.id)) {
           console.log(`> ${message.author.username}: ${message.content}`); // eslint-disable-line no-console
         }
       }
 
-      if (message.channel instanceof Discord.TextChannel) {
-        let sConf = this.getConfig(message.guild);
-        if (sConf.filter && sConf.filter.length && sConf.filter.indexOf(message.channel.id) === -1) {
-          return;
-        }
-      }
-
-      if (message.author.bot) {
-        return;
-      }
-
-      let first = message.content.split(' ')[0];
-      let comm;
-
-      // Prevent triggering of markdown strikethrough
-      let strikethrough = false;
-      if (first.match(/^~~/)) {
-        strikethrough = true;
-      }
-
-      try {
-        comm = this.getCommand(first, message);
-      } catch (e) {
-        if (!strikethrough) {
-          reject(e);
-          return;
-        }
-      }
-
-      if (!comm) {
+      if (!this._shouldProcess(message)) {
         // Send command to listeners that want all messages
         this._allHandlers(message, false);
-
-        if (!(message.channel instanceof Discord.TextChannel)) {
-          reject(new Error('the first word of a message must be a valid command'));
-        }
         return;
       }
 
