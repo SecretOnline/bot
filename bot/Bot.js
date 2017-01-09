@@ -749,26 +749,22 @@ class Bot {
   }
 
   _onMessage(message) {
-    let inputProm = new Promise((resolve, reject) => {
-      // Log everything that comes into bot
-      if (this.conf.verbose) {
-        if (!(message.author.id === this._discord.user.id)) {
-          console.log(`> ${message.author.username}: ${message.content}`); // eslint-disable-line no-console
-        }
+    // Log everything that comes into bot
+    if (this.conf.verbose) {
+      if (!(message.author.id === this._discord.user.id)) {
+        console.log(`> ${message.author.username}: ${message.content}`); // eslint-disable-line no-console
       }
+    }
 
-      if (!this._shouldProcess(message)) {
-        // Send command to listeners that want all messages
-        this._allHandlers(message, false);
-        return;
-      }
+    if (!this._shouldProcess(message)) {
+      // Send command to listeners that want all messages
+      this._allHandlers(message, false);
+      return;
+    }
 
-      let input = new Input(message, this);
-      resolve(input);
-    });
+    let input = new Input(message, this);
 
-    return inputProm
-      .then(i => i.process())
+    return input.process()
       .catch((err) => {
         if (err) {
           let errMess;
