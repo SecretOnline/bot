@@ -765,38 +765,33 @@ class Bot {
     let input = new Input(message, this);
 
     return input.process()
+      // Catch any errors in 
       .catch((err) => {
         if (err) {
-          let errMess;
           if (typeof err === 'string') {
-            errMess = err;
-          } else if (err instanceof Error) {
-            if (err.message.match('Forbidden')) {
-              errMess = 'secret_bot does not have the right permissions to be able to run the command';
-            } else {
-              errMess = util.truncate(err.message, 100);
-            }
-          }
 
-          this.send(message.author, errMess, true);
+            this.send(message.author, err, true);
+          } else if (err instanceof Error) {
+            // TODO: Error stuff
+          }
 
           if (this.conf.verbose) {
             console.error(err); // eslint-disable-line no-console
           }
         }
+        // Always returns undefined, so the next .then doesn't do anything
       })
+      // Send successful result to the origin
       .then((result) => {
         if (result) {
           return this.send(message.channel, result);
         }
       })
+      // Catch sending errors
       .catch((err) => {
         if (err) {
-          if (err.message.match('Forbidden')) {
-            this.send(message.author, this.embedify('secret_bot was unable to reply. are they blocked from sending messages?'), true);
-          }
-
           if (this.conf.verbose) {
+            this.error('Unable to send reply');
             this.error(err);
           }
         }
