@@ -746,6 +746,8 @@ class Bot {
         return false;
       }
     }
+
+    return true;
   }
 
   _onMessage(message) {
