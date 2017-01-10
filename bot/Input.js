@@ -1,11 +1,17 @@
 /**
  * An object to be used by commands
+ * 
+ * @class Input
  */
 class Input {
   /**
-   * Creates a new input
-   * @param  {Message} message Message that this input stems from
-   * @param  {string=} text    Override text (uses message.text by default)
+   * Creates an instance of Input.
+   * 
+   * @param {Discord.Message} message Message that this input stems from
+   * @param {Bot} bot
+   * @param {string} [text=message.content] Override text
+   * 
+   * @memberOf Input
    */
   constructor(message, bot, text = message.content) {
     this.m = message;
@@ -15,14 +21,38 @@ class Input {
 
   //region Properties
 
+  /**
+   * The current text value for this Input
+   * 
+   * @readonly
+   * @returns {string} Text of this Input
+   * 
+   * @memberOf Input
+   */
   get text() {
     return this.t;
   }
 
+  /**
+   * Message this Input is based off
+   * 
+   * @readonly
+   * @returns {Discord.Message} Message this Input comes from
+   * 
+   * @memberOf Input
+   */
   get message() {
     return this.m;
   }
 
+  /**
+   * User who sent the original Message
+   * 
+   * @readonly
+   * @returns {Discord.User} User the original Message was sent by
+   * 
+   * @memberOf Input
+   */
   get user() {
     return this.m.author;
   }
@@ -33,13 +63,17 @@ class Input {
 
   /**
    * Processes this input
-   * @return {Promise<string,Error>} Resolves with final output
+   * 
+   * @returns {Promise<string>} Resolves with final output
+   * 
+   * @memberOf Input
    */
   process() {
     return new Promise((resolve, reject) => {
       /**
        * Adds result to end of string and Resolves
-       * @param  {string} res String to append
+       * 
+       * @param {string} res String to append
        */
       function appendResult(res) {
         if (output) {
@@ -93,6 +127,14 @@ class Input {
     });
   }
 
+  /**
+   * Creates a new Input based on this one, but with new text
+   * 
+   * @param {string} text Text for new Input
+   * @returns {Input} New Input object
+   * 
+   * @memberOf Input
+   */
   from(text) {
     return new Input(this.m, this.b, text);
   }

@@ -10,7 +10,20 @@ const Input = require('./Input.js');
 
 const util = require('../util');
 
+/**
+ * The main class of the bot
+ * Handles Discord connections, and the creation of addons, as well as the interactions between them
+ * 
+ * @class Bot
+ */
 class Bot {
+  /**
+   * Creates an instance of Bot.
+   * 
+   * @param {string} confPath Path to the main configuration file
+   * 
+   * @memberOf Bot
+   */
   constructor(confPath) {
     this.conf = require(`../${confPath}`);
     this.confPath = confPath;
@@ -27,6 +40,14 @@ class Bot {
 
   //region Properties
 
+  /**
+   * The Discord.Client this bot uses to connect
+   * 
+   * @readonly
+   * @returns {Discord.Client} Discord Client
+   * 
+   * @memberOf Bot
+   */
   get discord() {
     return this._discord;
   }
@@ -35,6 +56,13 @@ class Bot {
 
   //region Functions
 
+  /**
+   * Initialises the bot
+   * 
+   * @returns {Promise<undefined>} Resolves when the bot has loaded
+   * 
+   * @memberOf Bot
+   */
   start() {
     return Promise.resolve()
       .then(this.reloadConfig.bind(this))
@@ -45,10 +73,23 @@ class Bot {
       });
   }
 
+  /**
+   * UNUSED
+   * 
+   * 
+   * @memberOf Bot
+   */
   stop() {
 
   }
 
+  /**
+   * Reloads all configuration files for servers 
+   * 
+   * @returns {Promise<Array>} Resolves when config is reloaded
+   * 
+   * @memberOf Bot
+   */
   reloadConfig() {
     return this._listDirectory(this.conf.paths.conf)
       .then(this._loadConfig.bind(this))
@@ -59,6 +100,13 @@ class Bot {
       });
   }
 
+  /**
+   * Reloads all addons loaded by the bot
+   * 
+   * @returns {Promise<Array>} Resolves when addons are ready
+   * 
+   * @memberOf Bot
+   */
   reloadAddons() {
     return this._deinitAddons(this.addons)
       .catch((err) => {
@@ -89,6 +137,13 @@ class Bot {
       });
   }
 
+  /**
+   * Reconnects to Discord
+   * 
+   * @returns {Promise<Discord.Client>} Resolves when connected to Discord
+   * 
+   * @memberOf Bot
+   */
   reloadConnections() {
     return this._closeConnections()
       .then(util.promprint('[BOT] loading connections'))
@@ -96,6 +151,15 @@ class Bot {
       .then(util.promprint('[BOT] loaded connections'));
   }
 
+  /**
+   * Adds a command to the bot
+   * 
+   * @param {string} trigger Word that triggers the command
+   * @param {Command} command Command to run when triggered
+   * @returns {boolean} Whether the command was added
+   * 
+   * @memberOf Bot
+   */
   addCommand(trigger, command) {
     trigger.replace(/\./g, '');
     if (this.commands.has(trigger)) {
@@ -117,6 +181,15 @@ class Bot {
     }
   }
 
+  /**
+   * Removes a command from the bot
+   * 
+   * @param {string} trigger Trigger for the command
+   * @param {string} group Group the command belongs to
+   * @returns {boolean} Whether the command was removed
+   * 
+   * @memberOf Bot
+   */
   removeCommand(trigger, group) {
     var comm = this.commands.get(trigger);
 
@@ -152,6 +225,15 @@ class Bot {
     }
   }
 
+  /**
+   * Gets a Command from the bot
+   * 
+   * @param {string} trigger Trigger for the command
+   * @param {Discord.Message} message Message that triggered the Command lookup
+   * @returns {Command} The requested Command
+   * 
+   * @memberOf Bot
+   */
   getCommand(trigger, message) {
     // Quick exit for non-string triggers
     // TBH, not sure when this would occur, but it was in the last version of bot
@@ -246,6 +328,16 @@ class Bot {
     return comm;
   }
 
+  /**
+   * Gives a list of all commands usable by the message's author in this location
+   * 
+   * @param {Discord.Message} message Message to get the context from
+   * @param {string} group Command group to filter by
+   * @param {boolean} [useObj=false] If set, will return list of trigger/Command pairs instead of just the triggers
+   * @returns {(Array<string>|Array<Array>)} Command listing
+   * 
+   * @memberOf Bot
+   */
   listCommands(message, group, useObj = false) {
     if (message) {
       let groups = this.conf.default.always.slice();
@@ -326,7 +418,16 @@ class Bot {
     }
   }
 
-  getConfig(obj, server) {
+  /**
+   * Gets the configuration for a given object
+   * 
+   * @param {(Discord.Guild|ScriptAddon|string)} obj Place to get config for
+   * @param {string} [server='default'] Server to get configuration for. Only used by ScriptAddons
+   * @returns {any} Configuration for the object
+   * 
+   * @memberOf Bot
+   */
+  getConfig(obj, server = 'default') {
     // Requires typechecking to prevent object literals being used to get/set
     // the configuration of other objects
     if (obj instanceof Discord.Guild) {
@@ -344,7 +445,17 @@ class Bot {
     throw 'invalid object, can not get config';
   }
 
-  setConfig(obj, conf, server) {
+  /**
+   * 
+   * 
+   * @param {(Discord.Guild|ScriptAddon|string)} obj Place to set the config of
+   * @param {any} conf Configuration for the object
+   * @param {string} [server='default'] Server to set the configuration of. Only used by ScriptAddons
+   * @returns {Promise} Resolves when the configuration is writter to disk
+   * 
+   * @memberOf Bot
+   */
+  setConfig(obj, conf, server= 'default') {
     if (obj instanceof Discord.Guild) {
       return this._setServerConfig(obj, conf);
     } else if (obj instanceof ScriptAddon) {
@@ -356,10 +467,25 @@ class Bot {
     throw 'invalid object, can not set config';
   }
 
+  /**
+   * Requests that all incoming messages are sent to the Addon
+   * 
+   * @param {function} func Function to call with the messages
+   * @param {boolean} [processed=null] Whether to only send processed messages to the Addon
+   * 
+   * @memberOf Bot
+   */
   requestAllMessages(func, processed = null) {
     this.allM.push({func, processed});
   }
 
+  /**
+   * Cancels sending all incoming messages to an Addon
+   * 
+   * @param {function} func Function to de-register
+   * 
+   * @memberOf Bot
+   */
   cancelAllMessages(func) {
     let index = this.allM.indexOf(func);
     if (index > -1) {
@@ -367,6 +493,14 @@ class Bot {
     }
   }
 
+  /**
+   * Gets the permission lever of the Message's author
+   * 
+   * @param {Discord.Message} message Message to get permission level of
+   * @returns {number} Permission level of user
+   * 
+   * @memberOf Bot
+   */
   getPermissionLevel(message) {
     let channel = message.channel;
     let user = message.author;
@@ -389,6 +523,17 @@ class Bot {
     return Command.PermissionLevels.DEFAULT;
   }
 
+  /**
+   * Sends a message to a target
+   * 
+   * @param {Discord.Channel} target Target to send the message to
+   * @param {(string|Discord.RichEmbed)} message Message to send to the target
+   * @param {boolean} [error=false] Whether this message is an error
+   * @param {boolean} [disableEveryone=true] Whether @everyone mentions should be disabled
+   * @returns
+   * 
+   * @memberOf Bot
+   */
   send(target, message, error = false, disableEveryone = true) {
     // TODO: Check whether s_b can actually use embeds
     let embed;
@@ -421,6 +566,14 @@ class Bot {
     );
   }
 
+  /**
+   * Transform a string into an embed
+   * 
+   * @param {string} message Message to convert
+   * @returns {Discord.RichEmbed} Embed to send
+   * 
+   * @memberOf Bot
+   */
   embedify(message) {
     const embed = new Discord.RichEmbed();
     //  .setAuthor('\u200b', this._discord.user.avatarURL);
@@ -455,6 +608,16 @@ class Bot {
     return embed;
   }
 
+  /**
+   * Logs a message coming from a location
+   * 
+   * @param {string} message Message to log
+   * @param {(Bot|Addon|string)} [from=this] Place where message is from
+   * @param {boolean} [error=false] Whether this message is an error
+   * @returns {string} Content that was written to the console
+   * 
+   * @memberOf Bot
+   */
   log(message, from = this, error = false) {
     let id;
     if (from instanceof Bot) {
@@ -475,10 +638,29 @@ class Bot {
     return out;
   }
 
+  /**
+   * Logs an error coming from a location
+   * 
+   * @param {string} message Error to log
+   * @param {(Bot|Addon|string)} from Place where message is from
+   * @returns {string} Content that was written to the console
+   * 
+   * @memberOf Bot
+   */
   error(message, from) {
     return this.log(message, from, true);
   }
 
+  /**
+   * Writes a message to the log files
+   * UNIMPLEMENTED
+   * 
+   * @param {string} message Message to write
+   * @param {(Bot|Addon|string)} [from=this] Place where message is from
+   * @param {boolean} [error=false] Whether message is an error
+   * 
+   * @memberOf Bot
+   */
   logWrite(message, from = this, error = false) {
     // TODO: add message to log file
   }
@@ -487,6 +669,14 @@ class Bot {
 
   //region Private Functions
 
+  /**
+   * Lists the files in a directory
+   * 
+   * @param {string} path Path to list
+   * @returns {Promise<Array>} Resolves with a list of files
+   * 
+   * @memberOf Bot
+   */
   _listDirectory(path) {
     return new Promise((resolve, reject) => {
       fs.readdir(path, (err, data) => {
@@ -501,6 +691,14 @@ class Bot {
     });
   }
 
+  /**
+   * Loads the listed configuration files
+   * 
+   * @param {Array<string>} files
+   * @returns {Promise<Array>} Resolves when all files are loaded
+   * 
+   * @memberOf Bot
+   */
   _loadConfig(files) {
     let promises = files.map(file => new Promise((resolve, reject) => {
       this.log(`Loading config ${file}`);
@@ -535,6 +733,14 @@ class Bot {
       .then(ps => ps.filter(p => p)); // Eliminates the undefined configs
   }
 
+  /**
+   * Stores all configs into the bot
+   * 
+   * @param {Array<Object>} configs Set of configurations
+   * @returns {Array<Object>} The configuration that was passed in
+   * 
+   * @memberOf Bot
+   */
   _initConfig(configs) {
     configs.forEach((conf) => {
       this.serverConf.set(conf.name, conf.data);
@@ -542,10 +748,25 @@ class Bot {
     return configs;
   }
 
+  /**
+   * Gets the default configuration
+   * 
+   * @returns {any} Default configuration
+   * 
+   * @memberOf Bot
+   */
   _getDefaultConfig() {
     return this.serverConf.get('default');
   }
 
+  /**
+   * Gets the configuration for a server
+   * 
+   * @param {Discord.Guild} server The id of a server
+   * @returns {any} Server configuration
+   * 
+   * @memberOf Bot
+   */
   _getServerConfig(server) {
     if (!this.serverConf.has(server.id)) {
       this.serverConf.set(server.id, this._newServerConf(server));
@@ -555,6 +776,15 @@ class Bot {
     return this.serverConf.get(server.id);
   }
 
+  /**
+   * Gets the configuration for an Addon
+   * 
+   * @param {Addon} addon Addon to get configuration for
+   * @param {Discord.Guild} [server] Server to get the configuration from
+   * @returns {any} Addon configuration
+   * 
+   * @memberOf Bot
+   */
   _getAddonConfig(addon, server) {
     if (server) {
       return this.getConfig(server)['addon-conf'][addon.namespace];
@@ -569,18 +799,45 @@ class Bot {
       }, {});
   }
 
+  /**
+   * Sets the default configuration
+   * 
+   * @param {any} conf Configuration to set
+   * @returns {Promise} Resolves when configuration is written to disk
+   * 
+   * @memberOf Bot
+   */
   _setDefaultConfig(conf) {
     this.serverConf.set('default', conf);
 
     return this._writeServerConf({id: 'default'});
   }
 
+  /**
+   * Sets the configuration for a server
+   * 
+   * @param {Discord.Guild} server Server to set configuration of
+   * @param {any} conf Configuration to set
+   * @returns {Promise} Resolves when configuration is written to disk
+   * 
+   * @memberOf Bot
+   */
   _setServerConfig(server, conf) {
     this.serverConf.set(server.id, conf);
 
     return this._writeServerConf(server);
   }
 
+  /**
+   * Sets the configuration for an Addon
+   * 
+   * @param {Addon} addon Addon to set configuration of
+   * @param {any} conf Configuration to set
+   * @param {Discord.Guild} [server] Server to set configuration of
+   * @returns {Promise} Resolves when configuration is written to disk
+   * 
+   * @memberOf Bot
+   */
   _setAddonConfig(addon, conf, server) {
     if (server) {
       let serverConf = this.getConfig(server);
@@ -589,6 +846,12 @@ class Bot {
       return this._writeServerConf(server);
     }
 
+    /**
+     * 
+     * 
+     * @param {any} s
+     * @returns
+     */
     let promises = Object.keys(conf)
       .map((s) => {
         let serverConf = this.getConfig(s);
@@ -600,6 +863,14 @@ class Bot {
     return Promise.all(promises);
   }
 
+  /**
+   * Writes configuration for a server to disk
+   * 
+   * @param {Discord.Guild} server Server to write the configuration of
+   * @returns {Promise} Resolves when written
+   * 
+   * @memberOf Bot
+   */
   _writeServerConf(server) {
     return new Promise((resolve, reject) => {
       let conf = this.serverConf.get(server.id);
@@ -618,6 +889,14 @@ class Bot {
     });
   }
 
+  /**
+   * Creates a new configutation for a server
+   * 
+   * @param {Discord.Guild} guild
+   * @returns {Object} New configuration
+   * 
+   * @memberOf Bot
+   */
   _newServerConf(guild) {
     let defaultConf = this.getConfig('default');
     return {
@@ -629,6 +908,14 @@ class Bot {
     };
   }
 
+  /**
+   * Creates Addons from the list of files
+   * 
+   * @param {Array<string>} files Files to load
+   * @returns {Promise<Array>} Resolves when all Addon subclasses have been created
+   * 
+   * @memberOf Bot
+   */
   _createAddons(files) {
     let promises = files.map(file => new Promise((resolve, reject) => {
       this.log(`Creating addon ${file}`);
@@ -664,16 +951,40 @@ class Bot {
       .then(ps => ps.filter(p => p)); // Eliminates the undefined addons
   }
 
+  /**
+   * Initialises all the addons
+   * 
+   * @param {Array<Addon>} addons List of addons to initialise
+   * @returns {Promise<Array>} Resolves when all Addons have been initialised
+   * 
+   * @memberOf Bot
+   */
   _initAddons(addons) {
     let promises = addons.map(addon => addon.init());
     return Promise.all(promises);
   }
 
+  /**
+   * Shus down all of the addons
+   * 
+   * @param {Array<Addon>} addons Addons to shut down
+   * @returns {Promise<Array>} Resolves when all Addons have stopped
+   * 
+   * @memberOf Bot
+   */
   _deinitAddons(addons) {
     let promises = addons.map(addon => addon.deinit());
     return Promise.all(promises);
   }
 
+  /**
+   * Begins a connection to Discord
+   * Here for legacy purposes, since the previous version of bot supported more than just Discord
+   * 
+   * @returns {Promise<Discord.Client>} Resolves when connected to Discord
+   * 
+   * @memberOf Bot
+   */
   _openConnections() {
     this._discord.on('message', this._onMessage.bind(this));
     this._discord.on('messageUpdate', this._onEdit.bind(this));
@@ -681,24 +992,30 @@ class Bot {
     return this._discord.login(this.conf.login.token)
       .then(() => {
         this.log('Logged in', 'djs');
+        return this._discord;
       });
   }
 
+  /**
+   * Disconnects from Discord
+   * DOESN'T ACUTALLY DO ANYTHING
+   * 
+   * @returns {Promise} Just resolves. Nothing else
+   * 
+   * @memberOf Bot
+   */
   _closeConnections() {
     return Promise.resolve();
   }
 
-  _newConfig(obj) {
-    let def = this.conf.default;
-    if (obj instanceof Discord.Guild) {
-      return {
-        name: obj.name,
-        prefix: def.prefix,
-        addons: def.addons.slice()
-      };
-    }
-  }
-
+  /**
+   * Runs a message through listeners for all incoming messages
+   * 
+   * @param {Discord.Message} message Message to pass around
+   * @param {boolean} [processed=false] Whether this message has been processed
+   * 
+   * @memberOf Bot
+   */
   _allHandlers(message, processed = false) {
     // Send all incoming messages to addons that ask for them
     setImmediate(() => {
@@ -720,6 +1037,14 @@ class Bot {
     });
   }
 
+  /**
+   * Whether the bot should process this message
+   * 
+   * @param {Discord.Message} message Message to test
+   * @returns {boolean} Whether this message should be sent
+   * 
+   * @memberOf Bot
+   */
   _shouldProcess(message) {
     // Ignore bot messages
     // Maybe later, allow certain bots to access certain functionality, but for now a full block
@@ -759,6 +1084,14 @@ class Bot {
     return true;
   }
 
+  /**
+   * Event hamdler for the 'message' event
+   * 
+   * @param {Discord.Message} message Incoming message
+   * @returns {Promise} Resolves once this message has been processed
+   * 
+   * @memberOf Bot
+   */
   _onMessage(message) {
     // Log everything that comes into bot
     if (this.conf.verbose) {
@@ -820,6 +1153,15 @@ class Bot {
       });
   }
 
+  /**
+   * Event handler for the 'messageUpdate' event
+   * 
+   * @param {Discord.Message} oldMessage Previous state of the message
+   * @param {Discord.Message} newMessage New state of the message
+   * @returns {Promise} Resolves once this edit has been processed
+   * 
+   * @memberOf Bot
+   */
   _onEdit(oldMessage, newMessage) {
     if (!this.editCache.has(oldMessage.id)) {
       return;
