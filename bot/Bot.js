@@ -732,9 +732,13 @@ class Bot {
       return false;
     }
 
+    let prefix = this.getConfig('default').prefix;
     // Server-only stuff
     if (message.guild) {
       let sConf = this.getConfig(message.guild);
+      if (sConf.prefix) {
+        prefix = sConf.prefix;
+      }
 
       // Check to see if channel has been blacklisted on server
       if (sConf.filter && sConf.filter.includes(message.channel.id)) {
@@ -745,6 +749,11 @@ class Bot {
       if (sConf.prefix === '~' && message.content.match(/^~~/)) {
         return false;
       }
+    }
+
+    let escapedPrefix = prefix.replace(/[-[\]{}()*+?.,\\/^$|#\s]/g, '\\$&');
+    if (!message.content.match(new RegExp(`^${escapedPrefix}`))) {
+      return false;
     }
 
     return true;
