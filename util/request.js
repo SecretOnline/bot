@@ -6,6 +6,13 @@ const robots = require('robots');
 const parsers = new Map();
 const UA = '[BOT] secret_bot/7.x.x - https://secretonline.co/bot/user-agent/';
 
+/**
+ * Requests the content of a URL
+ * 
+ * @param {(url.URL|string)} reqObj URL to request
+ * @param {string} bypass If string matches, request will bypass robots.txt
+ * @returns {Promise<string>} Resolves with site content
+ */
 function req(reqObj, bypass) {
   let prom = new Promise((resolve, reject) => {
     // Perform some checks before continuing
@@ -32,6 +39,12 @@ function req(reqObj, bypass) {
   return prom;
 }
 
+/**
+ * Checks a site's robots.txt file
+ * 
+ * @param {url.URL} reqObj URL to check
+ * @returns {Promise} Resolves if bot is allowed, otherwise rejects
+ */
 function checkRobots(reqObj) {
   return new Promise((resolve, reject) => {
     if (parsers.has(reqObj.host.toLowerCase())) {
@@ -65,6 +78,12 @@ function checkRobots(reqObj) {
   });
 }
 
+/**
+ * Actually does the request
+ * 
+ * @param {url.URL} reqObj URL to request
+ * @returns {Promise<string>} Resolves with site content
+ */
 function doRequest(reqObj) {
   return new Promise((resolve, reject) => {
     let mod;

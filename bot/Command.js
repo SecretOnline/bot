@@ -10,15 +10,20 @@ var perms = {
 
 /**
  * A bot command
+ * 
+ * @class Command
  */
 class Command {
 
   /**
-   * Creates a new command
-   * @param {function|string}                funct      Function to call when processing. Strings get converted into a function
-   * @param {string}                         group      Command group this command belongs to
-   * @param {number=}                        permission Permission level required for this command
-   * @param {function|string|Array<string>=} help       Help
+   * Creates an instance of Command.
+   * 
+   * @param {(function|string)} funct Function to call when processing. Strings get converted into a function
+   * @param {string} [group='nogroup'] Command group this command belongs to
+   * @param {number} [permission=perms.DEFAULT] Permission level required for this command
+   * @param {(function|string|Array<string>)} [help=null] Help for this command
+   * 
+   * @memberOf Command
    */
   constructor(funct, group = 'nogroup', permission = perms.DEFAULT, help = null) {
     var functType = typeof funct;
@@ -49,8 +54,11 @@ class Command {
 
   /**
    * The command group this Command belongs to
+   * 
    * @readonly
-   * @return {string} Group identifier
+   * @returns {string} Group identifier
+   * 
+   * @memberOf Command
    */
   get group() {
     return this.g;
@@ -58,8 +66,11 @@ class Command {
 
   /**
    * Permission level required for this command
+   * 
    * @readonly
-   * @return {number} Permission level
+   * @returns {number} Permission level
+   * 
+   * @memberOf Command
    */
   get permission() {
     return this.p;
@@ -71,8 +82,11 @@ class Command {
 
   /**
    * Runs the command with the given Input
-   * @param  {Input}                 input Input to the command
-   * @return {Promise<string,Error>}       Result from running the command
+   * 
+   * @param {Input} input
+   * @returns {Promise<string>} Result from running the command
+   * 
+   * @memberOf Command
    */
   run(input) {
     return new Promise((resolve, reject) => {
@@ -87,8 +101,11 @@ class Command {
 
   /**
    * Help for this command
-   * @param {Input} input Input. May have empty `.text`
-   * @return {string} Help string
+   * 
+   * @param {Input} [input] Input for the help. Only used if help is a function
+   * @returns {string} Help string
+   * 
+   * @memberOf Command
    */
   help(input) {
     if (this.h) {
@@ -110,9 +127,13 @@ class Command {
   //region Static Functions
 
   /**
-   * Creates a function that processes the string
-   * @param  {string}   str String to process
-   * @return {function}     Function to give to the Command constructor
+   * Creates a function for use in a Command that processes a string
+   * 
+   * @static
+   * @param {string} str String to process
+   * @returns {function} Function to give to the Command constructor
+   * 
+   * @memberOf Command
    */
   static makeStringFunction(str) {
     return (input) => {
@@ -145,8 +166,13 @@ class Command {
   }
 
   /**
-   * The avaiable permission levels
+   * Permission levels used by the bot
+   * 
    * @readonly
+   * @static
+   * @returns {Object} Object of key/values for permissions
+   * 
+   * @memberOf Command
    */
   static get PermissionLevels() {
     return perms;
