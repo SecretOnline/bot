@@ -206,7 +206,7 @@ class Bot {
       }
 
       if (!groups.includes(match[1])) {
-        throw new Error(`the command group \`${match[1]}\` is not enabled on this server`);
+        throw `the command group \`${match[1]}\` is not enabled on this server`;
       }
 
       // Filter to only the specified group
@@ -217,7 +217,7 @@ class Bot {
     // Actually get the command
     let comm = this.commands.get(commName);
     if (!comm) {
-      throw new Error(`\`${prefix}${commName}\` is not a valid command`);
+      throw `\`${prefix}${commName}\` is not a valid command`;
     }
 
     // Handle the array case
@@ -226,21 +226,21 @@ class Bot {
       // Maybe in the future give a message saying that there was a conflict
       if (allowed.length > 1) {
         let allowedGroups = allowed.map(c => `\`${c.group}\``).join(' ');
-        throw new Error(`\`${prefix}${commName}\` is added by multiple command groups (${allowedGroups}). use \`${prefix}<group>.${commName}\` instead`);
+        throw `\`${prefix}${commName}\` is added by multiple command groups (${allowedGroups}). use \`${prefix}<group>.${commName}\` instead`;
       } else if (allowed.length === 0) {
-        throw new Error(`\`${prefix}${commName}\` is added by multiple command groups, but none of them are enabled`);
+        throw `\`${prefix}${commName}\` is added by multiple command groups, but none of them are enabled`;
       }
       comm = allowed[0];
     } else {
       // Check groups
       if (!groups.find(g => comm.group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)))) {
-        throw new Error(`the command group \`${comm.group}\` is not enabled on this server`);
+        throw `the command group \`${comm.group}\` is not enabled on this server`;
       }
     }
 
     // Check permission level
     if (comm.permission > permLevel) {
-      throw new Error(`you do not have the correct permissions for \`${prefix}${commName}\``);
+      throw `you do not have the correct permissions for \`${prefix}${commName}\``;
     }
 
     return comm;
