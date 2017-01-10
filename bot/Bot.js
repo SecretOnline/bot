@@ -768,6 +768,8 @@ class Bot {
       // Catch any errors in 
       .catch((err) => {
         if (err) {
+          this.editCache.set(message.id, message); // Value stored in map may change
+
           if (typeof err === 'string') {
 
             this.send(message.author, err, true);
@@ -810,6 +812,43 @@ class Bot {
     this.editCache.delete(oldMessage.id);
 
     // TODO: Run the edited command
+    let input = new Input(newMessage, this);
+
+    input.process()
+      // Catch any errors in 
+      .catch((err) => {
+        if (err) {
+          // Don't set edit cache
+          // Edits only work once
+
+          if (typeof err === 'string') {
+
+            this.send(newMessage.author, err, true);
+          } else if (err instanceof Error) {
+            // TODO: Error stuff
+          }
+
+          if (this.conf.verbose) {
+            console.error(err); // eslint-disable-line no-console
+          }
+        }
+        // Always returns undefined, so the next .then doesn't do anything
+      })
+      // Send successful result to the origin
+      .then((result) => {
+        if (result) {
+          return this.send(newMessage.channel, result);
+        }
+      })
+      // Catch sending errors
+      .catch((err) => {
+        if (err) {
+          if (this.conf.verbose) {
+            this.error('Unable to send reply');
+            this.error(err);
+          }
+        }
+      });
   }
 
   //endregion
