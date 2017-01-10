@@ -771,6 +771,9 @@ class Bot {
       .catch((err) => {
         if (err) {
           this.editCache.set(message.id, message); // Value stored in map may change
+          setTimeout(() => {
+            this.editCache.delete(message.id);
+          }, 5*60*1000);
 
           if (typeof err === 'string') {
             let embed = this.embedify(err)
