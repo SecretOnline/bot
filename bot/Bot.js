@@ -771,8 +771,10 @@ class Bot {
           this.editCache.set(message.id, message); // Value stored in map may change
 
           if (typeof err === 'string') {
+            let embed = this.embedify(err)
+              .setFooter('you can edit your message (once) if you made a mistake');
 
-            this.send(message.author, err, true);
+            this.send(message.author, embed, true);
           } else if (err instanceof Error) {
             // TODO: Error stuff
           }
@@ -822,8 +824,10 @@ class Bot {
           // Edits only work once
 
           if (typeof err === 'string') {
+            let embed = this.embedify(err)
+              .setFooter('edits will no longer work for this message');
 
-            this.send(newMessage.author, err, true);
+            this.send(newMessage.author, embed, true);
           } else if (err instanceof Error) {
             // TODO: Error stuff
           }
