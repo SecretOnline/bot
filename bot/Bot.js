@@ -21,6 +21,8 @@ class Bot {
     this.addons = [];
     this.allM = [];
     this._discord = new Discord.Client();
+
+    this.editCache = new Map();
   }
 
   //region Properties
@@ -204,7 +206,7 @@ class Bot {
       }
 
       if (!groups.includes(match[1])) {
-        throw new Error(`the command group \`${match[1]}\` is not enabled on this server`);
+        throw `the command group \`${match[1]}\` is not enabled on this server`;
       }
 
       // Filter to only the specified group
@@ -215,7 +217,7 @@ class Bot {
     // Actually get the command
     let comm = this.commands.get(commName);
     if (!comm) {
-      throw new Error(`\`${prefix}${commName}\` is not a valid command`);
+      throw `\`${prefix}${commName}\` is not a valid command`;
     }
 
     // Handle the array case
@@ -224,21 +226,21 @@ class Bot {
       // Maybe in the future give a message saying that there was a conflict
       if (allowed.length > 1) {
         let allowedGroups = allowed.map(c => `\`${c.group}\``).join(' ');
-        throw new Error(`\`${prefix}${commName}\` is added by multiple command groups (${allowedGroups}). use \`${prefix}<group>.${commName}\` instead`);
+        throw `\`${prefix}${commName}\` is added by multiple command groups (${allowedGroups}). use \`${prefix}<group>.${commName}\` instead`;
       } else if (allowed.length === 0) {
-        throw new Error(`\`${prefix}${commName}\` is added by multiple command groups, but none of them are enabled`);
+        throw `\`${prefix}${commName}\` is added by multiple command groups, but none of them are enabled`;
       }
       comm = allowed[0];
     } else {
       // Check groups
       if (!groups.find(g => comm.group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)))) {
-        throw new Error(`the command group \`${comm.group}\` is not enabled on this server`);
+        throw `the command group \`${comm.group}\` is not enabled on this server`;
       }
     }
 
     // Check permission level
     if (comm.permission > permLevel) {
-      throw new Error(`you do not have the correct permissions for \`${prefix}${commName}\``);
+      throw `you do not have the correct permissions for \`${prefix}${commName}\``;
     }
 
     return comm;
@@ -674,6 +676,7 @@ class Bot {
 
   _openConnections() {
     this._discord.on('message', this._onMessage.bind(this));
+    this._discord.on('messageUpdate', this._onEdit.bind(this));
     this.log('Logging in', 'djs');
     return this._discord.login(this.conf.login.token)
       .then(() => {
@@ -717,106 +720,84 @@ class Bot {
     });
   }
 
+  _shouldProcess(message) {
+    // Ignore bot messages
+    // Maybe later, allow certain bots to access certain functionality, but for now a full block
+    if (message.author.bot) {
+      return false;
+    }
+
+    // If a development channel is specified, restrict to just that
+    if (this.conf.dev && this.conf.dev.channel && (this.conf.dev.channel !== message.channel.id)) {
+      return false;
+    }
+
+    // Server-only stuff
+    if (message.guild) {
+      let sConf = this.getConfig(message.guild);
+
+      // Check to see if channel has been blacklisted on server
+      if (sConf.filter && sConf.filter.includes(message.channel.id)) {
+        return false;
+      }
+
+      // Do a strikethrough check
+      if (sConf.prefix === '~' && message.content.match(/^~~/)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   _onMessage(message) {
-    let inputProm = new Promise((resolve, reject) => {
-
-      if (this.conf.dev && this.conf.dev.server) {
-        if (message.channel instanceof Discord.TextChannel) {
-          if (message.guild.id === this.conf.dev.server) {
-            if (this.conf.dev.channel && (this.conf.dev.channel !== message.channel.id)) {
-              return;
-            }
-          } else {
-            return;
-          }
-        } else {
-          return;
-        }
+    // Log everything that comes into bot
+    if (this.conf.verbose) {
+      if (!(message.author.id === this._discord.user.id)) {
+        console.log(`> ${message.author.username}: ${message.content}`); // eslint-disable-line no-console
       }
+    }
 
-      if (this.conf.verbose) {
-        if (!(message.author.id === this._discord.user.id)) {
-          console.log(`> ${message.author.username}: ${message.content}`); // eslint-disable-line no-console
-        }
-      }
+    if (!this._shouldProcess(message)) {
+      // Send command to listeners that want all messages
+      this._allHandlers(message, false);
+      return;
+    }
 
-      if (message.channel instanceof Discord.TextChannel) {
-        let sConf = this.getConfig(message.guild);
-        if (sConf.filter && sConf.filter.length && sConf.filter.indexOf(message.channel.id) === -1) {
-          return;
-        }
-      }
+    let input = new Input(message, this);
 
-      if (message.author.bot) {
-        return;
-      }
-
-      let first = message.content.split(' ')[0];
-      let comm;
-
-      // Prevent triggering of markdown strikethrough
-      let strikethrough = false;
-      if (first.match(/^~~/)) {
-        strikethrough = true;
-      }
-
-      try {
-        comm = this.getCommand(first, message);
-      } catch (e) {
-        if (!strikethrough) {
-          reject(e);
-          return;
-        }
-      }
-
-      if (!comm) {
-        // Send command to listeners that want all messages
-        this._allHandlers(message, false);
-
-        if (!(message.channel instanceof Discord.TextChannel)) {
-          reject(new Error('the first word of a message must be a valid command'));
-        }
-        return;
-      }
-
-      let input = new Input(message, this);
-      resolve(input);
-    });
-
-    return inputProm
-      .then(i => i.process())
+    return input.process()
+      // Catch any errors in 
       .catch((err) => {
         if (err) {
-          let errMess;
-          if (typeof err === 'string') {
-            errMess = err;
-          } else if (err instanceof Error) {
-            if (err.message.match('Forbidden')) {
-              errMess = 'secret_bot does not have the right permissions to be able to run the command';
-            } else {
-              errMess = util.truncate(err.message, 100);
-            }
-          }
+          this.editCache.set(message.id, message); // Value stored in map may change
 
-          this.send(message.author, errMess, true);
+          if (typeof err === 'string') {
+            let embed = this.embedify(err)
+              .setFooter('you can edit your message (once) if you made a mistake');
+
+            this.send(message.author, embed, true);
+          } else if (err instanceof Error) {
+            // TODO: Error stuff
+          }
 
           if (this.conf.verbose) {
             console.error(err); // eslint-disable-line no-console
           }
         }
+        // Always returns undefined, so the next .then doesn't do anything
       })
+      // Send successful result to the origin
       .then((result) => {
         if (result) {
           return this.send(message.channel, result);
         }
       })
+      // Catch sending errors
       .catch((err) => {
         if (err) {
-          if (err.message.match('Forbidden')) {
-            this.send(message.author, this.embedify('secret_bot was unable to reply. are they blocked from sending messages?'), true);
-          }
-
           if (this.conf.verbose) {
+            this.error('Unable to send reply');
             this.error(err);
           }
         }
@@ -824,6 +805,55 @@ class Bot {
       .then(() => {
         // Send command to listeners that want all messages
         this._allHandlers(message, true);
+      });
+  }
+
+  _onEdit(oldMessage, newMessage) {
+    if (!this.editCache.has(oldMessage.id)) {
+      return;
+    }
+
+    this.editCache.delete(oldMessage.id);
+
+    // TODO: Run the edited command
+    let input = new Input(newMessage, this);
+
+    input.process()
+      // Catch any errors in 
+      .catch((err) => {
+        if (err) {
+          // Don't set edit cache
+          // Edits only work once
+
+          if (typeof err === 'string') {
+            let embed = this.embedify(err)
+              .setFooter('edits will no longer work for this message');
+
+            this.send(newMessage.author, embed, true);
+          } else if (err instanceof Error) {
+            // TODO: Error stuff
+          }
+
+          if (this.conf.verbose) {
+            console.error(err); // eslint-disable-line no-console
+          }
+        }
+        // Always returns undefined, so the next .then doesn't do anything
+      })
+      // Send successful result to the origin
+      .then((result) => {
+        if (result) {
+          return this.send(newMessage.channel, result);
+        }
+      })
+      // Catch sending errors
+      .catch((err) => {
+        if (err) {
+          if (this.conf.verbose) {
+            this.error('Unable to send reply');
+            this.error(err);
+          }
+        }
       });
   }
 
