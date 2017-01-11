@@ -7,6 +7,7 @@ const JSONAddon = require('./JSONAddon.js');
 const ScriptAddon = require('./ScriptAddon.js');
 const Command = require('./Command.js');
 const Input = require('./Input.js');
+const Logger = require('./Logger.js');
 
 const util = require('../util');
 
@@ -36,6 +37,8 @@ class Bot {
     this._discord = new Discord.Client();
 
     this.editCache = new Map();
+
+    this.logger = new Logger(this, this.conf.paths.logs);
   }
 
   //region Properties
