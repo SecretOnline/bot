@@ -17,6 +17,22 @@ class Logger {
   constructor(bot, directory) {
 
   }
+  
+  //region Functions
+  
+  getLogs(location, limit = 80) {
+
+  }
+
+  log(location, message) {
+
+  }
+
+  error(location, error) {
+    
+  }
+  
+  //endregion
 }
 
 module.exports = Logger;
