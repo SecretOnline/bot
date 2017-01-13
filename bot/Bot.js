@@ -69,6 +69,10 @@ class Bot {
   start() {
     return Promise.resolve()
       .then(this.reloadConfig.bind(this))
+      .then(() => {
+        // Start logger before Discord starts
+        return this.logger.start();
+      })
       .then(this.reloadConnections.bind(this))
       .then(this.reloadAddons.bind(this))
       .then(() => {
@@ -1097,6 +1101,19 @@ class Bot {
    */
   _onMessage(message) {
     // Log everything that comes into bot
+    let loc;
+    if (message.guild) {
+      loc = message.guild;
+    } else if (message.channel instanceof Discord.DMChannel) {
+      loc = 'private';
+    }
+    if (loc) {
+      this.logger.log(loc, message);
+    } else if (this.conf.verbose) {
+      this.error('the following message will not be logged');
+    }
+
+    // Log to console
     if (this.conf.verbose) {
       if (!(message.author.id === this._discord.user.id)) {
         console.log(`> ${message.author.username}: ${message.content}`); // eslint-disable-line no-console
