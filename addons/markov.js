@@ -79,9 +79,19 @@ class MarkovAddon extends ScriptAddon {
 
   onMessage(message) {
     if (message.content) {
-      let match = message.content.match(new RegExp(`^${this.bot.discord.user.toString()} (.+)`));
+      let match = message.content.match(new RegExp(this.bot.discord.user.toString()));
       if (match) {
-        let input = new Input(message, this.bot, `~markov ${match[1]}`);
+        let str;
+
+        // Allow mentions everywhere, but strip them at the back/front
+        let match = message.content.match(`^${this.bot.discord.user.toString()} (.+)`) || message.content.match(`(.+) ${this.bot.discord.user.toString()}$`);
+        if (match) {
+          str = match[1];
+        } else {
+          str = message.cleanContent; 
+        }
+
+        let input = new Input(message, this.bot, `~markov ${str}`);
         input.process()
           // Send successful result to the origin
           .then((result) => {
