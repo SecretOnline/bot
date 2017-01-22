@@ -45,7 +45,7 @@ class MarkovAddon extends ScriptAddon {
             messages
               .filter(msg => msg.content) // Don't do messages with no content
               .forEach((message) => {
-                newMarkov.add(message.cleanContent);
+                newMarkov.add(this.transform(message.cleanContent));
               });
           })
           .then(() => {
@@ -55,11 +55,17 @@ class MarkovAddon extends ScriptAddon {
 
       mkvReady
         .then((mkv) => {
-          let res = mkv.respond(input.text);
+          let res = mkv.respond(this.transform(input.text));
           resolve(res);
         })
         .catch(reject);
     });
+  }
+
+  transform(text) {
+    return text
+      .replace(/[^\w-]+/, '')
+      .toLowerCase();
   }
 
   onMessage(message) {
@@ -67,7 +73,7 @@ class MarkovAddon extends ScriptAddon {
     if (message.content) {
       if (this.channelData.has(id)) {
         let mkv = this.channelData.get(id);
-        mkv.add(message.cleanContent);
+        mkv.add(this.transform(message.cleanContent));
       }
     }
   }
