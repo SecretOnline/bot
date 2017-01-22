@@ -22,6 +22,11 @@ class MarkovAddon extends ScriptAddon {
 
   doMarkov(input) {
     return new Promise((resolve, reject) => {
+      if (!input.text) {
+        reject('you must give some text for the markov chain to use');
+        return;
+      }
+
       let id = input.message.channel.id;
       if (!this.channelData.has(id)) {
         
@@ -55,7 +60,14 @@ class MarkovAddon extends ScriptAddon {
 
       mkvReady
         .then((mkv) => {
-          let res = mkv.respond(this.transform(input.text));
+          let inStr = this.transform(input.text);
+          let res = mkv.respond(inStr);
+
+          if (res === inStr) {
+            resolve('');
+            return;
+          }
+
           resolve(res);
         })
         .catch(reject);
@@ -113,10 +125,10 @@ class MarkovChain {
    */
   next(word) {
     if (word === this.endString) {
-      throw new Error('Tried to find words after end string');
+      return '';
     }
     if (!this.pairs.has(word)) {
-      throw new Error(`${word} is not in the dictionary`);
+      return '';
     }
 
     let nexts = Array.from(this.pairs.get(word));
@@ -148,7 +160,7 @@ class MarkovChain {
     for (var i = 0; i < length; i++) {
       let next = this.next(prev);
       prev = next;
-      if (next === this.endString) {
+      if ((!next) || (next === this.endString)) {
         break;
       }
       outStr += ` ${next}`;
