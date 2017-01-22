@@ -15,6 +15,7 @@ class MarkovAddon extends ScriptAddon {
 
   init() {
     this.bot.addCommand('markov', new Command(this.doMarkov.bind(this), 'markov'));
+    this.bot.addCommand('clear-gunter', new Command(this.clearGunter.bind(this), 'markov', Command.PermissionLevels.OVERLORD));
 
     this.f = this.onMessage.bind(this);
     this.bot.requestAllMessages(this.f);
@@ -84,6 +85,11 @@ class MarkovAddon extends ScriptAddon {
         })
         .catch(reject);
     });
+  }
+
+  clearGunter(input) {
+    this.gunter = 0;
+    return 'it\'s time to gunter again!';
   }
 
   transform(text) {
