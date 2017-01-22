@@ -73,18 +73,12 @@ class MarkovAddon extends ScriptAddon {
 
   transform(text) {
     return text
-      .replace(/[^\w- ]+/g, '')
+      .replace(/[^\w-'"* ]+/g, '')
       .toLowerCase();
   }
 
   onMessage(message) {
-    let id = message.channel.id;
     if (message.content) {
-      if (this.channelData.has(id)) {
-        let mkv = this.channelData.get(id);
-        mkv.add(this.transform(message.cleanContent));
-      }
-
       let match = message.content.match(new RegExp(`^${this.bot.discord.user.toString()} (.+)`));
       if (match) {
         let input = new Input(message, this.bot, `~markov ${match[1]}`);
@@ -102,6 +96,12 @@ class MarkovAddon extends ScriptAddon {
               this.error(err);
             }
           });
+      }
+
+      let id = message.channel.id;
+      if (this.channelData.has(id)) {
+        let mkv = this.channelData.get(id);
+        mkv.add(this.transform(message.cleanContent));
       }
     }
   }
