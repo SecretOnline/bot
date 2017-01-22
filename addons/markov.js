@@ -28,10 +28,6 @@ class MarkovAddon extends ScriptAddon {
       }
 
       let id = input.message.channel.id;
-      if (!this.channelData.has(id)) {
-        
-      }
-
       let mkvReady;
       if (this.channelData.has(id)) {
         mkvReady = Promise.resolve(this.channelData.get(id));
@@ -76,7 +72,7 @@ class MarkovAddon extends ScriptAddon {
 
   transform(text) {
     return text
-      .replace(/[^\w-]+/, '')
+      .replace(/[^\w- ]+/, '')
       .toLowerCase();
   }
 
