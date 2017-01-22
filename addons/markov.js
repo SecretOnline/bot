@@ -9,7 +9,7 @@ class MarkovAddon extends ScriptAddon {
     this.channelData = new Map();
     this.numMessages = 100;
     this.gunter = 0;
-    this.gunterLimit = 200;
+    this.gunterLimit = 500;
     this.gunterInterval = null;
   }
 
@@ -24,7 +24,7 @@ class MarkovAddon extends ScriptAddon {
         this.gunter--;
         if (this.gunter === 0) {
           // Add some variation to the gunter limit
-          this.gunterLimit = Math.floor(Math.random() * 100) + 150;
+          this.gunterLimit = Math.floor(Math.random() * 100) + 450;
         }
       }
     }, 1000);
@@ -105,7 +105,7 @@ class MarkovAddon extends ScriptAddon {
             return;
           }
 
-          this.gunter += 10;
+          this.gunter += 50;
         }
 
         // Allow mentions everywhere, but strip them at the back/front
