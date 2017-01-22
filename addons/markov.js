@@ -17,10 +17,17 @@ class MarkovAddon extends ScriptAddon {
     return new Promise((resolve, reject) => {
       let id = input.message.channel.id;
       if (!this.channelData.has(id)) {
-        this.channelData.set(id, []);
+        this.channelData.set(id, {
+          markov: new MarkovChain(),
+          messages: []
+        });
       }
 
-      let oldMessages = this.channelData.get(id);
+      let data =this.channelData.get(id);
+      let mkv = data.markov;
+      let oldMessages = data.messages;
+
+      // Options for fetching messages
       let fetchOpt = {
         limit: this.numMessages
       };
@@ -30,6 +37,9 @@ class MarkovAddon extends ScriptAddon {
 
       input.message.channel
         .fetchMessages(fetchOpt)
+        .then((m) => {
+          return m.array();
+        })
         .then((newMessages) => {
           let messages = oldMessages.slice(0, newMessages.length).concat(newMessages);
 
@@ -38,22 +48,13 @@ class MarkovAddon extends ScriptAddon {
           return messages;
         })
         .then((messages) => {
-          let mkv = new markov(2);
-          let promises = messages
+          messages
             .filter(msg => msg.content) // Don't do messages with no content
-            .map((message) => {
-              return new Promise((resolve2, reject2) => {
-                mkv.seed(message.cleanContent, resolve2);
-              });
-            });
-
-          return Promise.all(promises)
-            .then(() => {
-              console.log('in markov');
-              return mkv;
+            .forEach((message) => {
+              mkv.add(message.cleanContent);
             });
         })
-        .then((mkv) => {
+        .then(() => {
           let res = mkv.respond(input.text);
           resolve(res);
         })
@@ -90,7 +91,7 @@ class MarkovChain {
   /**
    * Finds the next word in the chain
    * 
-   * @param {any} word Word to find the next of
+   * @param {string} word Word to find the next of
    * 
    * @memberOf MarkovChain
    */
@@ -138,6 +139,20 @@ class MarkovChain {
     }
 
     return outStr;
+  }
+
+  /**
+   * Picks a word from the input string and generates from that
+   * 
+   * @param {string} text
+   * 
+   * @memberOf MarkovChain
+   */
+  respond(text) {
+    let words = text.split(' ');
+
+    let start = words[Math.floor(Math.random() * words.length)];
+    return this.chain(start);
   }
 
   /**
@@ -210,6 +225,13 @@ class MarkovChain {
     }
   }
 
+  /**
+   * Dumps out the state of the current generator dictionary
+   * 
+   * @returns {Object}
+   * 
+   * @memberOf MarkovChain
+   */
   dump() {
     let list = {};
 
