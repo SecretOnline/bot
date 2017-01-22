@@ -139,7 +139,7 @@ class MarkovChain {
    * 
    * @memberOf MarkovChain
    */
-  next(word) {
+  next(word, tryContinue) {
     if (word === this.endString) {
       return '';
     }
@@ -148,6 +148,18 @@ class MarkovChain {
     }
 
     let nexts = Array.from(this.pairs.get(word));
+
+    if (tryContinue) {
+      // Remove the end string if possible
+      let filtered = nexts.filter(n => n[0] !== this.endString);
+      if (filtered.length) {
+        nexts = filtered;
+      } else {
+        // End string was the only thing, may as well early return
+        return this.endString;
+      }
+    }
+
     let totalSize = nexts.reduce((total, curr) => {
       return total += curr[1].length;
     }, 0);
@@ -165,16 +177,19 @@ class MarkovChain {
   /**
    * Creates a chain of the given length with the given starter
    * 
-   * @param {number} [length=20] Length to generate
+   * @param {string} start String to start with
+   * @param {number} [length=20] Max length
+   * @param {number} [min = 8] Min length (not guaranteed)
+   * @returns
    * 
    * @memberOf MarkovChain
    */
-  chain(start, length = 20) {
+  chain(start, length = 20, min = 8) {
     let outStr = start;
 
     let prev = start;
     for (var i = 0; i < length; i++) {
-      let next = this.next(prev);
+      let next = this.next(prev, i < 8);
       prev = next;
       if ((!next) || (next === this.endString)) {
         break;
