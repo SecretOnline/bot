@@ -43,7 +43,7 @@ class MarkovAddon extends ScriptAddon {
         .then((newMessages) => {
           let messages = oldMessages.slice(0, newMessages.length).concat(newMessages);
 
-          this.channelData.set(id, messages);
+          this.channelData.get(id).messages = messages;
 
           return messages;
         })
@@ -110,7 +110,7 @@ class MarkovChain {
     let index =  Math.floor(Math.random() * totalSize);
 
     let fIndex = 0;
-    while (index > 0) {
+    while (index > nexts[fIndex][1].length) {
       index -= nexts[fIndex][1].length;
       fIndex++;
     }
