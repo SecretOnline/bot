@@ -1,9 +1,7 @@
-const markov = require('markov');
-
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
 
-class Markov extends ScriptAddon {
+class MarkovAddon extends ScriptAddon {
   constructor(bot) {
     super(bot, 'markov');
 
@@ -64,4 +62,12 @@ class Markov extends ScriptAddon {
   }
 }
 
-module.exports = Markov;
+module.exports = MarkovAddon;
+
+class MarkovChain {
+  constructor(order = 2) {
+    
+  }
+  
+  
+}
