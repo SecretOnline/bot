@@ -15,6 +15,7 @@ class MarkovAddon extends ScriptAddon {
 
   init() {
     this.bot.addCommand('markov', new Command(this.doMarkov.bind(this), 'markov'));
+    this.bot.addCommand('gunter', new Command(this.startGunter.bind(this), 'markov'));
     this.bot.addCommand('clear-gunter', new Command(this.clearGunter.bind(this), 'markov', Command.PermissionLevels.OVERLORD));
 
     this.f = this.onMessage.bind(this);
@@ -85,6 +86,11 @@ class MarkovAddon extends ScriptAddon {
         })
         .catch(reject);
     });
+  }
+
+  startGunter(input) {
+    input.message.channel.sendMessage(`<@177964289091436544> ${input.text}`);
+    return '';
   }
 
   clearGunter(input) {
@@ -274,7 +280,7 @@ class MarkovChain {
    * @memberOf MarkovChain
    */
   add(text) {
-    let words = text.split(' ');
+    let words = text.split(/\s+/);
     let pairs = words.map((word, index) => {
       let next;
       if (index === words.length - 1) {
