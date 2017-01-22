@@ -8,6 +8,9 @@ class MarkovAddon extends ScriptAddon {
 
     this.channelData = new Map();
     this.numMessages = 100;
+    this.gunter = 0;
+    this.gunterLimit = 200;
+    this.gunterInterval = null;
   }
 
   init() {
@@ -15,10 +18,22 @@ class MarkovAddon extends ScriptAddon {
 
     this.f = this.onMessage.bind(this);
     this.bot.requestAllMessages(this.f);
+
+    this.gunterInterval = setInterval(() => {
+      if (this.gunter > 0) {
+        this.gunter--;
+        if (this.gunter === 0) {
+          // Add some variation to the gunter limit
+          this.gunterLimit = Math.floor(Math.random() * 100) + 150;
+        }
+      }
+    }, 1000);
   }
   
   deinit() {
     this.bot.cancelAllMessages(this.f);
+
+    clearInterval(this.gunterInterval);
   }
 
   doMarkov(input) {
@@ -83,6 +98,16 @@ class MarkovAddon extends ScriptAddon {
       if (match) {
         let str;
 
+        let isGunter = (message.author.id === '177964289091436544');
+
+        if (isGunter) {
+          if (this.gunter > this.gunterLimit) {
+            return;
+          }
+
+          this.gunter += 10;
+        }
+
         // Allow mentions everywhere, but strip them at the back/front
         let match = message.content.match(`^${this.bot.discord.user.toString()} (.+)`) || message.content.match(`(.+) ${this.bot.discord.user.toString()}$`);
         if (match) {
@@ -98,7 +123,7 @@ class MarkovAddon extends ScriptAddon {
             if (result) {
               // Manually specify ID of Gunter
               // May move into config later
-              if (message.author.id === '177964289091436544') {
+              if (isGunter) {
                 result = `${message.author.toString()} ${result}`;
                 return message.channel.sendMessage(result, {disableEveryone: true});
               }
