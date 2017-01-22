@@ -64,10 +64,57 @@ class MarkovAddon extends ScriptAddon {
 
 module.exports = MarkovAddon;
 
+/**
+ * A Markov Chain generator
+ * 
+ * @class MarkovChain
+ */
 class MarkovChain {
-  constructor(order = 2) {
-    
+  /**
+   * Creates an instance of MarkovChain.
+   * 
+   * @param {number} [size=200] How many inputs to keep. Old inputs are removed as new ones are added
+   * 
+   * @memberOf MarkovChain
+   */
+  constructor(size = 200) {
+    this.inputs = new Map();
+    this.index = 0;
+    this.pairs = new Map();
+    this.size = 200;
   }
   
-  
+  /**
+   * Finds the next word in the chain
+   * 
+   * @param {any} word Word to find the next of
+   * 
+   * @memberOf MarkovChain
+   */
+  next(word) {
+
+  }
+
+  /**
+   * Creates a chain of the given length with the given starter
+   * 
+   * @param {number} [length=20] Length to generate
+   * 
+   * @memberOf MarkovChain
+   */
+  chain(start, length = 20) {
+
+  }
+
+  /**
+   * Adds text to the chain generator
+   * If the generator is at its size, will also remove old entries
+   * 
+   * @param {string} text Words to add to the chain generator
+   * 
+   * @memberOf MarkovChain
+   */
+  add(text) {
+
+  }
 }
