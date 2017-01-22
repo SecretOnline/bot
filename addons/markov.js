@@ -96,6 +96,13 @@ class MarkovAddon extends ScriptAddon {
           // Send successful result to the origin
           .then((result) => {
             if (result) {
+              // Manually specify ID of Gunter
+              // May move into config later
+              if (message.author.id === '177964289091436544') {
+                result = `${message.author.toString()} ${result}`;
+                return message.channel.sendMessage(result, {disableEveryone: true});
+              }
+
               return this.bot.send(message.channel, result);
             }
           })
@@ -108,6 +115,9 @@ class MarkovAddon extends ScriptAddon {
           });
       }
 
+      if (message.author.id === this.bot.discord.user.id) {
+        return;
+      }
       let id = message.channel.id;
       if (this.channelData.has(id)) {
         let mkv = this.channelData.get(id);
