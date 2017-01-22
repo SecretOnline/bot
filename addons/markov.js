@@ -11,55 +11,65 @@ class MarkovAddon extends ScriptAddon {
 
   init() {
     this.bot.addCommand('markov', new Command(this.doMarkov.bind(this), 'markov'));
+
+    this.f = this.onMessage.bind(this);
+    this.bot.requestAllMessages(this.f);
+  }
+  
+  deinit() {
+    this.bot.cancelAllMessages(this.f);
   }
 
   doMarkov(input) {
     return new Promise((resolve, reject) => {
       let id = input.message.channel.id;
       if (!this.channelData.has(id)) {
-        this.channelData.set(id, {
-          markov: new MarkovChain(),
-          messages: []
-        });
+        
       }
 
-      let data =this.channelData.get(id);
-      let mkv = data.markov;
-      let oldMessages = data.messages;
+      let mkvReady;
+      if (this.channelData.has(id)) {
+        mkvReady = Promise.resolve(this.channelData.get(id));
+      } else {
+        let newMarkov = new MarkovChain();
+        this.channelData.set(id, newMarkov);
 
-      // Options for fetching messages
-      let fetchOpt = {
-        limit: this.numMessages
-      };
-      if (oldMessages.length) {
-        fetchOpt.after = oldMessages[oldMessages.length - 1].id;
-      }
+        mkvReady = input.message.channel
+          .fetchMessages({
+            limit: this.numMessages
+          })
+          .then((m) => {
+            return m.array();
+          })
+          .then((messages) => {
+            messages
+              .filter(msg => msg.content) // Don't do messages with no content
+              .forEach((message) => {
+                newMarkov.add(message.cleanContent);
+              });
+          })
+          .then(() => {
+            return newMarkov;
+          });
+      }      
 
-      input.message.channel
-        .fetchMessages(fetchOpt)
-        .then((m) => {
-          return m.array();
-        })
-        .then((newMessages) => {
-          let messages = oldMessages.slice(0, newMessages.length).concat(newMessages);
-
-          this.channelData.get(id).messages = messages;
-
-          return messages;
-        })
-        .then((messages) => {
-          messages
-            .filter(msg => msg.content) // Don't do messages with no content
-            .forEach((message) => {
-              mkv.add(message.cleanContent);
-            });
-        })
-        .then(() => {
+      mkvReady
+        .then((mkv) => {
           let res = mkv.respond(input.text);
           resolve(res);
         })
         .catch(reject);
     });
+  }
+
+  onMessage(message) {
+    let id = message.channel.id;
+    if (message.content) {
+      if (this.channelData.has(id)) {
+        let mkv = this.channelData.get(id);
+        mkv.add(message.cleanContent);
+      }
+    }
   }
 }
 
