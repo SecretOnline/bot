@@ -88,7 +88,20 @@ class MarkovAddon extends ScriptAddon {
       let match = message.content.match(new RegExp(`^${this.bot.discord.user.toString()} (.+)`));
       if (match) {
         let input = new Input(message, this.bot, `~markov ${match[1]}`);
-        this.bot._process(input);
+        input.process()
+          // Send successful result to the origin
+          .then((result) => {
+            if (result) {
+              return this.bot.send(message.channel, result);
+            }
+          })
+          // Catch sending errors
+          .catch((err) => {
+            if (err) {
+              this.error('Unable to send reply');
+              this.error(err);
+            }
+          });
       }
     }
   }
