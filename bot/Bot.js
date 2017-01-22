@@ -1085,29 +1085,15 @@ class Bot {
   }
 
   /**
-   * Event hamdler for the 'message' event
+   * Processes an Input
+   * Don't use, this is here for testing and experimental purposes
    * 
-   * @param {Discord.Message} message Incoming message
-   * @returns {Promise} Resolves once this message has been processed
+   * @param {any} input
    * 
    * @memberOf Bot
    */
-  _onMessage(message) {
-    // Log everything that comes into bot
-    if (this.conf.verbose) {
-      if (!(message.author.id === this._discord.user.id)) {
-        console.log(`> ${message.author.username}: ${message.content}`); // eslint-disable-line no-console
-      }
-    }
-
-    if (!this._shouldProcess(message)) {
-      // Send command to listeners that want all messages
-      this._allHandlers(message, false);
-      return;
-    }
-
-    let input = new Input(message, this);
-
+  _process(input) {
+    let message = input.message;
     return input.process()
       // Catch any errors in 
       .catch((err) => {
@@ -1146,11 +1132,34 @@ class Bot {
             this.error(err);
           }
         }
-      })
-      .then(() => {
-        // Send command to listeners that want all messages
-        this._allHandlers(message, true);
       });
+  }
+
+  /**
+   * Event hamdler for the 'message' event
+   * 
+   * @param {Discord.Message} message Incoming message
+   * @returns {Promise} Resolves once this message has been processed
+   * 
+   * @memberOf Bot
+   */
+  _onMessage(message) {
+    // Log everything that comes into bot
+    if (this.conf.verbose) {
+      if (!(message.author.id === this._discord.user.id)) {
+        console.log(`> ${message.author.username}: ${message.content}`); // eslint-disable-line no-console
+      }
+    }
+
+    if (!this._shouldProcess(message)) {
+      // Send command to listeners that want all messages
+      this._allHandlers(message, false);
+      return;
+    }
+
+    let input = new Input(message, this);
+
+    return this._process(input);
   }
 
   /**

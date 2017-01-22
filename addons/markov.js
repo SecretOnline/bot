@@ -1,5 +1,6 @@
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
+const Input = require('../bot/Input.js');
 
 class MarkovAddon extends ScriptAddon {
   constructor(bot) {
@@ -72,7 +73,7 @@ class MarkovAddon extends ScriptAddon {
 
   transform(text) {
     return text
-      .replace(/[^\w- ]+/, '')
+      .replace(/[^\w- ]+/g, '')
       .toLowerCase();
   }
 
@@ -82,6 +83,12 @@ class MarkovAddon extends ScriptAddon {
       if (this.channelData.has(id)) {
         let mkv = this.channelData.get(id);
         mkv.add(this.transform(message.cleanContent));
+      }
+
+      let match = message.content.match(new RegExp(`^${this.bot.discord.user.toString()} (.+)`));
+      if (match) {
+        let input = new Input(message, this.bot, `~markov ${match[1]}`);
+        this.bot._process(input);
       }
     }
   }
