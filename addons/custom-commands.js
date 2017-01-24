@@ -22,7 +22,7 @@ class Custom extends ScriptAddon {
   constructor(bot) {
     super(bot, 'custom');
 
-    this.commands = this.getConfig();
+    this.commands = this.getConfig(null);
 
     if (this.commands) {
       Object.keys(this.commands).forEach((server) => {
