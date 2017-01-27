@@ -28,20 +28,20 @@ class Comm extends ScriptAddon {
   }
 
   init() {
-    this.bot.addCommand('say', this.say, sayHelp);
-    this.bot.addCommand('raw', this.raw, sayHelp);
-    this.bot.addCommand('wiki', this.getWikiLink, linkHelp);
-    this.bot.addCommand('yt', this.getYtLink, linkHelp);
-    this.bot.addCommand('lmgtfy', this.getLmgtfyLink, linkHelp);
-    this.bot.addCommand('roll', this.getRoll, rollHelp);
-    this.bot.addCommand('reverse', this.reverse, reverseHelp);
-    this.bot.addCommand('unreverse', this.reverse, unReverseHelp);
+    this.addCommand('say', this.say, sayHelp);
+    this.addCommand('raw', this.raw, sayHelp);
+    this.addCommand('wiki', this.getWikiLink, linkHelp);
+    this.addCommand('yt', this.getYtLink, linkHelp);
+    this.addCommand('lmgtfy', this.getLmgtfyLink, linkHelp);
+    this.addCommand('roll', this.getRoll, rollHelp);
+    this.addCommand('reverse', this.reverse, reverseHelp);
+    this.addCommand('unreverse', this.reverse, unReverseHelp);
     // Latins
     this.addCommand('secret_latin', this.getSecretText);
     this.addCommand('trk_latin', this.getTrkText);
     this.addCommand('jaden_latin',this.getJadenText);
-    this.bot.addCommand('alvv_latin', this.getAlvvText);
-    this.bot.addCommand('ohdear_latin', this.getMessText);
+    this.addCommand('alvv_latin', this.getAlvvText);
+    this.addCommand('ohdear_latin', this.getMessText);
   }
 
   say(input) {
