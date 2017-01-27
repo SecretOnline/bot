@@ -45,15 +45,11 @@ class Summaries extends ScriptAddon {
   }
 
   init() {
-    this.bot.addCommand('reddit', new Command(this.redditSummary.bind(this), 'summaries', redditHelp));
-    this.bot.addCommand('github', new Command(this.githubSummary.bind(this), 'summaries', githubHelp));
-    this.bot.addCommand('google', new Command(this.googleSummary.bind(this), 'summaries', googleHelp));
+    this.addCommand('reddit', this.redditSummary, redditHelp);
+    this.addCommand('github', this.githubSummary, githubHelp);
+    this.addCommand('google', this.googleSummary, googleHelp);
   }
-
-  deinit() {
-    // Do nothing
-  }
-
+  
   redditSummary(input) {
     return new Promise((resolve, reject) => {
       let exps = [

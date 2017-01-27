@@ -11,15 +11,11 @@ var flipHelp = [
 
 class Flip extends ScriptAddon {
   constructor(bot) {
-    super(bot, 'help');
+    super(bot, 'flip');
   }
 
   init() {
-    this.bot.addCommand('flip', new Command(this.getFlip, 'default', flipHelp));
-  }
-
-  deinit() {
-    // Do nothing
+    this.addCommand('flip', this.getFlip, flipHelp);
   }
 
   getFlip(input) {

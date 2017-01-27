@@ -18,12 +18,8 @@ class Support extends ScriptAddon {
   }
 
   init() {
-    this.bot.addCommand('support', new Command(this.getSupport.bind(this), 'core.help.support', Command.PermissionLevels.ADMIN, supportHelp));
-    this.bot.addCommand('support-close', new Command(this.closeSupport.bind(this), 'support'));
-  }
-
-  deinit() {
-    // Do nothing
+    this.addCommand('support', this.getSupport, Command.PermissionLevels.ADMIN, supportHelp);
+    this.addCommand('support-close', this.closeSupport);
   }
 
   getSupport(input) {

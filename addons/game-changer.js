@@ -17,11 +17,7 @@ class GameChange extends ScriptAddon {
   }
 
   init() {
-    this.bot.addCommand('change-game', new Command(this.changeGame.bind(this), 'core', Command.PermissionLevels.OVERLORD));
-  }
-
-  deinit() {
-    // Do nothing
+    this.addCommand('change-game', this.changeGame, Command.PermissionLevels.OVERLORD);
   }
 
   updateGamesList(data) {

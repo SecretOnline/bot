@@ -14,9 +14,9 @@ class MarkovAddon extends ScriptAddon {
   }
 
   init() {
-    this.bot.addCommand('markov', new Command(this.doMarkov.bind(this), 'markov'));
-    this.bot.addCommand('gunter', new Command(this.startGunter.bind(this), 'markov'));
-    this.bot.addCommand('clear-gunter', new Command(this.clearGunter.bind(this), 'markov', Command.PermissionLevels.OVERLORD));
+    this.addCommand('markov', this.doMarkov);
+    this.addCommand('gunter', this.startGunter);
+    this.addCommand('clear-gunter', this.clearGunter, Command.PermissionLevels.OVERLORD);
 
     this.gunterInterval = setInterval(() => {
       if (this.gunter > 0) {

@@ -99,13 +99,9 @@ class Help extends ScriptAddon {
   }
 
   init() {
-    this.bot.addCommand('commands', new Command(this.getCommands.bind(this), 'core.help', this.getCommands.bind(this)));
-    this.bot.addCommand('help', new Command(this.getHelp.bind(this), 'core.help', helpHelp));
-    this.bot.addCommand('which', new Command(this.getWhich.bind(this), 'core.help', whichHelp));
-  }
-
-  deinit() {
-    // Do nothing
+    this.addCommand('commands', this.getCommands, this.getCommands);
+    this.addCommand('help', this.getHelp, helpHelp);
+    this.addCommand('which', this.getWhich, whichHelp);
   }
 
   getWhich(input) {
@@ -302,7 +298,7 @@ class Help extends ScriptAddon {
     } else {
       response = [
         'secret_bot *help*',
-        'secret_bot v7.3.x - the con(f)spiracy update',
+        'secret_bot v7.5.x - the con(f)spiracy update',
         '',
         'help for individual commands can be found by using `~help <command>`',
         'more help topics can be found at `~help topic`',
