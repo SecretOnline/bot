@@ -1061,8 +1061,6 @@ class Bot {
    */
   _process(input) {
     let message = input.message;
-    // Log everything that comes into bot
-    this.log(message, message.channel);
     return input.process()
       // Catch any errors in 
       .catch((err) => {
@@ -1114,11 +1112,7 @@ class Bot {
    */
   _onMessage(message) {
     // Log everything that comes into bot
-    if (this.conf.verbose) {
-      if (!(message.author.id === this._discord.user.id)) {
-        console.log(`> ${message.author.username}: ${message.content}`); // eslint-disable-line no-console
-      }
-    }
+    this.log(message, message.channel);
 
     this._messageToAddons(message);
 
