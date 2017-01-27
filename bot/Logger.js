@@ -176,30 +176,27 @@ class Logger {
    * @memberOf Logger
    */
   _filterLogs(filter, limit, id) {
-    return new Promise((resolve, reject) => {
-      this._getLogFile(id)
-        .then(this._parseLog)
-        .then((lines) => {
-          return lines.filter(filter);
-        })
-        .then((lines) => {
-          if (lines.length === limit) {
-            return lines;
-          } else if (lines.length < limit) {
-            let remaining = limit - lines.length;
-            return this._filterLogs(filter, remaining, id - 1)
-              .then((result) => {
-                return lines.concat(result);
-              });
-          } else {
-            lines.splice(limit);
-            return lines;
-          }
-        })
-        .catch((err) => {
-          resolve([]); // Any errors get caught and return an empty array
-        });
-    });
+    return this._getLogFile(id)
+      .then((lines) => {
+        return lines.filter(filter);
+      })
+      .then((lines) => {
+        if (lines.length === limit) {
+          return lines;
+        } else if (lines.length < limit) {
+          let remaining = limit - lines.length;
+          return this._filterLogs(filter, remaining, id - 1)
+            .then((result) => {
+              return lines.concat(result);
+            });
+        } else {
+          lines.splice(limit);
+          return lines;
+        }
+      })
+      .catch((err) => {
+        return []; // Any errors get caught and return an empty array
+      });
   }
 
   /**
