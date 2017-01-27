@@ -62,6 +62,11 @@ class Summaries extends ScriptAddon {
         return input.text.match(pair[0]);
       });
 
+      if (!p) {
+        reject(`${input.text} was not recognised as a reddit URL/sub-URL`);
+        return;
+      }
+
       let prom;
       let match = input.text.match(p[0]);
       switch (p[1]) {
@@ -78,7 +83,8 @@ class Summaries extends ScriptAddon {
           prom = this._redditGetSubInfo(match[1]);
           break;
         default:
-          throw 'link was not valid';
+          reject('link was not valid');
+          return;
       }
 
       prom
@@ -97,6 +103,7 @@ class Summaries extends ScriptAddon {
           .setTitle(`${post.title} - /r/${post.subreddit.display_name}`)
           .setAuthor(`/u/${post.author.name}`)
           .setURL(post.url)
+          .setColor('#FF4500')
           .addField('Score',`**${post.score}** points\n${post.ups} upvotes`, true)
           .addField(`[${post.num_comments} comments](https://reddit.com${post.permalink})`, '\u200b', true);
 
@@ -125,6 +132,7 @@ class Summaries extends ScriptAddon {
           .setDescription(truncate(comment.body))
           .setAuthor(`/u/${comment.author.name}`)
           .setURL(`https://reddit.com${post.permalink}${comment.id}`)
+          .setColor('#FF4500')
           .addField('Comment Score',`**${comment.score}** points\n${comment.ups} upvotes`, true);
 
         return embed;
@@ -138,6 +146,7 @@ class Summaries extends ScriptAddon {
         let embed = new Discord.RichEmbed()
           .setTitle(`/u/${user.name}`)
           .setURL(`https://reddit.com/u/${user.name}`)
+          .setColor('#FF4500')
           .addField('Karma',`**${user.link_karma}** link karma\n${user.comment_karma} comment karma`, true);
 
         return embed;
@@ -152,6 +161,7 @@ class Summaries extends ScriptAddon {
           .setTitle(`/r/${sub.display_name} - ${sub.title}`)
           .setDescription(truncate(sub.description))
           .setURL(`https://reddit.com${sub.url}`)
+          .setColor('#FF4500')
           .addField('Users',`**${sub.subscribers}** subs\n${sub.accounts_active} there now`, true);
 
         if (sub.header_img) {
@@ -186,6 +196,7 @@ class Summaries extends ScriptAddon {
               .setTitle(res.name)
               .setDescription(res.description)
               .setAuthor(res.owner.login, res.owner.avatar_url)
+              .setColor('#333333')
               .setURL(res.html_url);
 
             if (res.fork) {
@@ -215,6 +226,7 @@ class Summaries extends ScriptAddon {
             }
 
             let embed = new Discord.RichEmbed()
+              .setColor('#34A853')
               .setAuthor(res, 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png');
 
             result.links
