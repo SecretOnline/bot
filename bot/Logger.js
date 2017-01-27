@@ -52,6 +52,10 @@ class Logger {
           .reduce((max, curr) => Math.max(max, curr));
       })
       .then(() => {
+        // Load current file into memory
+        return this._getLogFile(this.currentId);
+      })
+      .then(() => {
         this._readyFunc();
       });
   }
@@ -217,6 +221,10 @@ class Logger {
       } else {
         this._readFile(id)
           .then(this._parseLog)
+          .then((lines) => {
+            this.cache.set(id, lines);
+            return lines;
+          })
           .then(resolve, reject);
       }
     });
@@ -252,7 +260,7 @@ class Logger {
    */
   _parseLog(data) {
     return data.split(/\r?\n/)
-      .filter(l => !l.match(/^#|\/\//)) // Remove comments
+      .filter(l => !l.match(/^#|^\/\/|(?:^.{0}$)/)) // Remove comments and newline
       .map(l => JSON.parse(l));
   }
   
