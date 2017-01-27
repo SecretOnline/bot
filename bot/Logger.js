@@ -218,6 +218,9 @@ class Logger {
       } else {
         this._readFile(id)
           .then(this._parseLog)
+          .catch(() => {
+            return [];
+          })
           .then((lines) => {
             this.cache.set(id, lines);
 
