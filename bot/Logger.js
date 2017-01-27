@@ -22,7 +22,7 @@ class Logger {
     this.logs = null;
     this.cache = new Map();
     this.currentId = null;
-    this.maxLogLength = 50;
+    this.maxLogLength = 2000;
     this._ready = new Promise((resolve, reject) => {
       // Store resolution function so we can call it in .start()
       this._readyFunc = resolve;
