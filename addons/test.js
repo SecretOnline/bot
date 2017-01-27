@@ -14,6 +14,7 @@ class Test extends ScriptAddon {
     this.bot.addCommand('conflict', new Command(this.conflict1, 'conflict1', Command.PermissionLevels.OVERLORD));
     this.bot.addCommand('conflict', new Command(this.conflict2, 'conflict2', Command.PermissionLevels.OVERLORD));
     this.bot.addCommand('http-status-code', new Command(this.httpStatus, 'test', Command.PermissionLevels.OVERLORD));
+    this.bot.addCommand('dump-log', new Command(this.dumpLog.bind(this), 'test', Command.PermissionLevels.OVERLORD));
   }
 
   deinit() {
@@ -49,6 +50,13 @@ class Test extends ScriptAddon {
     return request(`https://httpbin.org/status/${code[1]}`)
       .then((res) => {
         return `got response: ${res}`;
+      });
+  }
+
+  dumpLog(input) {
+    return this.bot.getLogs(()=>true, 120)
+      .then((lines) => {
+        return lines.length.toString();
       });
   }
 }
