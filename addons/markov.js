@@ -46,11 +46,11 @@ class MarkovAddon extends ScriptAddon {
       if (this.channelData.has(id)) {
         mkvReady = Promise.resolve(this.channelData.get(id));
       } else {
-        let newMarkov = new MarkovChain();
+        let newMarkov = new MarkovChain(1000);
         this.channelData.set(id, newMarkov);
 
         mkvReady = this.bot
-          .getLogs(Logger.filterByGuild(input.message.guild))
+          .getLogs(Logger.filterByGuild(input.message.guild), 1000)
           .then((lines) => {
             return lines
               .map(l => l.message)
