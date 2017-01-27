@@ -30,17 +30,17 @@ That's it, really! No need to do anything else.
 
 Clicked the link ([here it is again](https://discordapp.com/oauth2/authorize?client_id=177875535391752192&scope=bot&permissions=93184))? Added the bot? Great. First, let's look at some concepts.
 
-### Command Groups
+### Addons
 
-Every command in secret_bot belongs to a group. Each group is just a word that describes what the commands in that group do.
+Every command in secret_bot belongs to an addon. Every addon has an unique name, and usually contain commands related to that name.
 
-For example, the commands `~lenny` and `~disapprove` output `( ͡° ͜ʖ ͡°)` and `ಠ_ಠ` respectively, and are in the `faces` group. `~fliptable` flips a table, and is in the `flipping` group.
+For example, the commands `~lenny` and `~disapprove` output `( ͡° ͜ʖ ͡°)` and `ಠ_ಠ` respectively, and are in the `faces` addon. `~fliptable` flips a table, and is in the `flipping` addon.
 
-Each command group can be enabled and disabled, effectively adding or removing commands from your server. More on that after I explain the default groups.
+Each addon can be enabled and disabled, effectively adding or removing commands from your server. More on that after I explain the default ones.
 
-#### Default Groups
+#### Default Addons
 
-The group `core` is always active on your server. It has important functions of the bot, so you could really mess things up if you removed it.
+The groups `core`, `help`, and `support` are always active on your server, and can not be disabled. `core` has important functions of the bot, so you could really mess things up if you removed it. `help` allows you to get descriptions for almost every command in the bot. `support` provides a way for server admins to talk to a human about problems they're having with the bot (more on that later).
 
 By default, the following groups are enabled. These can be disabled if you don't want them.
 
@@ -50,6 +50,7 @@ By default, the following groups are enabled. These can be disabled if you don't
 | faces | A list of common Unicode emotes, and variations on each | [faces.json](https://github.com/SecretOnline/bot/blob/master/addons/faces.json) |
 | flip | Turns text upside down | [flip.js](https://github.com/SecretOnline/bot/blob/master/addons/flip.js) |
 | flipping | For all your table flipping needs | [flipping.json](https://github.com/SecretOnline/bot/blob/master/addons/flipping.json) |
+| phrases | Contains shortcuts for saying a few short phrases | [phrases.json](https://github.com/SecretOnline/bot/blob/master/addons/phrases.json) |
 | summaries | Gives information about pasted links | [summaries.js](https://github.com/SecretOnline/bot/blob/master/addons/summaries.js) |
 | util | Currently unused. Will have commands like dice rolling and  | N/A |
 
@@ -69,13 +70,13 @@ If you put the name of a group after `~commands` (such as `~commands core`), the
 
 To find out which group a command is in, use `~which` and put the name of the command after (e.g. `~which github`). Don't forget you can get help for each command with `~help`.
 
-#### Enabling and Disabling command groups
+#### Enabling and Disabling Addons
 
-Don't like the default command groups? That's OK. They're designed to give you an idea of what secret_bot can do, but still provide some useful things. Luckily for you, you don't have to use them forever.
+Don't like the default addons? That's OK. They're designed to give you an idea of what secret_bot can do, but still provide some useful things. Luckily for you, you don't have to use them forever.
 
-To remove a command group from your server, use `~disable-addon` and put the group name at the end (e.g. `~disable-addon flipping` if you don't want table flipping).
+To remove an addon from your server, use `~disable-addon` and put its name at the end (e.g. `~disable-addon flipping` if you don't want table flipping).
 
-Of course, there's a counterpart where you can add commands using `~enable-addon` for adding command groups. Remember to do `~help enable-addon` if you forget how it works.
+Of course, there's a counterpart where you can add commands using `~enable-addon` for adding addons. Remember to do `~help enable-addon` if you forget how it works.
 
 This is how you add/remove commands that come with bot. You can add your own commands (for in-jokes and other things), which wil be explained in a later section.
 
@@ -92,6 +93,18 @@ Need to actually talk to a human? secret_bot features a support line, where you 
 Please only use support when it's absolutely necessary. secret_bot is a hobby project, so the time I spend answering support questions is time I could be spending doing far more productive things.
 
 To use the support, type `~support` and your reason (e.g. `~support No commands are working, and I don't know what to do!`). You will be sent a message with an invite link to join a support channel. To finish a support session, use `~support-close`.
+
+### Command Chaining
+
+secret_bot allows you to chain commands in one message. For example, `~hundreds ~disapprove` will output `hundreds, if not thousands, of ಠ_ಠ`.
+
+At first, the way secret_bot handles chained commands may seem a little strange, but once you understand it it can be extremely useful. It takes the right-most command, processes it, then gives the output to the 2nd-to-right command.
+
+As a different example, `~flip? ~flip oh no`.  
+The `~flip` command (the only command in the `flip` addon) takes text and flips it upside down.  
+secret_bot takes the result of `~flip oh no` and then feeds it into the previous command: `~flip? ~flip oh no` becomes `~flip? ou ɥo`.  
+The `~flip?` command (part of `flipping`) very simply puts `(╯°□°)╯︵` before whatever it is given.  
+That makes the final output `(╯°□°)╯︵ ou ɥo`.
 
 ### Adding your own commands
 

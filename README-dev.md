@@ -20,11 +20,11 @@ You now need to add a couple of configuration files.
     "connections": "connections/",
     "conf": "conf/"
   },
-  "default": {
-    "always": [
-      "a list of command groups that can not be disabled"
-    ]
-  }
+  "always-enabled": [] // list of addons that are always enabled
+  "color": {
+    "normal": "#7289DA", // color of normal replies
+    "error": "#E8261D" // color of error messages
+  },
   "login": {
     "token": "your discord bot token"
   },
@@ -105,7 +105,6 @@ This differs from previous versions of secret_bot, where commands were directly 
 
 ```js
 const ScriptAddon = require('../bot/ScriptAddon');
-const Command = require('../bot/Command');
 class YourCoolAddon extends ScriptAddon {
   // ...
 }
@@ -118,7 +117,7 @@ The `init` function is where you add commands.
 
 ```js
 init() {
-  this.bot.addCommand('reallycool', new Command(this.coolFunction.bind(this), 'cool'));
+  this.addCommand('reallycool', this.coolFunction));
 }
 
 coolFuntion(input) {
@@ -126,17 +125,17 @@ coolFuntion(input) {
 }
 ```
 
-The `Command` class is a more formal definition of a command than in previous iterations of secret_bot. The constructor takes up to 4 parameters, shown below.
+Adding a command allows 4 parameters
 
 ```js
-new Command(funct, group, bot.Command.PermissionLevels.DEFAULT, 'help');
+this.addCommand(trigger, funct, permission, help);
+// trigger    {string}                  word that triggers the command to run
 // funct      {function, string}        function this command calls when being processed
-// group      {string}                  name of the group this command belongs to
 // permission {integer}                 optional. permission level required for this command
 // help       {string, Array, function} optional. more on this a bit further down
 ```
 
-`funct` is given an `Input`, which reflects the user's input for this command. If `funct` is a string, it is treated the same as if it were specified by JSON.
+`funct` is given an `Input`, which reflects the user's input for this command. If `funct` is a string, it is treated the same as if it were specified by JSON. The function is automatically bound to the Addon, so `this` will refer to the addon.
 
 secret_bot supports [Promises](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise). If `funct` returns a promise, it will wait for resolution before moving on to the next step.
 
