@@ -1,6 +1,7 @@
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
 const Input = require('../bot/Input.js');
+const Logger = require('../bot/Logger.js');
 
 class MarkovAddon extends ScriptAddon {
   constructor(bot) {
@@ -48,19 +49,17 @@ class MarkovAddon extends ScriptAddon {
         let newMarkov = new MarkovChain();
         this.channelData.set(id, newMarkov);
 
-        mkvReady = input.message.channel
-          .fetchMessages({
-            limit: this.numMessages
-          })
-          .then((m) => {
-            return m.array();
+        mkvReady = this.bot
+          .getLogs(Logger.filterByGuild(input.message.guild))
+          .then((lines) => {
+            return lines
+              .map(l => l.message)
+              .filter(l => l);
           })
           .then((messages) => {
-            messages
-              .filter(msg => msg.content) // Don't do messages with no content
-              .forEach((message) => {
-                newMarkov.add(this.transform(message.cleanContent));
-              });
+            messages.forEach((message) => {
+              newMarkov.add(this.transform(message));
+            });
           })
           .then(() => {
             return newMarkov;
