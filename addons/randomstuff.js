@@ -1,7 +1,6 @@
 const url = require('url');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
-const Command = require('../bot/Command.js');
 const request = require('../util/').request;
 
 let uselessHelp = [
@@ -11,7 +10,7 @@ let uselessHelp = [
 
 class RandomStuff extends ScriptAddon {
   constructor(bot) {
-    super(bot, 'core');
+    super(bot, 'randomstuff');
 
     this.theuselessweb = [];
     this.foaasCache = [];
@@ -24,16 +23,12 @@ class RandomStuff extends ScriptAddon {
   }
 
   init() {
-    this.bot.addCommand('theuselessweb', new Command(this.uselessWeb.bind(this), 'randomstuff', uselessHelp));
-    this.bot.addCommand('randomcat', new Command(this.randomCat.bind(this), 'randomstuff'));
-    this.bot.addCommand('randomdog', new Command(this.randomDog.bind(this), 'randomstuff'));
-    this.bot.addCommand('mahnamahna', new Command(this.mahnamahna.bind(this), 'randomstuff', 'https://www.youtube.com/watch?v=8N_tupPBtWQ'));
-    this.bot.addCommand('foaas', new Command(this.foaas.bind(this), 'randomstuff', this.foaasList.bind(this)));
-    this.bot.addCommand('httpcat', new Command(this.httpcat.bind(this), 'randomstuff'));
-  }
-
-  deinit() {
-    // Do nothing
+    this.addCommand('theuselessweb', this.uselessWeb, uselessHelp);
+    this.addCommand('randomcat', this.randomCat);
+    this.addCommand('randomdog', this.randomDog);
+    this.addCommand('mahnamahna', this.mahnamahna, 'https://www.youtube.com/watch?v=8N_tupPBtWQ');
+    this.addCommand('foaas', this.foaas, this.foaasList);
+    this.addCommand('httpcat', this.httpcat);
   }
 
   loadUselessWeb() {

@@ -31,8 +31,7 @@ class Bot {
     this.serverConf = new Map();
 
     this.commands = new Map();
-    this.addons = [];
-    this.allM = [];
+    this.addons = new Map();
     this._discord = new Discord.Client();
 
     this.editCache = new Map();
@@ -71,16 +70,6 @@ class Bot {
       .then(() => {
         this.log('Loading complete');
       });
-  }
-
-  /**
-   * UNUSED
-   * 
-   * 
-   * @memberOf Bot
-   */
-  stop() {
-
   }
 
   /**
@@ -168,7 +157,7 @@ class Bot {
         commands = [commands];
       }
 
-      if (commands.find(c => c.group === command.group)) {
+      if (commands.find(c => c.addon === command.addon)) {
         return false;
       }
 
@@ -195,10 +184,10 @@ class Bot {
 
     if (comm) {
       if (Array.isArray(comm)) {
-        let command = comm.find(c => c.group === group);
+        let command = comm.find(c => c.addon.namespace === group);
 
         if (command) {
-          if (command.group === group) {
+          if (command.addon.namespace === group) {
             let index = comm.indexOf(command);
             comm.splice(index, 1);
 
@@ -213,7 +202,7 @@ class Bot {
           return true;
         }
       } else {
-        if (comm.group === group) {
+        if (comm.addon.namespace === group) {
           this.commands.delete(trigger);
           return true;
         } else {
@@ -245,30 +234,18 @@ class Bot {
       return false;
     }
 
-    let groups = this.conf.default.always.slice();
-    groups.push('core');
-    let prefix = this.conf.default.prefix;
-    let permLevel = Command.PermissionLevels.DEFAULT;
-
-    // Add other groups into list for channel
-    if (message.channel instanceof Discord.GuildChannel) {
-      let servConf = this.getConfig(message.guild);
-      if (servConf) {
-        // Add server-specific addons to list
-        if (servConf.addons) {
-          groups.unshift(...servConf.addons);
-        }
-        // Set the prefix, if applicable
-        if (servConf.prefix) {
-          prefix = servConf.prefix;
-        }
-      }
-      groups.push(message.channel.guild.id);
-      // Get the user's actual permission level for this channel
-      permLevel = this.getPermissionLevel(message);
+    let conf;
+    let groups;
+    if (message.guild) {
+      conf = this.getConfig(message.guild);
+      groups = this.listAddons(message.guild);
     } else {
-      groups.unshift(...this.conf.default.addons);
+      conf = this.getConfig('default');
+      groups = this.listAddons('default');
     }
+
+    let prefix = conf.prefix;
+    let permLevel = this.getPermissionLevel(message);
 
     // Actually make sure this is a command
     // (yes, we neded to get this far before we could check)
@@ -288,7 +265,7 @@ class Bot {
       }
 
       if (!groups.includes(match[1])) {
-        throw `the command group \`${match[1]}\` is not enabled on this server`;
+        throw `the addon \`${match[1]}\` is not enabled on this server`;
       }
 
       // Filter to only the specified group
@@ -304,19 +281,19 @@ class Bot {
 
     // Handle the array case
     if (Array.isArray(comm)) {
-      let allowed = comm.filter(c => groups.find(g => c.group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`))));
+      let allowed = comm.filter(c => groups.find(g => c.addon.namespace.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`))));
       // Maybe in the future give a message saying that there was a conflict
       if (allowed.length > 1) {
-        let allowedGroups = allowed.map(c => `\`${c.group}\``).join(' ');
-        throw `\`${prefix}${commName}\` is added by multiple command groups (${allowedGroups}). use \`${prefix}<group>.${commName}\` instead`;
+        let allowedGroups = allowed.map(c => `\`${c.addon.namespace}\``).join(' ');
+        throw `\`${prefix}${commName}\` is added by multiple addons (${allowedGroups}). use \`${prefix}<group>.${commName}\` instead`;
       } else if (allowed.length === 0) {
-        throw `\`${prefix}${commName}\` is added by multiple command groups, but none of them are enabled`;
+        throw `\`${prefix}${commName}\` is added by multiple addons, but none of them are enabled`;
       }
       comm = allowed[0];
     } else {
       // Check groups
-      if (!groups.find(g => comm.group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)))) {
-        throw `the command group \`${comm.group}\` is not enabled on this server`;
+      if (!groups.find(g => comm.addon.namespace.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)))) {
+        throw `the addon \`${comm.addon.namespace}\` is not enabled on this server`;
       }
     }
 
@@ -340,24 +317,8 @@ class Bot {
    */
   listCommands(message, group, useObj = false) {
     if (message) {
-      let groups = this.conf.default.always.slice();
-      groups.push('core');
-      let permLevel = Command.PermissionLevels.DEFAULT;
-
-      // Get any server specific command groups
-      if (message.channel instanceof Discord.TextChannel) {
-        let servConf = this.getConfig(message.guild);
-        if (servConf) {
-          if (servConf.addons) {
-            groups.unshift(...servConf.addons);
-          }
-        }
-
-        permLevel = this.getPermissionLevel(message);
-        groups.push(message.channel.guild.id);
-      } else {
-        groups.unshift(...this.conf.default.addons);
-      }
+      let groups = this.listAddons(message.guild || 'default');
+      let permLevel = this.getPermissionLevel(message);
 
       if (group) {
         if (group === 'this') {
@@ -378,14 +339,14 @@ class Bot {
           // Multiple commands with this trigger, check each of them
           if (Array.isArray(command)) {
             // Find command with matching group
-            let res = command.filter(c => groups.find(g => c.group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`))));
+            let res = command.filter(c => groups.find(g => c.addon.namespace.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`))));
 
             if (res.length === 1) {
               // Check permission
               if (permLevel < res[0].permission) {
                 return false;
               }
-              return groups.find(g => res[0].group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)));
+              return groups.find(g => res[0].addon.namespace.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)));
             }
 
             res.forEach((comm) => {
@@ -404,18 +365,43 @@ class Bot {
             if (permLevel < command.permission) {
               return false;
             }
-            return groups.find(g => command.group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)));
+            return groups.find(g => command.addon.namespace.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)));
           }
         });
 
       if (!useObj) {
         commands = commands.map(pair => pair[0]); // Only want the trigger for the command
-        conflicts = conflicts.map(pair => `${pair[1].group}.${pair[0]}`);
+        conflicts = conflicts.map(pair => `${pair[1].addon.namespace}.${pair[0]}`);
       }
       return commands.concat(conflicts);
     } else {
       return Array.from(this.commands.keys());
     }
+  }
+
+  /**
+   * Gives a list of all the addons enabled by a guild
+   * 
+   * @param {Discord.Message} message
+   * @param {boolean} [useObj=false] Whether to return names or the actual addon objects
+   * @returns
+   * 
+   * @memberOf Bot
+   */
+  listAddons(guild, useObj = false) {
+    let enabled = [].concat(
+      this.conf['always-enabled'].concat(),
+      this.getConfig(guild).addons
+    );
+    if (guild instanceof Discord.Guild) {
+      enabled.push(guild.id);
+    }
+
+    let names = enabled.filter(n => this.addons.has(n));
+    if (useObj) {
+      return names.map(n => this.addons.get(n));
+    }
+    return names;
   }
 
   /**
@@ -465,32 +451,6 @@ class Bot {
     }
 
     throw 'invalid object, can not set config';
-  }
-
-  /**
-   * Requests that all incoming messages are sent to the Addon
-   * 
-   * @param {function} func Function to call with the messages
-   * @param {boolean} [processed=null] Whether to only send processed messages to the Addon
-   * 
-   * @memberOf Bot
-   */
-  requestAllMessages(func, processed = null) {
-    this.allM.push({func, processed});
-  }
-
-  /**
-   * Cancels sending all incoming messages to an Addon
-   * 
-   * @param {function} func Function to de-register
-   * 
-   * @memberOf Bot
-   */
-  cancelAllMessages(func) {
-    let index = this.allM.indexOf(func);
-    if (index > -1) {
-      this.allM.splice(index, 1);
-    }
   }
 
   /**
@@ -554,7 +514,7 @@ class Bot {
     }
 
     if (error) {
-      embed.setColor(this.conf.default.color.error);
+      embed.setColor(this.conf.color.error);
     }
 
     console.log(`<${isEmbed?' {embed} ':' '}${text}`); // eslint-disable-line no-console
@@ -579,8 +539,8 @@ class Bot {
     //  .setAuthor('\u200b', this._discord.user.avatarURL);
 
     // Set embed colour
-    if (this.conf.default.color) {
-      embed.setColor(this.conf.default.color.normal);
+    if (this.conf.color) {
+      embed.setColor(this.conf.color.normal);
     }
 
     // See if message is a link
@@ -917,38 +877,69 @@ class Bot {
    * @memberOf Bot
    */
   _createAddons(files) {
-    let promises = files.map(file => new Promise((resolve, reject) => {
-      this.log(`Creating addon ${file}`);
-      let AddonModule;
-      try {
-        // Create JSONAddons for .json files
+    let promises = files.map((file) => {
+      return new Promise((resolve, reject) => {
+        this.log(`Creating addon ${file}`);
         if (file.match(/\.json$/)) {
           fs.readFile(`./${this.conf.paths.addons}${file}`, 'utf8', (err, data) => {
-            let addon = new JSONAddon(this, JSON.parse(data), file);
-            this.addons.push(addon);
-            resolve(addon);
+            if (err) {
+              this.error(`Failed to read ${file}, ${err}`);
+              resolve();
+              return;
+            }
+            resolve(new JSONAddon(this, JSON.parse(data), file));
           });
         }
         // Just require .js files
         else if (file.match(/\.js$/)) {
-          AddonModule = require(`../${this.conf.paths.addons}${file}`);
-          let addon = new AddonModule(this);
-          this.addons.push(addon);
+          let addon;
+          try {
+            let AddonModule = require(`../${this.conf.paths.addons}${file}`);
+            addon = new AddonModule(this);
+          } catch (err) {
+            resolve();
+            return;
+          }
           resolve(addon);
         }
         // Default message
         else {
           this.error(`Failed to create addon: ${file}, not a valid filetype`);
           resolve();
+          return;
         }
-      } catch (e) {
-        this.error(`${file}: ${e}`);
-        resolve();
-        return;
-      }
-    }));
+      })
+      .then((addon) => {
+        if (addon) {
+          if (this.addons.has(addon.namespace)) {
+            this.error(`Failed to create addon: ${file}, name ${addon.namespace} already exists`);
+            return;
+          }
+
+          this.addons.set(addon.namespace, addon);
+          return addon;
+        }
+      });
+    });
     return Promise.all(promises)
       .then(ps => ps.filter(p => p)); // Eliminates the undefined addons
+  }
+
+  /**
+   * For sneaking an addon into the list
+   * Mostly, this will be used by custom commands
+   * 
+   * @param {Addon} addon
+   * 
+   * @memberOf Bot
+   */
+  _sneakAddon(addon) {
+    if (this.addons.has(addon.namespace)) {
+      this.error(`Failed to add addon: ${addon.namespace}, it already exists`);
+      return;
+    }
+
+    this.addons.set(addon.namespace, addon);
   }
 
   /**
@@ -973,8 +964,13 @@ class Bot {
    * @memberOf Bot
    */
   _deinitAddons(addons) {
-    let promises = addons.map(addon => addon.deinit());
-    return Promise.all(promises);
+    let promises = Array.from(addons.values())
+      .map(addon => addon.deinit());
+    return Promise.all(promises)
+      .then((results) => {
+        this.addons.clear();
+        return results;
+      });
   }
 
   /**
@@ -1016,24 +1012,13 @@ class Bot {
    * 
    * @memberOf Bot
    */
-  _allHandlers(message, processed = false) {
+  _messageToAddons(message) {
     // Send all incoming messages to addons that ask for them
     setImmediate(() => {
-      this.allM.forEach((handler) => {
-        // Is handler fussy?
-        if (handler.processed !== null) {
-          // If handler wants only processed
-          if (handler.processed && processed) {
-            handler.func(message, processed);
-          } else
-          // If handler only wants non-processed
-          if (!handler.processed && !processed) {
-            handler.func(message, processed);
-          }
-        } else {
-          handler.func(message, processed);
-        }
-      });
+      this.listAddons(message.guild || 'default', true)
+        .forEach((addon) => {
+          addon.onMessage(message);
+        });
     });
   }
 
@@ -1151,9 +1136,9 @@ class Bot {
       }
     }
 
+    this._messageToAddons(message);
+
     if (!this._shouldProcess(message)) {
-      // Send command to listeners that want all messages
-      this._allHandlers(message, false);
       return;
     }
 

@@ -40,20 +40,16 @@ class MessMan extends ScriptAddon {
   constructor(bot) {
     super(bot, 'messages');
 
+    throw 'message manipulation will not work until further work is done';
+
     this.rmMessageCache = new Map();
   }
 
   init() {
-    this.f = this.onMessage.bind(this); // Yay for binding! /s
-    this.bot.requestAllMessages(this.f, true);
 
-    this.bot.addCommand('rm', new Command(this.doRm.bind(this), 'messages', rmHelp));
-    this.bot.addCommand('keep', new Command(this.doKeep.bind(this), 'messages'), keepHelp);
-    this.bot.addCommand('rm-mode', new Command(this.changeMode.bind(this), 'messages'), Command.PermissionLevels.ADMIN, rmModeHelp);
-  }
-
-  deinit() {
-    this.bot.cancelAllMessages(this.f);
+    this.addCommand('rm', this.doRm, rmHelp);
+    this.addCommand('keep', this.doKeep, keepHelp);
+    this.addCommand('rm-mode', this.changeMode, Command.PermissionLevels.ADMIN, rmModeHelp);
   }
 
   doRm(input) {

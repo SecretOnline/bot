@@ -5,7 +5,6 @@ const github = require('github');
 const google = require('google');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
-const Command = require('../bot/Command.js');
 
 const truncate = require('../util').truncate;
 
@@ -27,7 +26,7 @@ class Summaries extends ScriptAddon {
   constructor(bot) {
     super(bot, 'summaries');
 
-    this.conf = this.bot.getConfig('default')['addon-conf'][this.ns];
+    this.conf = this.getConfig('default');
 
     this.snoo = new snoowrap({
       userAgent: 'nodejs:secret_bot:7.x.x (by /u/secret_online)',
@@ -45,15 +44,11 @@ class Summaries extends ScriptAddon {
   }
 
   init() {
-    this.bot.addCommand('reddit', new Command(this.redditSummary.bind(this), 'summaries', redditHelp));
-    this.bot.addCommand('github', new Command(this.githubSummary.bind(this), 'summaries', githubHelp));
-    this.bot.addCommand('google', new Command(this.googleSummary.bind(this), 'summaries', googleHelp));
+    this.addCommand('reddit', this.redditSummary, redditHelp);
+    this.addCommand('github', this.githubSummary, githubHelp);
+    this.addCommand('google', this.googleSummary, googleHelp);
   }
-
-  deinit() {
-    // Do nothing
-  }
-
+  
   redditSummary(input) {
     return new Promise((resolve, reject) => {
       let exps = [

@@ -6,7 +6,6 @@ const eslintrc = require('eslint-rc/.eslintrc.json');
 const jsbeautifyrc = require('eslint-rc/.jsbeautifyrc.json');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
-const Command = require('../bot/Command.js');
 
 let beautifyHelp = [
   'beautifies a JavaScript code block',
@@ -27,8 +26,8 @@ class Dev extends ScriptAddon {
   }
 
   init() {
-    this.bot.addCommand('beautify', new Command(this.beautify.bind(this), 'dev'), beautifyHelp);
-    this.bot.addCommand('eslint', new Command(this.eslint.bind(this), 'dev'), eslintHelp);
+    this.bot.addCommand('beautify', this.beautify, beautifyHelp);
+    this.bot.addCommand('eslint', this.eslint, eslintHelp);
   }
 
   deinit() {

@@ -23,26 +23,51 @@ class Custom extends ScriptAddon {
     super(bot, 'custom');
 
     this.commands = this.getConfig(null);
-
-    if (this.commands) {
-      Object.keys(this.commands).forEach((server) => {
-        Object.keys(this.commands[server]).forEach((trigger) => {
-          JSONAddon.generateCommand(this.bot, server, trigger, this.commands[server][trigger]);
-        });
-      });
-    }
   }
 
   init() {
-    this.bot.addCommand('add-command', new Command(this.addCommand.bind(this), 'core.custom', Command.PermissionLevels.ADMIN, commandHelp));
-    this.bot.addCommand('remove-command', new Command(this.removeCommand.bind(this), 'core.custom', Command.PermissionLevels.ADMIN, commandHelp));
+    this.addCommand('add-command', this.addGuildCommand, Command.PermissionLevels.ADMIN, commandHelp);
+    this.addCommand('remove-command', this.removeGuildCommand, Command.PermissionLevels.ADMIN, commandHelp);
+
+    let promises = [Promise.resolve()];
+    if (this.commands) {
+      promises = Object.keys(this.commands).map((server) => {
+        return new Promise((resolve, reject) => {
+          try {
+            let addon = new JSONAddon(this.bot, this.commands[server], server);
+            resolve(addon);
+          } catch (err) {
+            this.error(`unable to create commands for ${server}`);
+            resolve();
+          }
+        });
+      });
+    }
+
+    return Promise.all(promises)
+      .then((addons) => {
+        addons.forEach((addon) => {
+          this.bot._sneakAddon(addon);
+        });
+        return addons;
+      })
+      .then((addons) => {
+        return this.bot._initAddons(addons)
+          .then(() => {
+            return addons;
+          });
+      })
+      .then((addons) => {
+        this.log(`loaded custom commands for ${addons.length} servers`);
+        return addons;
+      });
   }
 
   deinit() {
     // Do nothing
   }
 
-  addCommand(input) {
+  addGuildCommand(input) {
     return new Promise((resolve, reject) => {
       // Ensure custom commands can be used
       let message = input.message;
@@ -78,7 +103,7 @@ class Custom extends ScriptAddon {
     });
   }
 
-  removeCommand(input) {
+  removeGuildCommand(input) {
     return new Promise((resolve, reject) => {
       // Ensure custom commands can be used
       let message = input.message;

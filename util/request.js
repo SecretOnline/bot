@@ -121,7 +121,7 @@ function doRequest(reqObj) {
         resolve(data);
       });
     }).on('error', (err) => {
-      console.error(err);
+      console.error(err); // eslint-disable-line no-console
       reject('error making request');
       return;
     });

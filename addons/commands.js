@@ -1,5 +1,4 @@
 const ScriptAddon = require('../bot/ScriptAddon.js');
-const Command = require('../bot/Command.js');
 
 var sayHelp = [
   'syntax: `~<say/raw> <text to output>`',
@@ -25,28 +24,24 @@ var reverseHelp = 'takes a string and reverses the letter order';
 
 class Comm extends ScriptAddon {
   constructor(bot) {
-    super(bot, 'core');
+    super(bot, 'default');
   }
 
   init() {
-    this.bot.addCommand('say', new Command(this.say.bind(this), 'default', sayHelp));
-    this.bot.addCommand('raw', new Command(this.raw.bind(this), 'default', sayHelp));
-    this.bot.addCommand('wiki', new Command(this.getWikiLink.bind(this), 'default', linkHelp));
-    this.bot.addCommand('yt', new Command(this.getYtLink.bind(this), 'default', linkHelp));
-    this.bot.addCommand('lmgtfy', new Command(this.getLmgtfyLink.bind(this), 'default', linkHelp));
-    this.bot.addCommand('roll', new Command(this.getRoll.bind(this), 'default', rollHelp));
-    this.bot.addCommand('reverse', new Command(this.reverse.bind(this), 'default', reverseHelp));
-    this.bot.addCommand('unreverse', new Command(this.reverse.bind(this), 'default', unReverseHelp));
+    this.bot.addCommand('say', this.say, sayHelp);
+    this.bot.addCommand('raw', this.raw, sayHelp);
+    this.bot.addCommand('wiki', this.getWikiLink, linkHelp);
+    this.bot.addCommand('yt', this.getYtLink, linkHelp);
+    this.bot.addCommand('lmgtfy', this.getLmgtfyLink, linkHelp);
+    this.bot.addCommand('roll', this.getRoll, rollHelp);
+    this.bot.addCommand('reverse', this.reverse, reverseHelp);
+    this.bot.addCommand('unreverse', this.reverse, unReverseHelp);
     // Latins
-    this.bot.addCommand('secret_latin', new Command(this.getSecretText.bind(this), 'latin'));
-    this.bot.addCommand('trk_latin', new Command(this.getTrkText.bind(this), 'latin'));
-    this.bot.addCommand('jaden_latin', new Command(this.getJadenText.bind(this), 'latin'));
-    this.bot.addCommand('alvv_latin', new Command(this.getAlvvText.bind(this), 'latin'));
-    this.bot.addCommand('ohdear_latin', new Command(this.getMessText.bind(this), 'latin'));
-  }
-
-  deinit() {
-    // Do nothing
+    this.addCommand('secret_latin', this.getSecretText);
+    this.addCommand('trk_latin', this.getTrkText);
+    this.addCommand('jaden_latin',this.getJadenText);
+    this.bot.addCommand('alvv_latin', this.getAlvvText);
+    this.bot.addCommand('ohdear_latin', this.getMessText);
   }
 
   say(input) {

@@ -14,12 +14,9 @@ class MarkovAddon extends ScriptAddon {
   }
 
   init() {
-    this.bot.addCommand('markov', new Command(this.doMarkov.bind(this), 'markov'));
-    this.bot.addCommand('gunter', new Command(this.startGunter.bind(this), 'markov'));
-    this.bot.addCommand('clear-gunter', new Command(this.clearGunter.bind(this), 'markov', Command.PermissionLevels.OVERLORD));
-
-    this.f = this.onMessage.bind(this);
-    this.bot.requestAllMessages(this.f);
+    this.addCommand('markov', this.doMarkov);
+    this.addCommand('gunter', this.startGunter);
+    this.addCommand('clear-gunter', this.clearGunter, Command.PermissionLevels.OVERLORD);
 
     this.gunterInterval = setInterval(() => {
       if (this.gunter > 0) {
@@ -33,8 +30,6 @@ class MarkovAddon extends ScriptAddon {
   }
   
   deinit() {
-    this.bot.cancelAllMessages(this.f);
-
     clearInterval(this.gunterInterval);
   }
 

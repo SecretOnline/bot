@@ -3,6 +3,16 @@ const Discord = require('discord.js');
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
 
+let enablerHelp = [
+  'syntax: `~<enable/disable>-addon <addon name>`',
+  'the `enable/disable-addon` commands allow you to add and remove command groups from your server'
+];
+let channelFilterHelp = [
+  'syntax: `~[dis]allow-channel <channel mention>`',
+  'restricts secret_bot to specific channels',
+  'by default bot is available on all channels',
+  'adding a channel to the filter means secret_bot will only work in those channels'
+];
 let reloadHelp = 'really? you needed help for this? and you\'re the one in charge of this bot...';
 let changePrefixHelp = [
   'syntax: `~change-prefix <character>`',
@@ -26,15 +36,15 @@ class Core extends ScriptAddon {
   }
 
   init() {
-    this.bot.addCommand('reload', new Command(this.doReload.bind(this), 'core', Command.PermissionLevels.OVERLORD, reloadHelp));
-    this.bot.addCommand('change-prefix', new Command(this.changeCommandPrefix.bind(this), 'core', Command.PermissionLevels.ADMIN, changePrefixHelp));
-    this.bot.addCommand('change-color', new Command(this.changeColor.bind(this), 'core', Command.PermissionLevels.ADMIN, changeColorHelp));
-    this.bot.addCommand('bot-invite', new Command(this.getDiscordInviteLink.bind(this), 'core.invites.discord', inviteHelp));
-    this.bot.addCommand('source', new Command(this.getSourceInfo.bind(this), 'core', sourceHelp));
-  }
-
-  deinit() {
-    // Do nothing
+    this.addCommand('reload', this.doReload, Command.PermissionLevels.OVERLORD, reloadHelp);
+    this.addCommand('change-prefix', this.changeCommandPrefix, Command.PermissionLevels.ADMIN, changePrefixHelp);
+    this.addCommand('change-color', this.changeColor, Command.PermissionLevels.ADMIN, changeColorHelp);
+    this.addCommand('bot-invite', this.getDiscordInviteLink, inviteHelp);
+    this.addCommand('source', this.getSourceInfo, sourceHelp);
+    this.addCommand('enable-addon', this.addToServer, Command.PermissionLevels.ADMIN, enablerHelp);
+    this.addCommand('disable-addon', this.removeFromServer, Command.PermissionLevels.ADMIN, enablerHelp);
+    this.addCommand('allow-channel', this.addToFilter, Command.PermissionLevels.ADMIN, channelFilterHelp);
+    this.addCommand('disallow-channel', this.removeFromFilter, Command.PermissionLevels.ADMIN, channelFilterHelp);
   }
 
   doReload(input) {
@@ -125,6 +135,132 @@ class Core extends ScriptAddon {
       .catch(() => {
         return sourceLink;
       });
+  }
+
+  addToServer(input) {
+    if (!(input.message.channel instanceof Discord.TextChannel)) {
+      return 'enabling addons is not allowed for private messages';
+    }
+
+    let serverConf = this.bot.getConfig(input.message.guild);
+    if (serverConf.addons) {
+      if (serverConf.addons.includes(input.text)) {
+        return `${input.text} is already enabled on this server`;
+      } else {
+        serverConf.addons.push(input.text);
+      }
+    } else {
+      serverConf.addons = [input.text];
+    }
+
+    this.bot.setConfig(input.message.guild, serverConf);
+    return `enabled ${input.text} on this server`;
+  }
+
+  removeFromServer(input) {
+    if (!(input.message.channel instanceof Discord.TextChannel)) {
+      return 'disabling addons is not allowed for private messages';
+    }
+
+    if (input.text.match(/^core(\.[\w._-]+)?$/)) {
+      return `unable to disable \`${input.text}\``;
+    }
+
+    let serverConf = this.bot.getConfig(input.message.guild);
+    if (serverConf.addons) {
+      if (serverConf.addons.includes(input.text)) {
+        let index = serverConf.addons.indexOf(input.text);
+        serverConf.addons.splice(index, 1);
+        this.bot.setConfig(input.message.guild, serverConf);
+        return `disabled ${input.text} on this server`;
+      } else {
+        if (this.bot.getConfig('default').addons.includes(input.text)) {
+          return `${input.text} is a default addon, and can't be disabled`;
+        } else {
+          return `${input.text} is already disabled on this server`;
+        }
+      }
+    } else {
+      return `${input.text} is already disabled on this server`;
+    }
+  }
+
+  addToFilter(input) {
+    if (!(input.message.channel instanceof Discord.TextChannel)) {
+      return 'allowing channels is not allowed for private messages';
+    }
+
+    let serverConf = this.bot.getConfig(input.message.guild);
+    if (!serverConf.filter) {
+      serverConf.filter = [];
+    }
+
+    let channels = input.message.mentions.channels;
+
+    if (channels.length === 0) {
+      return 'no channels were specified';
+    }
+
+    channels = channels
+      .map((channel) => {
+        if (serverConf.filter.find(i => i === channel.id)) {
+          return undefined;
+        }
+        return channel;
+      })
+      // Remove and undefineds
+      .filter(i=>i);
+
+    if (channels.length === 0) {
+      return 'all channels listed were already in the list';
+    }
+
+    channels.forEach((channel) => {
+      serverConf.filter.push(channel.id);
+    });
+
+    this.bot.setConfig(input.message.guild, serverConf);
+    return `added ${channels.map(c=>c.toString()).join(', ')} to the list of allowed channels`;
+  }
+
+  removeFromFilter(input) {
+    if (!(input.message.channel instanceof Discord.TextChannel)) {
+      return 'disallowing channels is not allowed for private messages';
+    }
+
+    let serverConf = this.bot.getConfig(input.message.guild);
+    if (!serverConf.filter) {
+      serverConf.filter = [];
+    }
+
+    let channels = input.message.mentions.channels;
+
+    if (channels.length === 0) {
+      return 'no channels were specified';
+    }
+
+    channels
+      .map((channel) => {
+        if (serverConf.filter.find(i => i === channel.id)) {
+          return channel;
+        }
+        return undefined;
+      })
+      // Remove and undefineds
+      .filter(i=>i);
+
+    if (channels.length === 0) {
+      return 'none of the given channels were in the list';
+    }
+
+    channels.forEach((channel) => {
+      let index = serverConf.filter.indexOf(channel.id);
+      if (index > -1) {
+        serverConf.filter.splice(index, 1);
+      }
+    });
+
+    return `removed ${channels.map(c=>c.toString()).join(', ')} from the list of allowed channels`;
   }
 }
 

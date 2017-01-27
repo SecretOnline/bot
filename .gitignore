@@ -1,4 +1,5 @@
 node_modules/
+addons-disabled/
 data/
 conf/
 *.conf.json
