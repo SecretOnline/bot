@@ -181,7 +181,9 @@ class Logger {
         return lines.filter(filter);
       })
       .then((lines) => {
-        if (lines.length === limit) {
+        if (!lines.length) {
+          return lines; // If no lines for this query were found in this file, stop here
+        } else if (lines.length === limit) {
           return lines;
         } else if (lines.length < limit) {
           let remaining = limit - lines.length;
@@ -209,6 +211,10 @@ class Logger {
    */
   _getLogFile(id) {
     return new Promise((resolve, reject) => {
+      if (id < 0) {
+        resolve([]);
+        return;
+      }
       if (this.cache.has(id)) {
         let items = this.cache.get(id);
         if (items.length === 0) {
