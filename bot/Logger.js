@@ -223,6 +223,12 @@ class Logger {
           .then(this._parseLog)
           .then((lines) => {
             this.cache.set(id, lines);
+
+            // Add a timeout so memory frees over time
+            setTimeout(() => {
+              this.cache.delete(id);
+            }, 12*60*60*1000);
+
             return lines;
           })
           .then(resolve, reject);
