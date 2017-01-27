@@ -68,11 +68,11 @@ class Bot {
    */
   start() {
     return Promise.resolve()
-      .then(this.reloadConfig.bind(this))
       .then(() => {
-        // Start logger before Discord starts
+        // Start logger before anything else starts
         return this.logger.start();
       })
+      .then(this.reloadConfig.bind(this))
       .then(this.reloadConnections.bind(this))
       .then(this.reloadAddons.bind(this))
       .then(() => {
@@ -625,24 +625,8 @@ class Bot {
    * 
    * @memberOf Bot
    */
-  log(message, from = this, error = false) {
-    let id;
-    if (from instanceof Bot) {
-      id = 'BOT';
-    } else if (from instanceof Addon) {
-      id = from.namespace;
-    } else if (typeof from === 'string') {
-      id = from;
-    }
-
-    let out = `[${id}] ${message}`;
-    if (error) {
-      out = `[ERROR]${out}`;
-      console.error(out); // eslint-disable-line no-console
-    } else {
-      console.log(out); // eslint-disable-line no-console
-    }
-    return out;
+  log(message, from = 'BOT', isError = false) {
+    this.logger.log(message, from, isError);
   }
 
   /**
@@ -658,18 +642,9 @@ class Bot {
     return this.log(message, from, true);
   }
 
-  /**
-   * Writes a message to the log files
-   * UNIMPLEMENTED
-   * 
-   * @param {string} message Message to write
-   * @param {(Bot|Addon|string)} [from=this] Place where message is from
-   * @param {boolean} [error=false] Whether message is an error
-   * 
-   * @memberOf Bot
-   */
-  logWrite(message, from = this, error = false) {
-    // TODO: add message to log file
+  
+  getLogs(filter, limit = 80) {
+    return this.logger.getLogs(filter, limit);
   }
 
   //endregion
@@ -1101,24 +1076,7 @@ class Bot {
    */
   _onMessage(message) {
     // Log everything that comes into bot
-    let loc;
-    if (message.guild) {
-      loc = message.guild;
-    } else if (message.channel instanceof Discord.DMChannel) {
-      loc = 'private';
-    }
-    if (loc) {
-      this.logger.log(loc, message);
-    } else if (this.conf.verbose) {
-      this.error('the following message will not be logged');
-    }
-
-    // Log to console
-    if (this.conf.verbose) {
-      if (!(message.author.id === this._discord.user.id)) {
-        console.log(`> ${message.author.username}: ${message.content}`); // eslint-disable-line no-console
-      }
-    }
+    this.log(message, message.channel);
 
     if (!this._shouldProcess(message)) {
       // Send command to listeners that want all messages

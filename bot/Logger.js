@@ -1,4 +1,6 @@
 const fs = require('fs');
+const Discord = require('discord.js');
+const Addon = require('./Addon.js');
 
 /**
  * Handles reading/writing of logs
@@ -20,6 +22,7 @@ class Logger {
     this.logs = null;
     this.cache = new Map();
     this.currentId = null;
+    this.maxLogLength = 50;
     this._ready = new Promise((resolve, reject) => {
       // Store resolution function so we can call it in .start()
       this._readyFunc = resolve;
@@ -65,12 +68,92 @@ class Logger {
     return this._filterLogs(filter, limit, this.currentId);
   }
 
-  log(location, message) {
-    
-  }
+  log(message, location, isError = false) {
+    return Promise.resolve()
+      .then(() => {
+        let line = {
+          timestamp: Date.now()
+        };
 
-  error(location, error) {
+        if (location instanceof Discord.Channel) {
+          line.type = 'message';
+          line.id = message.id;
+          line.author = message.author.id;
+          line.username = message.author.username;
+          line.channel = location.id;
+          line.message = message.content;
 
+          if (location.guild) {
+            line.guild = location.guild.id;
+          }
+
+          if (message.embeds) {
+            line.embed = true;
+          }
+        } else {
+          let source = location;
+          if (location instanceof Addon) {
+            source = location.namespace;
+          }
+
+          line.source = source;
+          line.type = 'log';
+          line.message = message;
+        }
+
+        if (isError) {
+          if (message instanceof Error) {
+            line.stack = message.stack;
+            line.message = message.message;
+          } else {
+            line.message = message;
+          }
+        }
+
+        return line;
+      })
+      .then((line) => {
+        // Log to console
+        if (line.type === 'message') {
+          if (line.author !== this.bot.discord.user.id) {
+            console.log(`> ${line.username}: ${line.message}`); // eslint-disable-line no-console
+          }
+        } else {
+          let out = `[${line.source}] ${line.message}`;
+          if (line.type === 'error') {
+            out = `[ERROR]${out}`;
+            console.error(out); // eslint-disable-line no-console
+          } else {
+            console.log(out); // eslint-disable-line no-console
+          }
+        }
+        
+        return line;
+      })
+      .then((line) => {
+        // Append to file
+        return new Promise((resolve, reject) => {
+          // Do filesystem stuff
+          let lineStr = `${JSON.stringify(line)}\n`;
+          fs.appendFile(`./${this.dir}/${this.currentId}.log`, lineStr, (err) => {
+            if (err) {
+              reject(err);
+              return;
+            }
+            resolve();
+          });
+
+          // Add to cache
+          if (!this.cache.has(this.currentId)) {
+            this.cache.set(this.currentId, []);
+          }
+          let set = this.cache.get(this.currentId);
+          set.push(line);
+          if (set.length >= this.maxLogLength) {
+            this.currentId += 1;
+          }
+        });
+      });
   }
   
   //endregion
@@ -206,6 +289,19 @@ class Logger {
   static filterByAddon(addon) {
     return (line) => {
       if (line.type !== 'log') {
+        return false;
+      }
+      if (line.source !== addon.namespace) {
+        return false;
+      }
+
+      return true;
+    };
+  }
+  
+  static filterByError(addon) {
+    return (line) => {
+      if (line.type !== 'error') {
         return false;
       }
       if (line.source !== addon.namespace) {
