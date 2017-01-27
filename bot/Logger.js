@@ -1,5 +1,4 @@
 const fs = require('fs');
-const Discord = require('discord.js');
 
 /**
  * Handles reading/writing of logs
@@ -45,7 +44,7 @@ class Logger {
           return;
         }
         this.currentId = files
-          .filter(f => f.match(/^(\d+)\.log$/)[0])
+          .filter(f => f.match(/^(\d+)\.log$/)[1])
           .map(n => Number.parseInt(n))
           .reduce((max, curr) => Math.max(max, curr));
       })
@@ -55,34 +54,19 @@ class Logger {
   }
   
   /**
-   * Gets the latest logs for a particular location
+   * Gets the latest logs that match a particular function
    * 
-   * @param {(string|Discord.Guild|Discord.Channel)} location
+   * @param {function} filter
    * @param {number} [limit=80]
    * 
    * @memberOf Logger
    */
-  getLogs(location, limit = 80) {
-    return new Promise((resolve, reject) => {
-      this._getLogFile(this.currentId)
-        .catch(e => []) // Just return an empty set of getting logs failed
-        .then((lines) => {
-          if (typeof location === 'string') {
-            return this._filterString(lines, location);
-          } else if (location instanceof Discord.Guild) {
-            return this._filterGuild(lines, location);
-          } else if (location instanceof Discord.Channel) {
-            return this._filterChannel(lines, location);
-          } else {
-            return [];
-          }
-        })
-        .then(reject, resolve);
-    });
+  getLogs(filter, limit = 80) {
+    return this._filterLogs(filter, limit, this.currentId);
   }
 
   log(location, message) {
-
+    
   }
 
   error(location, error) {
@@ -92,6 +76,44 @@ class Logger {
   //endregion
 
   //region Private functions
+
+  /**
+   * Tries to get <limit> lines of log 
+   * Will recur to get morefrom previous log files
+   * 
+   * @param {function} filter Filtering function to apply
+   * @param {number} limit Number of lines to get
+   * @param {number} id File id to gets logs from
+   * @returns {Promise} Resolves with lines of log
+   * 
+   * @memberOf Logger
+   */
+  _filterLogs(filter, limit, id) {
+    return new Promise((resolve, reject) => {
+      this._getLogFile(id)
+        .then(this._parseLog)
+        .then((lines) => {
+          return lines.filter(filter);
+        })
+        .then((lines) => {
+          if (lines.length === limit) {
+            return lines;
+          } else if (lines.length < limit) {
+            let remaining = limit - lines.length;
+            return this._filterLogs(filter, remaining, id - 1)
+              .then((result) => {
+                return lines.concat(result);
+              });
+          } else {
+            lines.splice(limit);
+            return lines;
+          }
+        })
+        .catch((err) => {
+          resolve([]); // Any errors get caught and return an empty array
+        });
+    });
+  }
 
   /**
    * Wrapper that either gets log from cache or from disk
@@ -150,18 +172,13 @@ class Logger {
       .filter(l => !l.match(/^#|\/\//)) // Remove comments
       .map(l => JSON.parse(l));
   }
+  
+  //endregion
 
-  /**
-   * Filters log lines by guild
-   * 
-   * @param {Array} lines
-   * @param {Discord.Guild} guild
-   * @returns {Array}
-   * 
-   * @memberOf Logger
-   */
-  _filterGuild(lines, guild) {
-    return lines.filter((line) => {
+  //region Static Functions
+  
+  static filterByGuild(guild) {
+    return (line) => {
       if (line.type !== 'message') {
         return false;
       }
@@ -170,20 +187,11 @@ class Logger {
       }
 
       return true;
-    });
+    };
   }
-
-  /**
-   * Filters log lines by channel
-   * 
-   * @param {Array} lines
-   * @param {Discord.Channel} channel
-   * @returns {Array}
-   * 
-   * @memberOf Logger
-   */
-  _filterChannel(lines, channel) {
-    return lines.filter((line) => {
+  
+  static filterByChannel(channel) {
+    return (line) => {
       if (line.type !== 'message') {
         return false;
       }
@@ -192,29 +200,20 @@ class Logger {
       }
 
       return true;
-    });
+    };
   }
-
-  /**
-   * Filters log lines by source
-   * 
-   * @param {Array} lines
-   * @param {string} str
-   * @returns {Array}
-   * 
-   * @memberOf Logger
-   */
-  _filterString(lines, str) {
-    return lines.filter((line) => {
+  
+  static filterByAddon(addon) {
+    return (line) => {
       if (line.type !== 'log') {
         return false;
       }
-      if (line.source !== str) {
+      if (line.source !== addon.namespace) {
         return false;
       }
 
       return true;
-    });
+    };
   }
   
   //endregion
