@@ -7,6 +7,7 @@ const JSONAddon = require('./JSONAddon.js');
 const ScriptAddon = require('./ScriptAddon.js');
 const Command = require('./Command.js');
 const Input = require('./Input.js');
+const Logger = require('./Logger.js');
 
 const util = require('../util');
 
@@ -35,6 +36,8 @@ class Bot {
     this._discord = new Discord.Client();
 
     this.editCache = new Map();
+
+    this.logger = new Logger(this, this.conf.paths.logs);
   }
 
   //region Properties
@@ -64,6 +67,10 @@ class Bot {
    */
   start() {
     return Promise.resolve()
+      .then(() => {
+        // Start logger before anything else starts
+        return this.logger.start();
+      })
       .then(this.reloadConfig.bind(this))
       .then(this.reloadConnections.bind(this))
       .then(this.reloadAddons.bind(this))
@@ -578,24 +585,8 @@ class Bot {
    * 
    * @memberOf Bot
    */
-  log(message, from = this, error = false) {
-    let id;
-    if (from instanceof Bot) {
-      id = 'BOT';
-    } else if (from instanceof Addon) {
-      id = from.namespace;
-    } else if (typeof from === 'string') {
-      id = from;
-    }
-
-    let out = `[${id}] ${message}`;
-    if (error) {
-      out = `[ERROR]${out}`;
-      console.error(out); // eslint-disable-line no-console
-    } else {
-      console.log(out); // eslint-disable-line no-console
-    }
-    return out;
+  log(message, from = 'BOT', isError = false) {
+    this.logger.log(message, from, isError);
   }
 
   /**
@@ -611,18 +602,9 @@ class Bot {
     return this.log(message, from, true);
   }
 
-  /**
-   * Writes a message to the log files
-   * UNIMPLEMENTED
-   * 
-   * @param {string} message Message to write
-   * @param {(Bot|Addon|string)} [from=this] Place where message is from
-   * @param {boolean} [error=false] Whether message is an error
-   * 
-   * @memberOf Bot
-   */
-  logWrite(message, from = this, error = false) {
-    // TODO: add message to log file
+  
+  getLogs(filter, limit = 80) {
+    return this.logger.getLogs(filter, limit);
   }
 
   //endregion
@@ -1079,6 +1061,8 @@ class Bot {
    */
   _process(input) {
     let message = input.message;
+    // Log everything that comes into bot
+    this.log(message, message.channel);
     return input.process()
       // Catch any errors in 
       .catch((err) => {
