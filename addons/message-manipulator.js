@@ -44,16 +44,10 @@ class MessMan extends ScriptAddon {
   }
 
   init() {
-    this.f = this.onMessage.bind(this); // Yay for binding! /s
-    this.bot.requestAllMessages(this.f, true);
 
     this.bot.addCommand('rm', new Command(this.doRm.bind(this), 'messages', rmHelp));
     this.bot.addCommand('keep', new Command(this.doKeep.bind(this), 'messages'), keepHelp);
     this.bot.addCommand('rm-mode', new Command(this.changeMode.bind(this), 'messages'), Command.PermissionLevels.ADMIN, rmModeHelp);
-  }
-
-  deinit() {
-    this.bot.cancelAllMessages(this.f);
   }
 
   doRm(input) {

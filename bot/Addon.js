@@ -54,6 +54,18 @@ class Addon {
     return;
   }
 
+
+  /**
+   * A handler for when a message is sent
+   * 
+   * @param {Discord.Message} message
+   * 
+   * @memberOf Addon
+   */
+  onMessage(message) {
+    // No op by default
+  }
+
   /**
    * Logs a message from this Addon
    * 
