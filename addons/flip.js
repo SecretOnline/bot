@@ -1,5 +1,4 @@
 const ScriptAddon = require('../bot/ScriptAddon.js');
-const Command = require('../bot/Command.js');
 
 var flipHelp = [
   'this command will flip any text upside down',

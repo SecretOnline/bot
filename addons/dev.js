@@ -6,7 +6,6 @@ const eslintrc = require('eslint-rc/.eslintrc.json');
 const jsbeautifyrc = require('eslint-rc/.jsbeautifyrc.json');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
-const Command = require('../bot/Command.js');
 
 let beautifyHelp = [
   'beautifies a JavaScript code block',

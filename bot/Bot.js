@@ -73,16 +73,6 @@ class Bot {
   }
 
   /**
-   * UNUSED
-   * 
-   * 
-   * @memberOf Bot
-   */
-  stop() {
-
-  }
-
-  /**
    * Reloads all configuration files for servers 
    * 
    * @returns {Promise<Array>} Resolves when config is reloaded

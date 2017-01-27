@@ -1,7 +1,5 @@
 const Discord = require('discord.js');
 
-const Addon = require('./Addon.js');
-
 var perms = {
   DISALLOWED: -1,
   DEFAULT: 0,
@@ -66,6 +64,14 @@ class Command {
     throw 'use Command.addon instead';
   }
 
+  /**
+   * Addon that created this command
+   * 
+   * @readonly
+   * @returns {Addon} Creator
+   * 
+   * @memberOf Command
+   */
   get addon() {
     return this.a;
   }

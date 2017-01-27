@@ -1,7 +1,6 @@
 const url = require('url');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
-const Command = require('../bot/Command.js');
 const request = require('../util/').request;
 
 let uselessHelp = [

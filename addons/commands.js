@@ -1,5 +1,4 @@
 const ScriptAddon = require('../bot/ScriptAddon.js');
-const Command = require('../bot/Command.js');
 
 var sayHelp = [
   'syntax: `~<say/raw> <text to output>`',

@@ -5,7 +5,6 @@ const github = require('github');
 const google = require('google');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
-const Command = require('../bot/Command.js');
 
 const truncate = require('../util').truncate;
 
@@ -27,7 +26,7 @@ class Summaries extends ScriptAddon {
   constructor(bot) {
     super(bot, 'summaries');
 
-    this.conf = this.bot.getConfig('default')['addon-conf'][this.ns];
+    this.conf = this.getConfig('default');
 
     this.snoo = new snoowrap({
       userAgent: 'nodejs:secret_bot:7.x.x (by /u/secret_online)',
