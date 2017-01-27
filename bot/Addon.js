@@ -72,7 +72,7 @@ class Addon {
       permission = Command.PermissionLevels.DEFAULT;
     }
 
-    let command  = new Command(this, funct.bind(this), Command.PermissionLevels.ADMIN, help);
+    let command  = new Command(this, funct.bind(this), permission, help);
 
     this.bot.addCommand(trigger, command);
 
