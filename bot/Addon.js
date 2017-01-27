@@ -1,3 +1,5 @@
+const Command = require('../bot/Command.js');
+
 /**
  * An addon. Generally manages commands
  * Should be extended by addons
@@ -54,6 +56,28 @@ class Addon {
     return;
   }
 
+  /**
+   * Adds a command to the bot
+   * 
+   * @param {string} trigger Word that is used to trigger the command
+   * @param {function} funct Function to call. Autobound
+   * @param {number} [permission=Command.PermissionLevels.DEFAULT] Permission level required for this command
+   * @param {(function|string|Array<string>)} [help=null]
+   * 
+   * @memberOf Addon
+   */
+  addCommand(trigger, funct, permission = Command.PermissionLevels.DEFAULT, help = null) {
+    if (!(typeof permission === 'number')) {
+      help = permission;
+      permission = Command.PermissionLevels.DEFAULT;
+    }
+
+    let command  = new Command(this, funct.bind(this), Command.PermissionLevels.ADMIN, help);
+
+    this.bot.addCommand(trigger, command);
+
+    return command;
+  }
 
   /**
    * A handler for when a message is sent

@@ -167,7 +167,7 @@ class Bot {
         commands = [commands];
       }
 
-      if (commands.find(c => c.group === command.group)) {
+      if (commands.find(c => c.addon === command.addon)) {
         return false;
       }
 
@@ -194,10 +194,10 @@ class Bot {
 
     if (comm) {
       if (Array.isArray(comm)) {
-        let command = comm.find(c => c.group === group);
+        let command = comm.find(c => c.addon.namespace === group);
 
         if (command) {
-          if (command.group === group) {
+          if (command.addon.namespace === group) {
             let index = comm.indexOf(command);
             comm.splice(index, 1);
 
@@ -212,7 +212,7 @@ class Bot {
           return true;
         }
       } else {
-        if (comm.group === group) {
+        if (comm.addon.namespace === group) {
           this.commands.delete(trigger);
           return true;
         } else {
@@ -275,7 +275,7 @@ class Bot {
       }
 
       if (!groups.includes(match[1])) {
-        throw `the command group \`${match[1]}\` is not enabled on this server`;
+        throw `the addon \`${match[1]}\` is not enabled on this server`;
       }
 
       // Filter to only the specified group
@@ -291,19 +291,19 @@ class Bot {
 
     // Handle the array case
     if (Array.isArray(comm)) {
-      let allowed = comm.filter(c => groups.find(g => c.group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`))));
+      let allowed = comm.filter(c => groups.find(g => c.addon.namespace.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`))));
       // Maybe in the future give a message saying that there was a conflict
       if (allowed.length > 1) {
-        let allowedGroups = allowed.map(c => `\`${c.group}\``).join(' ');
-        throw `\`${prefix}${commName}\` is added by multiple command groups (${allowedGroups}). use \`${prefix}<group>.${commName}\` instead`;
+        let allowedGroups = allowed.map(c => `\`${c.addon.namespace}\``).join(' ');
+        throw `\`${prefix}${commName}\` is added by multiple addons (${allowedGroups}). use \`${prefix}<group>.${commName}\` instead`;
       } else if (allowed.length === 0) {
-        throw `\`${prefix}${commName}\` is added by multiple command groups, but none of them are enabled`;
+        throw `\`${prefix}${commName}\` is added by multiple addons, but none of them are enabled`;
       }
       comm = allowed[0];
     } else {
       // Check groups
-      if (!groups.find(g => comm.group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)))) {
-        throw `the command group \`${comm.group}\` is not enabled on this server`;
+      if (!groups.find(g => comm.addon.namespace.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)))) {
+        throw `the addon \`${comm.addon.namespace}\` is not enabled on this server`;
       }
     }
 
@@ -327,7 +327,7 @@ class Bot {
    */
   listCommands(message, group, useObj = false) {
     if (message) {
-      let groups = this.listCommands(message.guild || 'default');
+      let groups = this.listAddons(message.guild || 'default');
       let permLevel = this.getPermissionLevel(message);
 
       if (group) {
@@ -349,14 +349,14 @@ class Bot {
           // Multiple commands with this trigger, check each of them
           if (Array.isArray(command)) {
             // Find command with matching group
-            let res = command.filter(c => groups.find(g => c.group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`))));
+            let res = command.filter(c => groups.find(g => c.addon.namespace.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`))));
 
             if (res.length === 1) {
               // Check permission
               if (permLevel < res[0].permission) {
                 return false;
               }
-              return groups.find(g => res[0].group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)));
+              return groups.find(g => res[0].addon.namespace.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)));
             }
 
             res.forEach((comm) => {
@@ -375,13 +375,13 @@ class Bot {
             if (permLevel < command.permission) {
               return false;
             }
-            return groups.find(g => command.group.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)));
+            return groups.find(g => command.addon.namespace.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)));
           }
         });
 
       if (!useObj) {
         commands = commands.map(pair => pair[0]); // Only want the trigger for the command
-        conflicts = conflicts.map(pair => `${pair[1].group}.${pair[0]}`);
+        conflicts = conflicts.map(pair => `${pair[1].addon.namespace}.${pair[0]}`);
       }
       return commands.concat(conflicts);
     } else {
@@ -399,8 +399,10 @@ class Bot {
    * @memberOf Bot
    */
   listAddons(guild, useObj = false) {
-    let enabled = this.getConfig(guild).addons;
-    enabled.push('core');
+    let enabled = [].concat(
+      this.conf['always-enabled'].concat(),
+      this.getConfig(guild).addons
+    );
     if (guild instanceof Discord.Guild) {
       enabled.push(guild.id);
     }
@@ -522,7 +524,7 @@ class Bot {
     }
 
     if (error) {
-      embed.setColor(this.conf.default.color.error);
+      embed.setColor(this.conf.color.error);
     }
 
     console.log(`<${isEmbed?' {embed} ':' '}${text}`); // eslint-disable-line no-console
@@ -547,8 +549,8 @@ class Bot {
     //  .setAuthor('\u200b', this._discord.user.avatarURL);
 
     // Set embed colour
-    if (this.conf.default.color) {
-      embed.setColor(this.conf.default.color.normal);
+    if (this.conf.color) {
+      embed.setColor(this.conf.color.normal);
     }
 
     // See if message is a link
@@ -885,22 +887,30 @@ class Bot {
    * @memberOf Bot
    */
   _createAddons(files) {
-    let promises = files.map(file => new Promise((resolve, reject) => {
-      this.log(`Creating addon ${file}`);
-      let AddonModule;
-      try {
-        let addon;
-        // CREATE ADDONS
-        // Create JSONAddons for .json files
+    let promises = files.map((file) => {
+      return new Promise((resolve, reject) => {
+        this.log(`Creating addon ${file}`);
         if (file.match(/\.json$/)) {
           fs.readFile(`./${this.conf.paths.addons}${file}`, 'utf8', (err, data) => {
-            addon = new JSONAddon(this, JSON.parse(data), file);
+            if (err) {
+              this.error(`Failed to read ${file}, ${err}`);
+              resolve();
+              return;
+            }
+            resolve(new JSONAddon(this, JSON.parse(data), file));
           });
         }
         // Just require .js files
         else if (file.match(/\.js$/)) {
-          AddonModule = require(`../${this.conf.paths.addons}${file}`);
-          addon = new AddonModule(this);
+          let addon;
+          try {
+            let AddonModule = require(`../${this.conf.paths.addons}${file}`);
+            addon = new AddonModule(this);
+          } catch (err) {
+            resolve();
+            return;
+          }
+          resolve(addon);
         }
         // Default message
         else {
@@ -908,27 +918,38 @@ class Bot {
           resolve();
           return;
         }
-
+      })
+      .then((addon) => {
         if (addon) {
           if (this.addons.has(addon.namespace)) {
             this.error(`Failed to create addon: ${file}, name ${addon.namespace} already exists`);
-            resolve();
             return;
           }
 
           this.addons.set(addon.namespace, addon);
-          resolve(addon);
-        } else {
-          resolve();
+          return addon;
         }
-      } catch (e) {
-        this.error(`${file}: ${e}`);
-        resolve();
-        return;
-      }
-    }));
+      });
+    });
     return Promise.all(promises)
       .then(ps => ps.filter(p => p)); // Eliminates the undefined addons
+  }
+
+  /**
+   * For sneaking an addon into the list
+   * Mostly, this will be used by custom commands
+   * 
+   * @param {Addon} addon
+   * 
+   * @memberOf Bot
+   */
+  _sneakAddon(addon) {
+    if (this.addons.has(addon.namespace)) {
+      this.error(`Failed to add addon: ${addon.namespace}, it already exists`);
+      return;
+    }
+
+    this.addons.set(addon.namespace, addon);
   }
 
   /**

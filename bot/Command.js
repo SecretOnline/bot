@@ -1,5 +1,7 @@
 const Discord = require('discord.js');
 
+const Addon = require('./Addon.js');
+
 var perms = {
   DISALLOWED: -1,
   DEFAULT: 0,
@@ -18,14 +20,14 @@ class Command {
   /**
    * Creates an instance of Command.
    * 
+   * @param {Addon} [addon] Addon this command belongs to
    * @param {(function|string)} funct Function to call when processing. Strings get converted into a function
-   * @param {string} [group='nogroup'] Command group this command belongs to
    * @param {number} [permission=perms.DEFAULT] Permission level required for this command
    * @param {(function|string|Array<string>)} [help=null] Help for this command
    * 
    * @memberOf Command
    */
-  constructor(funct, group = 'nogroup', permission = perms.DEFAULT, help = null) {
+  constructor(addon, funct, permission = perms.DEFAULT, help = null) {
     var functType = typeof funct;
     if (functType === 'string') {
       this.f = Command.makeStringFunction(funct);
@@ -43,16 +45,16 @@ class Command {
       this.h = permission;
     }
 
-    if (!group.match(/^[\w._-]+$/)) {
-      throw new Error(`command groups must only contain alphanumeric characters, dashes, underscores, and full stops (periods) '${group}'`);
+    if (!addon) {
+      throw new Error('Addon was not given when creating command');
     }
-
-    this.g = group;
+    this.a = addon;
   }
 
   //region Properties
 
   /**
+   * @deprecated
    * The command group this Command belongs to
    * 
    * @readonly
@@ -61,7 +63,11 @@ class Command {
    * @memberOf Command
    */
   get group() {
-    return this.g;
+    throw 'use Command.addon instead';
+  }
+
+  get addon() {
+    return this.a;
   }
 
   /**

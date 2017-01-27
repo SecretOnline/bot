@@ -36,27 +36,23 @@ class JSONAddon extends Addon {
    */
   init() {
     Object.keys(this.data).forEach((key) => {
-      JSONAddon.generateCommand(this.bot, this.ns, key, this.data[key]);
+      this.generateCommand(key, this.data[key]);
     });
   }
 
   /**
    * Creates a Command from the given parameters
    * 
-   * @static
-   * @param {Bot} bot Bot this command will be added to
-   * @param {string} ns Group this command belongs to
    * @param {string} trigger Trigger for the command
    * @param {string} response Response for the command
    * @returns {Command} A new Command
    * 
    * @memberOf JSONAddon
    */
-  static generateCommand(bot, ns, trigger, response) {
+  generateCommand(trigger, response) {
     let fn = Command.makeStringFunction(response);
     let help = JSONAddon.generateHelp(trigger, response);
-    let comm = new Command(fn, ns, help);
-    bot.addCommand(trigger, comm);
+    let comm = this.addCommand(trigger, fn, help);
 
     return comm;
   }
