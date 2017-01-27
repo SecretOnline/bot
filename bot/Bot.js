@@ -1004,7 +1004,7 @@ class Bot {
   _messageToAddons(message) {
     // Send all incoming messages to addons that ask for them
     setImmediate(() => {
-      this.listAddons(message.guild, true)
+      this.listAddons(message.guild || 'default', true)
         .forEach((addon) => {
           addon.onMessage(message);
         });
