@@ -13,11 +13,14 @@ const nwHelp = [
 const intros = [
   'welcome back to Numberwang, the maths quiz that simply everyone is talking about',
   'it\'s time for Numberwang, the maths quiz show that everyone\'s talking about',
-  'hello! you\'re watching Numberwang, the maths quiz show that simply everyone'
+  'hello! you\'re watching Numberwang, the maths quiz show that simply everyone',
+  'it\'s time for Numberwang, the maths quiz show that everyone. is talking about? YES!',
+  'instead of starting with round 1, let\'s begin round 1'
 ];
 const wangernumbs = [
   'it\'s time for Wangernumb! let\'s rotate the board!',
   'that\'s today\'s Wangernumb. rotate the board!',
+  'that\'s Wangernumb. time to rotate the board!',
   'that\'s Wangernumb. time to rotate the board!'
 ];
 const outros = [
@@ -32,7 +35,9 @@ const thatsnumberwang = [
   'yep, that\'s Numberwang!',
   'oohhh, that\'s Numberwang!',
   'yes! Numberwang!',
-  'Numberwang!'
+  'Numberwang!',
+  'that\'s Numberwang, let\'s go to the maths board!',
+  'that\'s the bonus Numberwang, triple Numberwang!'
 ];
 const thatswangernumb = [
   'that\'s Wangernumb!'
@@ -57,6 +62,14 @@ const introductions = [
   [
     'promoting equality',
     'promiting exactness'
+  ],
+  [
+    'who is from Durham',
+    'who is from space'
+  ],
+  [
+    'who is from Yorkshire',
+    'who is from a factory and is made from a special metal'
   ]
 ];
 
