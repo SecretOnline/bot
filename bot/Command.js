@@ -26,6 +26,10 @@ class Command {
    * @memberOf Command
    */
   constructor(addon, funct, permission = perms.DEFAULT, help = null) {
+    // Type checking
+    if (typeof addon === 'function') {
+      throw new Error('Command was not given an addon. Are you using the old Command definition?');
+    }
     var functType = typeof funct;
     if (functType === 'string') {
       this.f = Command.makeStringFunction(funct);
@@ -50,19 +54,6 @@ class Command {
   }
 
   //region Properties
-
-  /**
-   * @deprecated
-   * The command group this Command belongs to
-   * 
-   * @readonly
-   * @returns {string} Group identifier
-   * 
-   * @memberOf Command
-   */
-  get group() {
-    throw 'use Command.addon instead';
-  }
 
   /**
    * Addon that created this command
