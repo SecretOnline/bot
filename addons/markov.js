@@ -17,7 +17,11 @@ class MarkovAddon extends ScriptAddon {
   init() {
     this.addCommand('markov', this.doMarkov);
     this.addCommand('gunter', this.startGunter);
+     
     this.addCommand('clear-gunter', this.clearGunter, Command.PermissionLevels.OVERLORD);
+
+    this.addCommand('<:secret_bot:275121482135240704>', this.doMarkov);
+    this.addCommand('<:gunter:275121524367687682>', this.startGunter);
 
     this.gunterInterval = setInterval(() => {
       if (this.gunter > 0) {
