@@ -131,7 +131,7 @@ class Help extends ScriptAddon {
 
     let comm = this.bot.getCommand(`${prefix}${secretGroup}${unprefixed}`, input.message);
     if (comm) {
-      let group = comm.group;
+      let group = comm.addon.namespace;
 
       if (group === channel.guild.id) {
         group = 'this';
@@ -144,19 +144,16 @@ class Help extends ScriptAddon {
   }
 
   getCommands(input) {
-    let def = this.bot.getConfig('default');
-    let prefix = def.prefix;
-    let groups = def.addons;
-    let serverName = 'private messages';
+    let guild = input.message.guild || 'default';
+    let groups = this.bot.listAddons(guild);
+    let serverConf = this.bot.getConfig(guild);
+    let prefix = serverConf.prefix;
+    let serverName = serverConf.name;
 
-    if (input.message.channel instanceof Discord.TextChannel) {
-      serverName = input.message.guild.name;
-      let serverConf = this.bot.getConfig(input.message.guild);
-      if (serverConf.prefix) {
-        prefix = serverConf.prefix;
-      }
-      if (serverConf.addons) {
-        groups = groups.concat(serverConf.addons);
+    if (input.message.guild) {
+      let index = groups.indexOf(input.message.guild.id);
+      if (index > -1) {
+        groups[index] = 'this';
       }
     }
 
@@ -175,7 +172,7 @@ class Help extends ScriptAddon {
     // Send commands by group
     let groupMap = new Map();
     available.forEach((pair) => {
-      let group = pair[1].group.split('.')[0];
+      let group = pair[1].addon.namespace;
       if (input.message.channel instanceof Discord.TextChannel) {
         if (group === input.message.guild.id) {
           group = 'this';
@@ -243,7 +240,7 @@ class Help extends ScriptAddon {
       // Get command
       let comm = this.bot.getCommand(`${prefix}${unprefixed}`, input.message);
       if (comm) {
-        header.push(`command group: ${comm.group}`);
+        header.push(`addon: ${comm.addon.namespace}`);
 
         help = comm.help(input.from(''));
         // Return on empty string. Allows for a no-response
