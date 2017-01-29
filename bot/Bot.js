@@ -1076,11 +1076,7 @@ class Bot {
 
             this.send(message.author, embed, true);
           } else if (err instanceof Error) {
-            // TODO: Error stuff
-          }
-
-          if (this.conf.verbose) {
-            console.error(err); // eslint-disable-line no-console
+            this.error(err);
           }
         }
         // Always returns undefined, so the next .then doesn't do anything
@@ -1157,11 +1153,7 @@ class Bot {
 
             this.send(newMessage.author, embed, true);
           } else if (err instanceof Error) {
-            // TODO: Error stuff
-          }
-
-          if (this.conf.verbose) {
-            console.error(err); // eslint-disable-line no-console
+            this.error(err);
           }
         }
         // Always returns undefined, so the next .then doesn't do anything
