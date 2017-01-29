@@ -9,12 +9,10 @@ class Test extends ScriptAddon {
   }
 
   init() {
-    this.bot.addCommand('permtest', new Command(this.doTest, 'test', Command.PermissionLevels.ADMIN));
-    this.bot.addCommand('reject', new Command(this.rejecter, 'test', Command.PermissionLevels.OVERLORD));
-    this.bot.addCommand('conflict', new Command(this.conflict1, 'conflict1', Command.PermissionLevels.OVERLORD));
-    this.bot.addCommand('conflict', new Command(this.conflict2, 'conflict2', Command.PermissionLevels.OVERLORD));
-    this.bot.addCommand('http-status-code', new Command(this.httpStatus, 'test', Command.PermissionLevels.OVERLORD));
-    this.bot.addCommand('dump-log', new Command(this.dumpLog, 'test', Command.PermissionLevels.OVERLORD));
+    this.addCommand('permtest', this.doTest, Command.PermissionLevels.ADMIN);
+    this.addCommand('reject', this.rejecter, Command.PermissionLevels.OVERLORD);
+    this.addCommand('http-status-code', this.httpStatus, Command.PermissionLevels.OVERLORD);
+    this.addCommand('dump-log', this.dumpLog, Command.PermissionLevels.OVERLORD);
   }
 
   deinit() {
@@ -32,14 +30,6 @@ class Test extends ScriptAddon {
           reject(result);
         });
       });
-  }
-
-  conflict1() {
-    return 'resolved to conflict 1';
-  }
-
-  conflict2() {
-    return 'resolved to conflict 2';
   }
 
   httpStatus(input) {

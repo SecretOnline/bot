@@ -26,8 +26,8 @@ class Dev extends ScriptAddon {
   }
 
   init() {
-    this.bot.addCommand('beautify', this.beautify, beautifyHelp);
-    this.bot.addCommand('eslint', this.eslint, eslintHelp);
+    this.addCommand('beautify', this.beautify, beautifyHelp);
+    this.addCommand('eslint', this.eslint, eslintHelp);
   }
 
   deinit() {
