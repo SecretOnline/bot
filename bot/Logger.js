@@ -91,7 +91,7 @@ class Logger {
             line.guild = location.guild.id;
           }
 
-          if (message.embeds) {
+          if (message.embeds && message.embeds.length) {
             line.embed = true;
           }
         } else {
@@ -106,6 +106,7 @@ class Logger {
         }
 
         if (isError) {
+          line.type = 'error';
           if (message instanceof Error) {
             line.stack = message.stack;
             line.message = message.message;
@@ -192,8 +193,7 @@ class Logger {
               return lines.concat(result);
             });
         } else {
-          lines.splice(limit);
-          return lines;
+          return lines.splice(limit * -1, limit);
         }
       })
       .catch((err) => {
@@ -299,6 +299,19 @@ class Logger {
         return false;
       }
       if (line.channel !== channel.id) {
+        return false;
+      }
+
+      return true;
+    };
+  }
+
+  static filterByUser(user) {
+    return (line) => {
+      if (line.type !== 'message') {
+        return false;
+      }
+      if (line.author !== user.id) {
         return false;
       }
 
