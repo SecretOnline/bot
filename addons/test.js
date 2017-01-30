@@ -13,6 +13,7 @@ class Test extends ScriptAddon {
     this.addCommand('reject', this.rejecter, Command.PermissionLevels.OVERLORD);
     this.addCommand('http-status-code', this.httpStatus, Command.PermissionLevels.OVERLORD);
     this.addCommand('dump-log', this.dumpLog, Command.PermissionLevels.OVERLORD);
+    this.addCommand('args', this.args, Command.PermissionLevels.OVERLORD);
   }
 
   deinit() {
@@ -48,6 +49,10 @@ class Test extends ScriptAddon {
       .then((lines) => {
         return lines.length.toString();
       });
+  }
+
+  args(input) {
+    return JSON.stringify(input.args);
   }
 }
 
