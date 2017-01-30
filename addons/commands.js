@@ -194,6 +194,10 @@ class Comm extends ScriptAddon {
   getAlvvLatin(string) {
     var words = string.split(' ');
     for (var i = 0; i < words.length; i++) {
+      if (words[i].match(/<@!?\d+>/)) {
+        words[i] = '<@83819945497985024>';
+        continue;
+      }
       if (words[i].length > 3) {
         if (words[i].indexOf('ing') === words[i].length - 3) {
           words[i] = 'alvving';
