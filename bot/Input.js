@@ -17,6 +17,7 @@ class Input {
     this.m = message;
     this.t = text;
     this.b = bot;
+    this.a = null;
   }
 
   //region Properties
@@ -55,6 +56,33 @@ class Input {
    */
   get user() {
     return this.m.author;
+  }
+
+  /**
+   * Splits the text by whitespace, except inside quotes
+   * 
+   * @readonly
+   * @returns {Array<string>} Parts of the string given
+   * 
+   * @memberOf Input
+   */
+  get args() {
+    if (this.a) {
+      return this.a;
+    } else {
+      let arr = [];
+      let exp = /(?:([^\"]\S*)|\"(.*?)\")\s*/g;
+
+      let item = exp.exec(this.t);
+      while (item !== null) {
+        let words = item[1] || item[2] || '';
+        arr.push(words);
+        item = exp.exec(this.t);
+      }
+
+      this.a = arr;
+      return this.a;
+    }
   }
 
   //endregion
