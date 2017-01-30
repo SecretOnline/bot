@@ -71,12 +71,27 @@ class Addon {
       help = permission;
       permission = Command.PermissionLevels.DEFAULT;
     }
+    if (typeof funct === 'string') {
+      funct = Command.makeStringFunction(funct);
+    }
 
     let command  = new Command(this, funct.bind(this), permission, help);
 
     this.bot.addCommand(trigger, command);
 
     return command;
+  }
+
+  /**
+   * Removes a command from the bot
+   * 
+   * @param {string} trigger Word that is used to trigger the command
+   * @returns
+   * 
+   * @memberOf Addon
+   */
+  removeCommand(trigger) {
+    return this.bot.removeCommand(trigger, this);
   }
 
   /**

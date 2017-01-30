@@ -23,18 +23,20 @@ class Custom extends ScriptAddon {
     super(bot, 'custom');
 
     this.commands = this.getConfig(null);
+    this.addons = new Map();
   }
 
   init() {
     this.addCommand('add-command', this.addGuildCommand, Command.PermissionLevels.ADMIN, commandHelp);
     this.addCommand('remove-command', this.removeGuildCommand, Command.PermissionLevels.ADMIN, commandHelp);
 
-    let promises = [Promise.resolve()];
+    let promises = [];
     if (this.commands) {
       promises = Object.keys(this.commands).map((server) => {
         return new Promise((resolve, reject) => {
           try {
             let addon = new JSONAddon(this.bot, this.commands[server], server);
+            this.addons.set(server, addon);
             resolve(addon);
           } catch (err) {
             this.error(`unable to create commands for ${server}`);
@@ -45,6 +47,9 @@ class Custom extends ScriptAddon {
     }
 
     return Promise.all(promises)
+      .then((addons) => {
+        return addons.filter(a => a);
+      })
       .then((addons) => {
         addons.forEach((addon) => {
           this.bot._sneakAddon(addon);
@@ -94,9 +99,24 @@ class Custom extends ScriptAddon {
 
       commands[trigger] = response;
       let group = message.guild.id;
-      JSONAddon.generateCommand(this.bot, group, trigger, response);
+      let addonProm;
 
-      this.setConfig(commands, message.guild)
+      if (this.addons.has(group)) {
+        addonProm = Promise.resolve(this.addons.get(group));
+      } else {
+        let addon = new JSONAddon(this.bot, {}, group);
+        this.addons.set(group, addon);
+        this.bot._sneakAddon(addon);
+        addonProm = addon.init();
+      }
+
+      addonProm
+        .then((addon) => {
+          addon.addCommand(trigger, response, JSONAddon.generateHelp(trigger, response));
+        })
+        .then(() => {
+          this.setConfig(commands, message.guild);
+        })
         .then(() => {
           resolve(`added \`${prefix}${trigger}\` to server`);
         }, reject);
@@ -118,19 +138,32 @@ class Custom extends ScriptAddon {
       }
 
       let trigger = input.text.split(' ')[0];
-      let prefix = this.bot.getConfig('default').prefix;
       let serverConf = this.bot.getConfig(message.guild);
+      let prefix = serverConf.prefix;
       let group = message.guild.id;
-      if (serverConf && serverConf.prefix) {
-        prefix = serverConf.prefix;
-      }
 
       if (commands[trigger]) {
         delete commands[trigger];
-        this.bot.removeCommand(trigger, group);
+      } else {
+        resolve(`\`${prefix}${trigger}\` wasn't found on this server`);
+        return;
       }
 
-      this.setConfig(commands, message.guild)
+      let addonProm;
+      if (this.addons.has(group)) {
+        addonProm = Promise.resolve(this.addons.get(group));
+      } else {
+        resolve('no commands were found for this server');
+        return;
+      }
+
+      addonProm
+        .then((addon) => {
+          addon.removeCommand(trigger);
+        })
+        .then(() => {
+          this.setConfig(commands, message.guild);
+        })
         .then(() => {
           resolve(`removed \`${prefix}${trigger}\` from server`);
         }, reject);
