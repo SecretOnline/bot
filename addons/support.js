@@ -14,6 +14,7 @@ class Support extends ScriptAddon {
   constructor(bot) {
     super(bot, 'support');
 
+    this.desc = 'Allows server admins to get in contact with people who can help with secret_bot';
     this.discord = bot.discord;
   }
 

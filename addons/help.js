@@ -3,7 +3,7 @@ const Discord = require('discord.js');
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
 
-let helpHelp = [
+const helpHelp = [
   'syntax: `~help [command]`',
   'finds help for the given command',
   'extra info about bot is available through the help topics `~help topic`',
@@ -11,14 +11,14 @@ let helpHelp = [
   'for all commands in a group, use `~commands <group>`',
   'to find out which group a command is in, use `~which <command>`'
 ];
-let whichHelp = [
+const whichHelp = [
   'syntax: `~which <command>`',
   'alows you to find out which command group a command belongs to',
   'for more information about groups, use `~help groups`',
   'example usage:',
   '`~which which`'
 ];
-let topics = {
+const topics = {
   help: [
     'secret_bot has support for commands to provide help and usage information',
     '',
@@ -91,11 +91,13 @@ let topics = {
   ]
 };
 
-let splitWordsLengthRegex = /(?:(.{1,500})(?:, |$))/g;
+const splitWordsLengthRegex = /(?:(.{1,500})(?:, |$))/g;
 
 class Help extends ScriptAddon {
   constructor(bot) {
     super(bot, 'help');
+
+    this.desc = 'An essential addon that provides a way to access the help for each command';
   }
 
   init() {

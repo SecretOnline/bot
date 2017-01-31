@@ -6,6 +6,8 @@ const request = require('../util').request;
 class Test extends ScriptAddon {
   constructor(bot) {
     super(bot, 'test');
+
+    this.desc = 'A few test commands, mostly for the creation of bot';
   }
 
   init() {

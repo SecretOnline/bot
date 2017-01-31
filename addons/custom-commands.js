@@ -4,7 +4,7 @@ const ScriptAddon = require('../bot/ScriptAddon.js');
 const JSONAddon = require('../bot/JSONAddon.js');
 const Command = require('../bot/Command.js');
 
-let commandHelp = [
+const commandHelp = [
   'syntax: `~add-command <command trigger> <words to output>`',
   'syntax: `~remove-command <command trigger>`',
   'allows the addition of custom commands to each server',
@@ -20,8 +20,9 @@ let commandHelp = [
 
 class Custom extends ScriptAddon {
   constructor(bot) {
-    super(bot, 'custom');
+    super(bot, 'custom' );
 
+    this.desc = 'Allows the creation of custom commands for your server';
     this.commands = this.getConfig(null);
     this.addons = new Map();
   }

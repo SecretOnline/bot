@@ -7,6 +7,7 @@ class MarkovAddon extends ScriptAddon {
   constructor(bot) {
     super(bot, 'markov');
 
+    this.desc = 'Uses Markov Chains to generate replies to messages. Markov replies are triggered by mentioning secret_bot or with `~markov`';
     this.channelData = new Map();
     this.numMessages = 100;
     this.gunter = 0;
