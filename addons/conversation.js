@@ -4,7 +4,7 @@ const Input = require('../bot/Input.js');
 const Logger = require('../bot/Logger.js');
 
 const cleverbot = require('cleverbot.io');
-const {MarkovChain} = require('../util');
+const {MarkovChain, arrayRandom} = require('../util');
 
 class ConversationAddon extends ScriptAddon {
   constructor(bot) {
@@ -175,7 +175,12 @@ class ConversationAddon extends ScriptAddon {
           str = message.cleanContent; 
         }
 
-        let input = new Input(message, this.bot, `~markov ${str}`);
+        let command = arrayRandom([
+          'markov',
+          'cb'
+        ]);
+
+        let input = new Input(message, this.bot, `~${command} ${str}`);
         input.process()
           // Send successful result to the origin
           .then((result) => {
