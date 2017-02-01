@@ -12,6 +12,7 @@ class RandomStuff extends ScriptAddon {
   constructor(bot) {
     super(bot, 'randomstuff');
 
+    this.desc = 'As the name might suggest, this addon contains a few things that I was not sure where to put';
     this.theuselessweb = [];
     this.foaasCache = [];
     this.uselessWebTimeout = false;

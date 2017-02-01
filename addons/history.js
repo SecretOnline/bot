@@ -14,6 +14,8 @@ const historyHelp = [
 class History extends ScriptAddon {
   constructor(bot) {
     super(bot, 'history');
+
+    this.desc  = 'Allows the browsing of the chat history in a server';
   }
 
   init() {

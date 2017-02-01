@@ -35,6 +35,7 @@ class JSONAddon extends Addon {
    * @memberOf JSONAddon
    */
   init() {
+    this.desc = `${this.ns} is a basic addon with call/response commands. Use \`~help <command-name>\` to see what they do`;
     Object.keys(this.data).forEach((key) => {
       this.generateCommand(key, this.data[key]);
     });

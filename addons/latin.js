@@ -3,6 +3,8 @@ const ScriptAddon = require('../bot/ScriptAddon.js');
 class Latin extends ScriptAddon {
   constructor(bot) {
     super(bot, 'latin');
+
+    this.desc = 'Adds some text transformations. These commands were among the first added to secret_bot';
   }
 
   init() {

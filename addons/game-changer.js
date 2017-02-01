@@ -1,15 +1,16 @@
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
 
-// var time = 2 * 1000;
-var time = 30 * 60 * 1000;
-// var variation = 1 * 1000;
-var variation = 10 * 60 * 1000;
+// const time = 2 * 1000;
+const time = 30 * 60 * 1000;
+// const variation = 1 * 1000;
+const variation = 10 * 60 * 1000;
 
 class GameChange extends ScriptAddon {
   constructor(bot) {
     super(bot, 'game-change');
 
+    this.desc = 'Changes the game \'played\' by secret_bot on Discord. This is an automatic process, you don\'t need to add it to your server';
     this.games = this.getConfig('default');
     this.timeout;
 

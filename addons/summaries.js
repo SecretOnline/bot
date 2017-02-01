@@ -26,6 +26,7 @@ class Summaries extends ScriptAddon {
   constructor(bot) {
     super(bot, 'summaries');
 
+    this.desc = 'Allows the summarising of information from various sources on the web';
     this.conf = this.getConfig('default');
 
     this.snoo = new snoowrap({

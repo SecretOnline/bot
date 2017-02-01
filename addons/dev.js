@@ -7,13 +7,13 @@ const jsbeautifyrc = require('eslint-rc/.jsbeautifyrc.json');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
 
-let beautifyHelp = [
+const beautifyHelp = [
   'beautifies a JavaScript code block',
   'if given a message ID, `~beautify` will use that message',
   'otherwise, it scans the past 10 messages in the channel',
   'the jsbeautifyrc file can be found at https://github.com/SecretOnline/eslint-rc/blob/master/.jsbeautifyrc.json'
 ];
-let eslintHelp = [
+const eslintHelp = [
   'lints a JavaScript code block using eslint',
   'if given a message ID, `~eslint` will use that message',
   'otherwise, it scans the past 10 messages in the channel',
@@ -23,6 +23,8 @@ let eslintHelp = [
 class Dev extends ScriptAddon {
   constructor(bot) {
     super(bot, 'dev');
+
+    this.desc = 'Has some useful commands for development-oriented servers';
   }
 
   init() {

@@ -18,6 +18,7 @@ class Addon {
   constructor(bot, namespace = 'NONAME') {
     this.bot = bot;
     this.ns = namespace;
+    this.desc = 'No description has been given for this addon';
   }
 
   /**
@@ -31,6 +32,18 @@ class Addon {
    */
   get namespace() {
     return this.ns;
+  }
+
+  /**
+   * The description of this addon
+   * 
+   * @readonly
+   * @returns {string} Addon's description
+   * 
+   * @memberOf Addon
+   */
+  get description() {
+    return this.desc;
   }
 
   /**

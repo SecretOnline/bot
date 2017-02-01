@@ -1,8 +1,9 @@
 const ScriptAddon = require('../bot/ScriptAddon.js');
 
-var flipHelp = [
+const flipHelp = [
   'this command will flip any text upside down',
   '(not all characters work just yet. soon(tm))',
+  'this is caused by Unicode not having upside down versions of all characters, and don\'t expect them to be added any time soon',
   'example usage:',
   '`~flip example text`',
   '`~flip ~dance`'
@@ -11,6 +12,8 @@ var flipHelp = [
 class Flip extends ScriptAddon {
   constructor(bot) {
     super(bot, 'flip');
+
+    this.desc = 'Adds the ability to flip messages upside down';
   }
 
   init() {

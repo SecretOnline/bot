@@ -77,6 +77,7 @@ class NumberWang extends ScriptAddon {
   constructor(bot) {
     super(bot, 'numberwang');
 
+    this.desc = 'Numberwang is the maths quiz that simply everyone is talking about';
     this.servers = new Map();
     this.difficulty = 5;
   }

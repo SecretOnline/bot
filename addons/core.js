@@ -3,36 +3,38 @@ const Discord = require('discord.js');
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
 
-let enablerHelp = [
+const enablerHelp = [
   'syntax: `~<enable/disable>-addon <addon name>`',
   'the `enable/disable-addon` commands allow you to add and remove command groups from your server'
 ];
-let channelFilterHelp = [
+const channelFilterHelp = [
   'syntax: `~[dis]allow-channel <channel mention>`',
   'restricts secret_bot to specific channels',
   'by default bot is available on all channels',
   'adding a channel to the filter means secret_bot will only work in those channels'
 ];
-let reloadHelp = 'really? you needed help for this? and you\'re the one in charge of this bot...';
-let changePrefixHelp = [
+const reloadHelp = 'really? you needed help for this? and you\'re the one in charge of this bot...';
+const changePrefixHelp = [
   'syntax: `~change-prefix <character>`',
   'changes the prefix used to trigger commands',
   'default is `~`'
 ];
-let changeColorHelp = [
+const changeColorHelp = [
   'syntax: `~change-color #<color>`',
   'changes the color secret_bot uses for embeds',
   'default is `#001855`'
 ];
-let inviteHelp = 'gives you a link to invite the bot to your own discord server';
-let sourceHelp = 'displays information about secret_bot\'s source code';
+const inviteHelp = 'gives you a link to invite the bot to your own discord server';
+const sourceHelp = 'displays information about secret_bot\'s source code';
 
-let inviteLink = 'https://discordapp.com/oauth2/authorize?client_id=177875535391752192&scope=bot&permissions=93184';
-let sourceLink = 'https://github.com/SecretOnline/bot';
+const inviteLink = 'https://discordapp.com/oauth2/authorize?client_id=177875535391752192&scope=bot&permissions=93184';
+const sourceLink = 'https://github.com/SecretOnline/bot';
 
 class Core extends ScriptAddon {
   constructor(bot) {
     super(bot, 'core');
+
+    this.desc = 'Contains commands that are important for the bot\'s functionality';
   }
 
   init() {

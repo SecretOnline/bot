@@ -42,6 +42,7 @@ class MessMan extends ScriptAddon {
 
     throw 'message manipulation will not work until further work is done';
 
+    this.desc = 'Adds a configuration option for removing command messages when commands are run';
     this.rmMessageCache = new Map();
   }
 
