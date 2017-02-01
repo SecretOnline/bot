@@ -3,6 +3,7 @@ const Command = require('../bot/Command.js');
 const Input = require('../bot/Input.js');
 const Logger = require('../bot/Logger.js');
 
+const cleverbot = require('cleverbot.io');
 const {MarkovChain} = require('../util');
 
 class ConversationAddon extends ScriptAddon {
@@ -11,6 +12,7 @@ class ConversationAddon extends ScriptAddon {
 
     this.desc = 'Uses various techniques to generate replies to messages';
     this.channelData = new Map();
+    this.channelCB = new Map();
     this.numMessages = 100;
     this.gunter = 0;
     this.gunterLimit = 500;
@@ -19,6 +21,7 @@ class ConversationAddon extends ScriptAddon {
 
   init() {
     this.addCommand('markov', this.doMarkov);
+    this.addCommand('cb', this.doCleverbot);
     this.addCommand('gunter', this.startGunter);
      
     this.addCommand('clear-gunter', this.clearGunter, Command.PermissionLevels.OVERLORD);
@@ -86,6 +89,49 @@ class ConversationAddon extends ScriptAddon {
           resolve(res);
         })
         .catch(reject);
+    });
+  }
+
+  doCleverbot(input) {
+    return new Promise((resolve, reject) => {
+      if (!input.text) {
+        reject('you must give some text for cleverbot to use');
+        return;
+      }
+
+      let id = input.message.channel.id;
+      let cbReady;
+      if (this.channelCB.has(id)) {
+        cbReady = Promise.resolve(this.channelCB.get(id));
+      } else {
+        let conf = this.getConfig('default').cb;
+        let newBot = new cleverbot(conf.user, conf.key);
+        newBot.setNick(`s_b-${id}`);
+
+        cbReady = new Promise((resolve2, reject2) => {
+          newBot.create((err, session) => {
+            if (err) {
+              reject2(err);
+              return;
+            }
+
+            this.channelCB.set(id, newBot);
+            resolve2(newBot);
+          });
+        });
+      }
+
+      cbReady
+          .then((cb) => {
+            let inStr = this.transform(input.text);
+            cb.ask(inStr, (err, response) => {
+              if (err) {
+                reject(err);
+                return;
+              }
+              resolve(response);
+            });
+          });
     });
   }
 
