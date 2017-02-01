@@ -122,7 +122,7 @@ class ConversationAddon extends ScriptAddon {
         }
 
         // Allow mentions everywhere, but strip them at the back/front
-        let match = message.content.match(`^${this.bot.discord.user.toString()} (.+)`) || message.content.match(`(.+) ${this.bot.discord.user.toString()}$`);
+        let match = message.content.match(`^<@!?${this.bot.discord.user.id}> (.+)`) || message.content.match(`(.+) <@!?${this.bot.discord.user.id}>$`);
         if (match) {
           str = match[1];
         } else {
@@ -134,8 +134,6 @@ class ConversationAddon extends ScriptAddon {
           // Send successful result to the origin
           .then((result) => {
             if (result) {
-              // Manually specify ID of Gunter
-              // May move into config later
               if (isGunter) {
                 result = `${message.author.toString()} ${result}`;
                 return message.channel.sendMessage(result, {disableEveryone: true});
