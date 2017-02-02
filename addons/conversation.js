@@ -129,7 +129,7 @@ class ConversationAddon extends ScriptAddon {
                 reject(err);
                 return;
               }
-              resolve(response);
+              resolve(response.toLowerCase());
             });
           });
     });
