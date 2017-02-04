@@ -14,6 +14,7 @@ class Music extends ScriptAddon {
     this.addCommand('disable-music', this.disableServer, Command.PermissionLevels.ADMIN);
     this.addCommand('request', this.requestSong);
     this.addCommand('vote-skip', this.voteSkip);
+    this.addCommand('skip', this.justSkip, Command.PermissionLevels.ADMIN);
 
     this.bot.discord.on('voiceStateUpdate', this.onVoiceState.bind(this));
   }
@@ -175,6 +176,16 @@ class Music extends ScriptAddon {
       }, () => {
         return 'vote registered';
       });
+  }
+
+  justSkip(input) {
+    let id = input.message.guild.id;
+    if (!this.queues.has(id)) {
+      throw 'no music is playing right now';
+    }
+    
+    let obj = this.queues.get(id);
+    obj.dispatcher.end();
   }
 
   onVoiceState(oldMember, newMember) {
