@@ -27,7 +27,7 @@ class Music extends ScriptAddon {
       return false;
     }
 
-    let conf = this.getConfig(guild);
+    let conf = this.getConfig(guild) || {};
     return !!conf.enabled; // Force it to be a boolean
   }
 
@@ -55,7 +55,7 @@ class Music extends ScriptAddon {
       return 'music is already disabled on this server';
     }
 
-    let conf = this.getConfig(input.message.guild);
+    let conf = this.getConfig(input.message.guild) || {};
     conf.enabled = false;
     this.setConfig(conf, input.message.guild);
     return 'music has been disabled on this server';
