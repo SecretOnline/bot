@@ -102,10 +102,15 @@ class Music extends ScriptAddon {
           let length = Number.parseInt(info.length_seconds);
           let mins = Math.floor(length / 60);
           let seconds = (mins === 0) ? length : length % (mins * 60);
+
+          if (info.author.avatar.match(/^\/\//)) {
+            info.author.avatar = `https:${info.author.avatar}`;
+          }
+
           let embed = new Discord.RichEmbed()
             .setTitle(`Now playing: ${truncate(info.title, 80)}`)
             .setURL(url)
-            //.setAuthor(info.author.name, info.author.avatar, `https://youtube.com${info.author.ref}`)
+            .setAuthor(info.author.name, info.author.avatar, `https://youtube.com${info.author.ref}`)
             .setDescription(truncate(info.description, 80))
             .setThumbnail(info.thumbnail_url)
             .setColor('#CC181E')
@@ -156,6 +161,8 @@ class Music extends ScriptAddon {
 
       obj.textChannel = input.message.channel;
       obj.queue.push(url);
+
+      return '${url} has been added to the queue';
     } else {
       obj = {
         queue: [url],
@@ -177,7 +184,7 @@ class Music extends ScriptAddon {
           return this.advanceQueue(id);
         })
         .then(() => {
-          return `added ${url} to the queue`;
+          return ''; // All going well, an embed will be sent to the server
         });
     }
   }
