@@ -14,6 +14,7 @@ class Latin extends ScriptAddon {
     this.addCommand('alvv_latin', this.getAlvvText);
     this.addCommand('ohdear_latin', this.getMessText);
     this.addCommand('ohfuck_latin', this.getFuckText);
+    this.addCommand('wunter', this.getWunter);
   }
 
   getSecretText(input) {
@@ -52,6 +53,13 @@ class Latin extends ScriptAddon {
   getFuckText(input) {
     return input.from(`~flip ~ohdear_latin ${input.text}`)
       .process();
+  }
+
+  getWunter(input) {
+    return input.process()
+      .then((result) => {
+        return result.toLowerCase().replace(/[gr]/, 'w');
+      });
   }
 
   /* "Latin" */
