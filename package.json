@@ -26,6 +26,7 @@
     "google": "^2.1.0",
     "js-beautify": "^1.6.8",
     "robots": "^0.9.4",
-    "snoowrap": "^1.11.3"
+    "snoowrap": "^1.11.3",
+    "ytdl-core": "^0.8.1"
   }
 }
