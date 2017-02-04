@@ -1,6 +1,9 @@
 const ytdl = require('ytdl-core');
+const Discord = require('discord.js');
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
+
+const {truncate} = require('../util');
 
 class Music extends ScriptAddon {
   constructor(bot) {
@@ -73,9 +76,51 @@ class Music extends ScriptAddon {
         return;
       }
 
-      let stream = ytdl(obj.queue.pop(), {audioonly: true});
+      let url = obj.queue.pop();
+      let stream = ytdl(url, {audioonly: true});
       let dispatcher = obj.connection.playStream(stream);
       obj.dispatcher = dispatcher;
+
+      let startProm = new Promise((resolve, reject) => {
+        dispatcher.once('start', resolve);
+      });
+      let infoProm = new Promise((resolve, reject) => {
+        ytdl.getInfo(url, (err, res) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          resolve(res);
+        });
+      });
+
+      Promise.all([
+        startProm,
+        infoProm
+      ])
+        .then(([start, info]) => {
+          let length = Number.parseInt(info.length_seconds);
+          let mins = Math.floor(length / 60);
+          let seconds = (mins === 0) ? length : length % (mins * 60);
+          let embed = new Discord.RichEmbed()
+            .setTitle(`Now playing: ${truncate(info.title, 80)}`)
+            .setURL(url)
+            //.setAuthor(info.author.name, info.author.avatar, `https://youtube.com${info.author.ref}`)
+            .setDescription(truncate(info.description, 80))
+            .setThumbnail(info.thumbnail_url)
+            .setColor('#CC181E')
+            .addField('Info', [
+              `Length: ${mins}:${seconds}`,
+              `Views: ${info.view_count}`
+            ].join('\n'));
+
+            console.log(info.author);
+          return this.bot.send(obj.textChannel, embed);
+        })
+        .catch((err) => {
+          this.error(`unable to send playing embed for ${url}`);
+        });
+
       dispatcher.on('end', () => {
         this.advanceQueue(id);
       });
@@ -109,11 +154,13 @@ class Music extends ScriptAddon {
         throw 'please join the channel that secret_bot is already in';
       }
 
+      obj.textChannel = input.message.channel;
       obj.queue.push(url);
     } else {
       obj = {
         queue: [url],
         channel: null,
+        textChannel: input.message.channel,
         stream: null,
         connection: null,
         dispatcher: null,
@@ -189,7 +236,7 @@ class Music extends ScriptAddon {
   }
 
   onVoiceState(oldMember, newMember) {
-    if ((!oldMember.voiceChannel) && newMember.voiceChannel) {
+    if (oldMember.voiceChannel && (!newMember.voiceChannel)) {
       let id = newMember.guild.id;
       if (!this.queues.has(id)) {
         return; // No need to do anything if nothing is playing
@@ -199,6 +246,11 @@ class Music extends ScriptAddon {
       let index = obj.skipUsers.indexOf(newMember.id);
       if (index > -1) {
         obj.skipUsers.splice(index, 1);
+      }
+
+      if (oldMember.voiceChannel.members.size === 0) {
+        obj.queue = [];
+        obj.dispatcher.end();
       }
 
       this.checkSkip(newMember.guild.id)
