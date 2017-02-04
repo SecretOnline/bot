@@ -40,7 +40,7 @@ class Music extends ScriptAddon {
       return 'music is already enabled on this server';
     }
 
-    let conf = this.getConfig(input.message.guild);
+    let conf = this.getConfig(input.message.guild) || {};
     conf.enabled = true;
     this.setConfig(conf, input.message.guild);
     return 'music has been enabled on this server';
