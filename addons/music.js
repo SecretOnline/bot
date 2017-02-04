@@ -13,6 +13,9 @@ class Music extends ScriptAddon {
     this.addCommand('enable-music', this.enableServer, Command.PermissionLevels.OVERLORD);
     this.addCommand('disable-music', this.disableServer, Command.PermissionLevels.ADMIN);
     this.addCommand('request', this.requestSong);
+    this.addCommand('vote-skip', this.voteSkip);
+
+    this.bot.discord.on('voiceStateUpdate', this.onVoiceState.bind(this));
   }
 
   checkEnabled(guild) {
@@ -112,7 +115,8 @@ class Music extends ScriptAddon {
         channel: null,
         stream: null,
         connection: null,
-        dispatcher: null
+        dispatcher: null,
+        skipUsers: []
       };
       this.queues.set(id, obj);
       
@@ -126,6 +130,72 @@ class Music extends ScriptAddon {
         })
         .then(() => {
           return `added ${url} to the queue`;
+        });
+    }
+  }
+
+  checkSkip(id) {
+    return new Promise((resolve, reject) => {
+      if (!this.queues.has(id)) {
+        reject('no music playing');
+        return;
+      }
+
+      let obj = this.queues.get(id);
+      let criticalMass = Math.ceil((obj.channel.members.size - 1) / 2);
+
+      if (obj.skipUsers.length >= criticalMass) {
+        obj.dispatcher.end();
+        resolve('skip successful');
+        return;
+      } else {
+        reject('not enough users for skip');
+        return;
+      }
+    });
+  }
+
+  voteSkip(input) {
+    let id = input.message.guild.id;
+    if (!this.queues.has(id)) {
+      throw 'no music is playing right now';
+    }
+    
+    let obj = this.queues.get(id);
+    if (obj.skipUsers.includes(input.user.id)) {
+      throw 'you have already voted to skip this song';
+    }
+
+    obj.skipUsers.push(input.user.id);
+
+    return this.checkSkip(id)
+      .then(() => {
+        obj.skipUsers = [];
+        return 'Skipping to the next song';
+      }, () => {
+        return 'vote registered';
+      });
+  }
+
+  onVoiceState(oldMember, newMember) {
+    if ((!oldMember.voiceChannel) && newMember.voiceChannel) {
+      let id = newMember.guild.id;
+      if (!this.queues.has(id)) {
+        return; // No need to do anything if nothing is playing
+      }
+
+      let obj = this.queues.get(newMember.guild.id);
+      let index = obj.skipUsers.indexOf(newMember.id);
+      if (index > -1) {
+        obj.skipUsers.splice(index, 1);
+      }
+
+      this.checkSkip(newMember.guild.id)
+        .then(() => {
+          obj.skipUsers = [];
+          obj.dispatcher.end();
+        }, () => {
+          // Do nothing, no skip needs to happen
         });
     }
   }
