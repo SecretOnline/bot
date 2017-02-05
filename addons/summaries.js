@@ -3,6 +3,7 @@ const Discord = require('discord.js');
 const snoowrap = require('snoowrap');
 const github = require('github');
 const google = require('google');
+const ytdl = require('ytdl-core');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
 
@@ -20,6 +21,9 @@ let githubHelp = [
 ];
 let googleHelp = [
   'Gets the first 5 results of a Google search'
+];
+let ytHelp = [
+  'Gets info about a youtube video'
 ];
 
 class Summaries extends ScriptAddon {
@@ -48,6 +52,7 @@ class Summaries extends ScriptAddon {
     this.addCommand('reddit', this.redditSummary, redditHelp);
     this.addCommand('github', this.githubSummary, githubHelp);
     this.addCommand('google', this.googleSummary, googleHelp);
+    this.addCommand('yt', this.ytSummary, ytHelp);
   }
   
   redditSummary(input) {
@@ -241,6 +246,54 @@ class Summaries extends ScriptAddon {
           });
         });
       });
+  }
+
+  ytSummary(input) {
+    let match = input.text.match(/youtu\.?be(?:\.com)?\/(?:watch\?v=)?([\w-]+)/);
+    if (!match) {
+      throw 'you must include a youtube video link in your message';
+    }
+    let vidUrl = `https://youtube.com/watch?v=${match[1]}`;
+
+    return new Promise((resolve, reject) => {
+      ytdl.getInfo(vidUrl, (err, res) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(res);
+      });
+    })
+      .then((info) => {
+        let length = Number.parseInt(info.length_seconds);
+        let mins = Math.floor(length / 60);
+        let seconds = (mins === 0) ? length : length % (mins * 60);
+        if (seconds < 10) {
+          seconds = `0${seconds}`;
+        }
+
+        if (info.author.avatar.match(/^\/\//)) {
+          info.author.avatar = `https:${info.author.avatar}`;
+        }
+
+        let embed = new Discord.RichEmbed()
+          .setTitle(truncate(info.title, 80))
+          .setURL(vidUrl)
+          .setAuthor(info.author.name, info.author.avatar, `https://youtube.com${info.author.ref}`)
+          .setDescription(truncate(info.description, 80))
+          .setThumbnail(info.thumbnail_url)
+          .setColor('#CC181E')
+          .addField('Info', [
+            `Length: ${mins}:${seconds}`,
+            `Views: ${info.view_count}`
+          ].join('\n'));
+
+        return this.bot.send(input.message.channel, embed)
+          .then(() => {
+            return '';
+          });
+      });
+    
   }
 }
 
