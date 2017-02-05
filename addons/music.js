@@ -76,8 +76,8 @@ class Music extends ScriptAddon {
         return;
       }
 
-      let url = obj.queue.pop();
-      let stream = ytdl(url, {audioonly: true});
+      let vidUrl = obj.queue.pop();
+      let stream = ytdl(vidUrl, {audioonly: true});
       let dispatcher = obj.connection.playStream(stream);
       obj.dispatcher = dispatcher;
 
@@ -85,7 +85,7 @@ class Music extends ScriptAddon {
         dispatcher.once('start', resolve);
       });
       let infoProm = new Promise((resolve, reject) => {
-        ytdl.getInfo(url, (err, res) => {
+        ytdl.getInfo(vidUrl, (err, res) => {
           if (err) {
             reject(err);
             return;
@@ -109,7 +109,7 @@ class Music extends ScriptAddon {
 
           let embed = new Discord.RichEmbed()
             .setTitle(`Now playing: ${truncate(info.title, 80)}`)
-            .setURL(url)
+            .setURL(vidUrl)
             .setAuthor(info.author.name, info.author.avatar, `https://youtube.com${info.author.ref}`)
             .setDescription(truncate(info.description, 80))
             .setThumbnail(info.thumbnail_url)
@@ -122,7 +122,7 @@ class Music extends ScriptAddon {
           return this.bot.send(obj.textChannel, embed);
         })
         .catch((err) => {
-          this.error(`unable to send playing embed for ${url}`);
+          this.error(`unable to send playing embed for ${vidUrl}`);
         });
 
       dispatcher.on('end', () => {
@@ -147,7 +147,7 @@ class Music extends ScriptAddon {
     if (!match) {
       throw 'you must include a YouTube URL in your message';
     }
-    let url = `https://youtube.com/watch?v=${match[1]}`;
+    let vidUrl = `https://youtube.com/watch?v=${match[1]}`;
 
     let obj;
     let id = input.message.guild.id;
@@ -159,12 +159,12 @@ class Music extends ScriptAddon {
       }
 
       obj.textChannel = input.message.channel;
-      obj.queue.push(url);
+      obj.queue.push(vidUrl);
 
-      return '${url} has been added to the queue';
+      return `${vidUrl} has been added to the queue`;
     } else {
       obj = {
-        queue: [url],
+        queue: [vidUrl],
         channel: null,
         textChannel: input.message.channel,
         stream: null,
