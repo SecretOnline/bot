@@ -1134,6 +1134,9 @@ class Bot {
     if (!this.editCache.has(oldMessage.id)) {
       return;
     }
+    if (!newMessage.editedAt) {
+      return;
+    }
 
     this.editCache.delete(oldMessage.id);
 
