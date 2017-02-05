@@ -102,6 +102,9 @@ class Music extends ScriptAddon {
           let length = Number.parseInt(info.length_seconds);
           let mins = Math.floor(length / 60);
           let seconds = (mins === 0) ? length : length % (mins * 60);
+          if (seconds < 10) {
+            seconds = `0${seconds}`;
+          }
 
           if (info.author.avatar.match(/^\/\//)) {
             info.author.avatar = `https:${info.author.avatar}`;
