@@ -119,7 +119,6 @@ class Music extends ScriptAddon {
               `Views: ${info.view_count}`
             ].join('\n'));
 
-            console.log(info.author);
           return this.bot.send(obj.textChannel, embed);
         })
         .catch((err) => {
@@ -144,7 +143,7 @@ class Music extends ScriptAddon {
       throw 'please join a voice channel before trying this command';
     }
 
-    let match = input.text.match(/youtu\.?be(?:\.com)\/(?:watch\?v=)([\w-]+)/);
+    let match = input.text.match(/youtu\.?be(?:\.com)?\/(?:watch\?v=)?([\w-]+)/);
     if (!match) {
       throw 'you must include a YouTube URL in your message';
     }
