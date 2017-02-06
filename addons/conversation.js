@@ -153,7 +153,7 @@ class ConversationAddon extends ScriptAddon {
 
   onMessage(message) {
     if (message.content) {
-      let match = message.content.match(new RegExp(this.bot.discord.user.toString()));
+      let match = message.content.match(new RegExp(`^<@!?${this.bot.discord.user.id}>`));
       if (match) {
         let str;
 
