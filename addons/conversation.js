@@ -17,6 +17,7 @@ class ConversationAddon extends ScriptAddon {
     this.gunter = 0;
     this.gunterLimit = 500;
     this.gunterInterval = null;
+    this.markovChance = 0.3;
   }
 
   init() {
@@ -175,10 +176,7 @@ class ConversationAddon extends ScriptAddon {
           str = message.cleanContent; 
         }
 
-        let command = arrayRandom([
-          'markov',
-          'cb'
-        ]);
+        let command = Math.random() > this.markovChance ? 'markov' : 'cb';
 
         let input = new Input(message, this.bot, `~${command} ${str}`);
         input.process()
