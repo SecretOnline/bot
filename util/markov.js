@@ -206,7 +206,7 @@ class MarkovChain {
   static tokenize(str) {
     // Based off util/quoteSplit(), but expanded for markov use
     let arr = [];
-    let exp = /(?:([^"`({[]\S*)|\"(.*?)\"|\`(.*?)\`|\((.*?)\)|\[(.*?)\]|\{(.*?)\})\s*/g;
+    let exp = /(?:([^"`({[][^\s,.!?]*)|\"(.*?)\"|\`(.*?)\`|\((.*?)\)|\[(.*?)\]|\{(.*?)\})\s*/g;
 
     let item = exp.exec(str);
     while (item !== null) {
