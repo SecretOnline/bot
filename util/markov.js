@@ -193,6 +193,54 @@ class MarkovChain {
 
     return list;
   }
+
+  /**
+   * Splits a string into a list of tokens for use with the MarkovChain
+   * 
+   * @static
+   * @param {string} str String to split
+   * @returns {Array} List of tokens
+   * 
+   * @memberOf MarkovChain
+   */
+  static tokenize(str) {
+    // Based off util/quoteSplit(), but expanded for markov use
+    let arr = [];
+    let exp = /(?:([^"`({[]\S*)|\"(.*?)\"|\`(.*?)\`|\((.*?)\)|\[(.*?)\]|\{(.*?)\})\s*/g;
+
+    let item = exp.exec(str);
+    while (item !== null) {
+      let token;
+      let type;
+      if (item[1]) {
+        token = item[1];
+        type = 'word';
+      } else if (item[2]) {
+        token = item[2];
+        type = 'doublequote';
+      } else if (item[3]) {
+        token = item[3];
+        type = 'backquote';
+      } else if (item[4]) {
+        token = item[4];
+        type = 'bracket';
+      } else if (item[5]) {
+        token = item[5];
+        type = 'squarebracket';
+      } else if (item[6]) {
+        token = item[6];
+        type = 'brace';
+      }
+      arr.push({
+        type,
+        token
+      });
+
+      item = exp.exec(str);
+    }
+
+    return arr;
+  }
 }
 
 module.exports = MarkovChain;
