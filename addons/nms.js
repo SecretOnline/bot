@@ -22,7 +22,11 @@ class NoMansSky extends ScriptAddon {
       .filter(g => g === 'No Man\'s Sky')
       .length;
   
-    return `there are ${count} people playing No Man's Sky right now on this server`;
+    if (count) {
+      return `yes, ${count} are playing right now`;
+    } else {
+      return 'no';
+    }
   }
 }
 
