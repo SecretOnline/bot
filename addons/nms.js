@@ -14,11 +14,8 @@ class NoMansSky extends ScriptAddon {
   }
 
   isAnyonePlaying(input) {
-    let members = input.message.channel.members;
-    let count = members
-      .map((member) => {
-        return member.presence.game;
-      })
+    let count = input.message.channel.members
+      .map(m => m.presence.game)
       .filter(g => g === 'No Man\'s Sky')
       .length;
   
