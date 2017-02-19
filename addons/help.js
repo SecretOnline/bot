@@ -3,6 +3,16 @@ const Discord = require('discord.js');
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
 
+const defaultHelp = [
+  'secret_bot *help*',
+  'secret_bot v7.7.x - the con(f)spiracy update',
+  '',
+  'for a list of available commands, use `~commands` in the server you want a list for',
+  'help for individual commands can be found by using `~help <command>`',
+  '',
+  'secret_bot is written by secret_online',
+  'use `~source` for the source code'
+];
 const helpHelp = [
   'syntax: `~help [command]`',
   'finds help for the given command',
@@ -29,17 +39,20 @@ const topics = {
     'for example `~help` can take an argument (the name of a command), but doesn\'t need one, so is written like `~help [command]`',
     '`~which` requires an argument, so is written as `~which <command>` in the help'
   ],
-  groups: [
-    'command groups do what they say: they group commands together',
-    'the main benefit of this is for server admins, who can enable and disable groups',
-    'you can get a list of all commands in a group by using `~commands <group>`',
-    'to find out which group a particular command is in, use `~which <command>`. e.g. `~which help`',
+  addons: [
+    'addons are groups of commands',
+    'the main benefit of this is for server admins, who can enable and disable addons, instead of having to enable/disable individual commands',
+    'you can get a list of all commands in an addon by using `~commands <addon>`',
+    'to find out which addon adds a particular command, use `~which <command>`. e.g. `~which source` will reply with `core`, because `~source` is addec by the "core" addon',
     '',
-    'if two commands have a conflicting name, then you must use the group to identify which one to use',
-    'for example: `~faces.lenny`, `~someothergroup.lenny`',
+    'it is possible for two different commands to have the same name, but come from different addons',
+    'this generally only happens if the server owner uses `~add-command` to greate a command with the same name as an existing command',
+    'in this situation, you need to add the name of the addon followed by a dot (`.`)',
+    'e.g.: `~faces.lenny`, `~this.lenny`',
     '',
-    'each server had a hidden group of the format `<connection>.<server>`, which is used by, among others, the custom commands addon',
-    'this ensures that custom commands will always work on their server'
+    'each server has a hidden addon (the server\'s ID) which can be used with the `this` keyword',
+    'it is mainly used by the `custom` addon, which allows custom commands',
+    'this ensures that custom commands will always work on the server they were created on'
   ],
   commands: [
     'commands form the base of secret_bot',
@@ -82,12 +95,7 @@ const topics = {
     'then type `~bot-invite` to get the invite link',
     'follow the link, and select the server in the dropdown box',
     'done! secret_bot should now appear in you server\'s user list. it doesn\'t require any further setup, it will work right away',
-    '',
-    '**Other Platforms**',
-    'secret_bot doesn\'t support other platforms yet',
-    '',
-    '**Custom Connections**',
-    'more information on how to add connections to secret_bot will be coming in the future, and will appear on GitHub'
+    'more information can be found on GitHub. use `~source` to go there'
   ]
 };
 
@@ -295,16 +303,7 @@ class Help extends ScriptAddon {
         help
       ].join('\n');
     } else {
-      response = [
-        'secret_bot *help*',
-        'secret_bot v7.5.x - the con(f)spiracy update',
-        '',
-        'help for individual commands can be found by using `~help <command>`',
-        'more help topics can be found at `~help topic`',
-        '',
-        'secret_bot is written by secret_online',
-        'https://github.com/SecretOnline/bot'
-      ].join('\n');
+      response = defaultHelp.join('\n');
     }
 
     this.bot.send(input.user, response);
