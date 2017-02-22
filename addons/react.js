@@ -1,6 +1,35 @@
 const emoji = require('node-emoji');
 const ScriptAddon = require('../bot/ScriptAddon.js');
 
+const regionalIndicators = {
+  a: '🇦',
+  b: '🇧',
+  c: '🇨',
+  d: '🇩',
+  e: '🇪',
+  f: '🇫',
+  g: '🇫',
+  h: '🇭',
+  i: '🇮',
+  j: '🇯',
+  k: '🇰',
+  l: '🇱',
+  m: '🇲',
+  n: '🇳',
+  o: '🇴',
+  p: '🇵',
+  q: '🇶',
+  r: '🇷',
+  s: '🇸',
+  t: '🇹',
+  u: '🇺',
+  v: '🇻',
+  w: '🇼',
+  x: '🇽',
+  y: '🇾',
+  z: '🇿'
+};
+
 class Reactions extends ScriptAddon {
   constructor(bot) {
     super(bot, 'react');
@@ -44,7 +73,7 @@ class Reactions extends ScriptAddon {
             if (index >= letters.length) {
               return Promise.resolve();
             }
-            return message.react(emoji.get(`regional_indicator_${letters[index]}`))
+            return message.react(regionalIndicators[letters[index]])
               .then(nextLetter(index + 1));
           };
         };
