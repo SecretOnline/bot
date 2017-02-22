@@ -1,3 +1,5 @@
+let {quoteSplit} = require('../util');
+
 /**
  * An object to be used by commands
  * 
@@ -70,17 +72,7 @@ class Input {
     if (this.a) {
       return this.a;
     } else {
-      let arr = [];
-      let exp = /(?:([^\"]\S*)|\"(.*?)\")\s*/g;
-
-      let item = exp.exec(this.t);
-      while (item !== null) {
-        let words = item[1] || item[2] || '';
-        arr.push(words);
-        item = exp.exec(this.t);
-      }
-
-      this.a = arr;
+      this.a = quoteSplit(this.t);
       return this.a;
     }
   }
