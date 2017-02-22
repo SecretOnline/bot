@@ -1,4 +1,5 @@
 const ScriptAddon = require('../bot/ScriptAddon.js');
+const {arrayRandom, quoteSplit} = require('../util');
 
 const sayHelp = [
   'syntax: `~<say/raw> <text to output>`',
@@ -18,6 +19,14 @@ const rollHelp = [
 ];
 const unReverseHelp = 'takes a reversed string and puts it the right way around';
 const reverseHelp = 'takes a string and reverses the letter order';
+const randomHelp = [
+  'syntax: `~random <option> <option> [more options]`',
+  'selects one of the options given in the list',
+  'example usage:',
+  '~random Imperial Stormcloak',
+  '~random ~randomcat ~randomdog',
+  '~random "Procrastinate for a few hours" "Add commands to secret_bot" Study'
+];
 
 class Comm extends ScriptAddon {
   constructor(bot) {
@@ -32,6 +41,7 @@ class Comm extends ScriptAddon {
     this.addCommand('roll', this.getRoll, rollHelp);
     this.addCommand('reverse', this.reverse, reverseHelp);
     this.addCommand('unreverse', this.reverse, unReverseHelp);
+    this.addCommand('random', this.random, randomHelp);
   }
 
   say(input) {
@@ -94,6 +104,13 @@ class Comm extends ScriptAddon {
           }
         });
         return retString;
+      });
+  }
+
+  random(input) {
+    return input.process()
+      .then((res) => {
+        return arrayRandom(quoteSplit(res));
       });
   }
 }
