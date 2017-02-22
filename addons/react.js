@@ -40,7 +40,7 @@ class Reactions extends ScriptAddon {
   }
 
   init() {
-    this.addCommand('react-type', this.wordReaction);
+    this.addCommand('react', this.wordReaction);
   }
 
   wordReaction(input) {
