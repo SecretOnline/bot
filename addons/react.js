@@ -1,3 +1,4 @@
+const emoji = require('node-emoji');
 const ScriptAddon = require('../bot/ScriptAddon.js');
 
 class Reactions extends ScriptAddon {
@@ -10,7 +11,49 @@ class Reactions extends ScriptAddon {
   }
 
   init() {
+    this.addCommand('react-type', this.wordReaction);
+  }
 
+  wordReaction(input) {
+    return input.process()
+      .then((res) => {
+        let letters = res.toLowerCase().match(/[a-z]/g);
+        if (letters.length > 20) {
+          throw 'reactions can\'t be longer than 20 characters';
+        }
+        let set = new Set(letters);
+        if (letters.length !== set.size) {
+          throw 'reactions can\'t have duplicate letters';
+        }
+
+        return letters;
+      })
+      .then((letters) => {
+        let ms = input.message.channel.messages.array();
+        if (ms.length < 2) {
+          throw 'secret_bot can\'t find the last message';
+        }
+        let message = ms[ms.length - 2];
+        if (!message) {
+          throw 'can\'t find message to react to';
+        }
+
+        // Function that returns a function for a Promise
+        let nextLetter = (index) => {
+          return () => {
+            if (index >= letters.length) {
+              return Promise.resolve();
+            }
+            return message.react(emoji.get(`regional_indicator_${letters[index]}`))
+              .then(nextLetter(index + 1));
+          };
+        };
+
+        return new Promise(nextLetter(0));
+      })
+      .then(() => {
+        return ''; // Don't send a message
+      });
   }
 }
 
