@@ -4,6 +4,7 @@ const snoowrap = require('snoowrap');
 const github = require('github');
 const google = require('google');
 const ytdl = require('ytdl-core');
+const ytsearch = require('youtube-node');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
 
@@ -24,6 +25,9 @@ let googleHelp = [
 ];
 let ytHelp = [
   'Gets info about a youtube video'
+];
+let ytSearchHelp = [
+  'Finds the first video in the search results for the given terms'
 ];
 
 class Summaries extends ScriptAddon {
@@ -46,6 +50,9 @@ class Summaries extends ScriptAddon {
         'user-agent': 'secret_bot/7.x.x - by @secret_online'
       }
     });
+
+    this.youtube = new ytsearch();
+    this.youtube.setKey(this.conf.google.key);
   }
 
   init() {
@@ -53,6 +60,7 @@ class Summaries extends ScriptAddon {
     this.addCommand('github', this.githubSummary, githubHelp);
     this.addCommand('google', this.googleSummary, googleHelp);
     this.addCommand('yt', this.ytSummary, ytHelp);
+    this.addCommand('youtube', this.ytSearch, ytSearchHelp);
   }
   
   redditSummary(input) {
@@ -294,6 +302,29 @@ class Summaries extends ScriptAddon {
           });
       });
     
+  }
+
+  ytSearch(input) {
+    return input.process()
+      .then((text) => {
+        if (!text) {
+          throw 'you must provide text to search';
+        }
+
+        return new Promise((resolve, reject) => {
+          this.youtube.search(text, 1, (err, res) => {
+            if (err) {
+              reject(err);
+              return;
+            }
+
+            resolve(res.items[0]);
+          });
+        });  
+      })
+      .then((info) => {
+        return `https://www.youtube.com/watch?v=${info.id.videoId}`;
+      });
   }
 }
 
