@@ -149,59 +149,63 @@ class Music extends ScriptAddon {
   }
 
   requestSong(input) {
-    if (!this.checkEnabled(input.message.guild)) {
-      throw 'music is not enabled on this server';
-    }
+    return input.process()
+      .then((res) => {
+        if (!this.checkEnabled(input.message.guild)) {
+          throw 'music is not enabled on this server';
+        }
 
-    let voiceChannel = input.message.member.voiceChannel;
-    if (!voiceChannel) {
-      throw 'please join a voice channel before trying this command';
-    }
+        let voiceChannel = input.message.member.voiceChannel;
+        if (!voiceChannel) {
+          throw 'please join a voice channel before trying this command';
+        }
 
-    let match = input.text.match(/youtu\.?be(?:\.com)?\/(?:watch\?v=)?([\w-]+)/);
-    if (!match) {
-      throw 'you must include a YouTube URL in your message';
-    }
-    let vidUrl = `https://youtube.com/watch?v=${match[1]}`;
+        let match = res.match(/youtu\.?be(?:\.com)?\/(?:watch\?v=)?([\w-]+)/);
+        if (!match) {
+          throw 'you must include a YouTube URL in your message';
+        }
+        let vidUrl = `https://youtube.com/watch?v=${match[1]}`;
 
-    let obj;
-    let id = input.message.guild.id;
-    if (this.queues.has(id)) {
-      obj = this.queues.get(id);
+        let obj;
+        let id = input.message.guild.id;
+        if (this.queues.has(id)) {
+          obj = this.queues.get(id);
 
-      if (obj.channel && (voiceChannel.id !== obj.channel.id)) {
-        throw 'please join the channel that secret_bot is already in';
-      }
+          if (obj.channel && (voiceChannel.id !== obj.channel.id)) {
+            throw 'please join the channel that secret_bot is already in';
+          }
 
-      obj.textChannel = input.message.channel;
-      obj.queue.push(vidUrl);
+          obj.textChannel = input.message.channel;
+          obj.queue.push(vidUrl);
 
-      return `${vidUrl} has been added to the queue`;
-    } else {
-      obj = {
-        queue: [vidUrl],
-        channel: null,
-        textChannel: input.message.channel,
-        stream: null,
-        connection: null,
-        dispatcher: null,
-        nowPlaying: null,
-        skipUsers: []
-      };
-      this.queues.set(id, obj);
-      
-      return voiceChannel.join()
-        .then((conn) => {
-          obj.connection = conn;
-          obj.channel = voiceChannel;
-        })
-        .then(() => {
-          return this.advanceQueue(id);
-        })
-        .then(() => {
-          return ''; // All going well, an embed will be sent to the server
-        });
-    }
+          return `${vidUrl} has been added to the queue`;
+        } else {
+          obj = {
+            queue: [vidUrl],
+            channel: null,
+            textChannel: input.message.channel,
+            stream: null,
+            connection: null,
+            dispatcher: null,
+            nowPlaying: null,
+            skipUsers: []
+          };
+          this.queues.set(id, obj);
+          
+          return voiceChannel.join()
+            .then((conn) => {
+              obj.connection = conn;
+              obj.channel = voiceChannel;
+            })
+            .then(() => {
+              return this.advanceQueue(id);
+            })
+            .then(() => {
+
+              return ''; // All going well, an embed will be sent to the server
+            });
+        }
+      });
   }
 
   checkSkip(id) {
