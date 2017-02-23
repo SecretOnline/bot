@@ -99,7 +99,6 @@ class Music extends ScriptAddon {
         `Views: ${info.view_count}`
       ].join('\n'));
 
-      console.log(embed);
     return embed;
   }
 
@@ -138,7 +137,6 @@ class Music extends ScriptAddon {
           return this.bot.send(obj.textChannel, embed);
         })
         .catch((err) => {
-          console.error(err);
           this.error(`unable to send playing embed for ${vidUrl}`);
         });
 
