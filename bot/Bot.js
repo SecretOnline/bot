@@ -1020,8 +1020,19 @@ class Bot {
     }
 
     // If a development channel is specified, restrict to just that
-    if (this.conf.dev && this.conf.dev.channel && (this.conf.dev.channel !== message.channel.id)) {
-      return false;
+    // If dev mode is false, block that channel
+    if (this.conf.dev) {
+      if (this.conf.dev.enabled) {
+        // Block unless in channel
+        if (this.conf.dev.channel && (this.conf.dev.channel !== message.channel.id)) {
+          return false;
+        }
+      } else {
+        // Block only if in channel
+        if (this.conf.dev.channel && (this.conf.dev.channel === message.channel.id)) {
+          return false;
+        }
+      }
     }
 
     let prefix = this.getConfig('default').prefix;
