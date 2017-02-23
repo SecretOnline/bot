@@ -16,8 +16,10 @@ class Music extends ScriptAddon {
     this.addCommand('enable-music', this.enableServer, Command.PermissionLevels.OVERLORD);
     this.addCommand('disable-music', this.disableServer, Command.PermissionLevels.ADMIN);
     this.addCommand('request', this.requestSong);
+    this.addCommand('current-song', this.currentSong);
     this.addCommand('vote-skip', this.voteSkip);
     this.addCommand('skip', this.justSkip, Command.PermissionLevels.ADMIN);
+    this.addCommand('clear-queue', this.justStop, Command.PermissionLevels.ADMIN);
 
     this.bot.discord.on('voiceStateUpdate', this.onVoiceState.bind(this));
   }
@@ -61,6 +63,46 @@ class Music extends ScriptAddon {
     return 'music has been disabled on this server';
   }
 
+  getVideoInfo(vidUrl) {
+    return new Promise((resolve, reject) => {
+      ytdl.getInfo(vidUrl, (err, res) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(res);
+      });
+    });
+  }
+
+  createVideoEmbed(info) {
+    let length = Number.parseInt(info.length_seconds);
+    let mins = Math.floor(length / 60);
+    let seconds = (mins === 0) ? length : length % (mins * 60);
+    if (seconds < 10) {
+      seconds = `0${seconds}`;
+    }
+
+    if (info.author.avatar.match(/^\/\//)) {
+      info.author.avatar = `https:${info.author.avatar}`;
+    }
+
+    let embed = new Discord.RichEmbed()
+      .setTitle(`Now playing: ${truncate(info.title, 80)}`)
+      .setURL(`https://youtube.com/watch?v=${info.video_id}`)
+      .setAuthor(info.author.name, info.author.avatar, `https://youtube.com${info.author.ref}`)
+      .setDescription(truncate(info.description, 80))
+      .setThumbnail(info.thumbnail_url)
+      .setColor('#CC181E')
+      .addField('Info', [
+        `Length: ${mins}:${seconds}`,
+        `Views: ${info.view_count}`
+      ].join('\n'));
+
+      console.log(embed);
+    return embed;
+  }
+
   advanceQueue(id) {
     return new Promise((resolve, reject) => {
       let obj = this.queues.get(id);
@@ -76,7 +118,7 @@ class Music extends ScriptAddon {
         return;
       }
 
-      let vidUrl = obj.queue.pop();
+      let vidUrl = obj.queue.shift();
       let stream = ytdl(vidUrl, {audioonly: true});
       let dispatcher = obj.connection.playStream(stream);
       obj.dispatcher = dispatcher;
@@ -84,47 +126,19 @@ class Music extends ScriptAddon {
       let startProm = new Promise((resolve, reject) => {
         dispatcher.once('start', resolve);
       });
-      let infoProm = new Promise((resolve, reject) => {
-        ytdl.getInfo(vidUrl, (err, res) => {
-          if (err) {
-            reject(err);
-            return;
-          }
-          resolve(res);
-        });
-      });
+      let embedProm = this.getVideoInfo(vidUrl)
+        .then(this.createVideoEmbed);
 
       Promise.all([
         startProm,
-        infoProm
+        embedProm
       ])
-        .then(([start, info]) => {
-          let length = Number.parseInt(info.length_seconds);
-          let mins = Math.floor(length / 60);
-          let seconds = (mins === 0) ? length : length % (mins * 60);
-          if (seconds < 10) {
-            seconds = `0${seconds}`;
-          }
-
-          if (info.author.avatar.match(/^\/\//)) {
-            info.author.avatar = `https:${info.author.avatar}`;
-          }
-
-          let embed = new Discord.RichEmbed()
-            .setTitle(`Now playing: ${truncate(info.title, 80)}`)
-            .setURL(vidUrl)
-            .setAuthor(info.author.name, info.author.avatar, `https://youtube.com${info.author.ref}`)
-            .setDescription(truncate(info.description, 80))
-            .setThumbnail(info.thumbnail_url)
-            .setColor('#CC181E')
-            .addField('Info', [
-              `Length: ${mins}:${seconds}`,
-              `Views: ${info.view_count}`
-            ].join('\n'));
-
+        .then(([start, embed]) => {
+          obj.nowPlaying = vidUrl;
           return this.bot.send(obj.textChannel, embed);
         })
         .catch((err) => {
+          console.error(err);
           this.error(`unable to send playing embed for ${vidUrl}`);
         });
 
@@ -173,6 +187,7 @@ class Music extends ScriptAddon {
         stream: null,
         connection: null,
         dispatcher: null,
+        nowPlaying: null,
         skipUsers: []
       };
       this.queues.set(id, obj);
@@ -242,6 +257,29 @@ class Music extends ScriptAddon {
     
     let obj = this.queues.get(id);
     obj.dispatcher.end();
+  }
+
+  justStop(input) {
+    let id = input.message.guild.id;
+    if (!this.queues.has(id)) {
+      throw 'no music is playing right now';
+    }
+    
+    let obj = this.queues.get(id);
+    obj.queue = [];
+    obj.dispatcher.end();
+  }
+
+  currentSong(input) {
+    let id = input.message.guild.id;
+    if (!this.queues.has(id)) {
+      throw 'no music is playing right now';
+    }
+
+    let obj = this.queues.get(id);
+
+    return this.getVideoInfo(obj.nowPlaying)
+      .then(this.createVideoEmbed);
   }
 
   onVoiceState(oldMember, newMember) {
