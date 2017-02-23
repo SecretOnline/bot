@@ -257,21 +257,25 @@ class Summaries extends ScriptAddon {
   }
 
   ytSummary(input) {
-    let match = input.text.match(/youtu\.?be(?:\.com)?\/(?:watch\?v=)?([\w-]+)/);
-    if (!match) {
-      throw 'you must include a youtube video link in your message';
-    }
-    let vidUrl = `https://youtube.com/watch?v=${match[1]}`;
-
-    return new Promise((resolve, reject) => {
-      ytdl.getInfo(vidUrl, (err, res) => {
-        if (err) {
-          reject(err);
-          return;
+    return input.process()
+      .then((res) => {
+        let match = res.match(/youtu\.?be(?:\.com)?\/(?:watch\?v=)?([\w-]+)/);
+        if (!match) {
+          throw 'you must include a youtube video link in your message';
         }
-        resolve(res);
-      });
-    })
+        return `https://youtube.com/watch?v=${match[1]}`;
+      })
+      .then((vidUrl) => {
+        return new Promise((resolve, reject) => {
+          ytdl.getInfo(vidUrl, (err, res) => {
+            if (err) {
+              reject(err);
+              return;
+            }
+            resolve(res);
+          });
+        });
+      })
       .then((info) => {
         let length = Number.parseInt(info.length_seconds);
         let mins = Math.floor(length / 60);
@@ -286,7 +290,7 @@ class Summaries extends ScriptAddon {
 
         let embed = new Discord.RichEmbed()
           .setTitle(truncate(info.title, 80))
-          .setURL(vidUrl)
+          .setURL(`https://youtube.com/watch?v=${info.video_id}`)
           .setAuthor(info.author.name, info.author.avatar, `https://youtube.com${info.author.ref}`)
           .setDescription(truncate(info.description, 80))
           .setThumbnail(info.thumbnail_url)
