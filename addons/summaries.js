@@ -38,7 +38,7 @@ class Summaries extends ScriptAddon {
     this.conf = this.getConfig('default');
 
     this.snoo = new snoowrap({
-      userAgent: 'nodejs:secret_bot:7.x.x (by /u/secret_online)',
+      userAgent: 'nodejs:secret_bot:8.x.x (by /u/secret_online)',
       clientId: this.conf.reddit.id,
       clientSecret: this.conf.reddit.secret,
       refreshToken: this.conf.reddit.refresh,
@@ -47,7 +47,7 @@ class Summaries extends ScriptAddon {
 
     this.github = new github({
       headers: {
-        'user-agent': 'secret_bot/7.x.x - by @secret_online'
+        'user-agent': 'secret_bot/8.x.x - by @secret_online'
       }
     });
 

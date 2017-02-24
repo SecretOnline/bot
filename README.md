@@ -162,6 +162,9 @@ secret_online: ~remove-command example-command
 
 I haven't ever had a good versioning system, so numbers are based on major events in the bot's lifetime.
 
+* **8.x.x**  
+  Added some breaking changes to commands  
+  Thought I'd bump the version number to reflect that  
 * **7.x.x**  
   Only works on Discord, so it can use Discord features better  
   Better addon configuration  
