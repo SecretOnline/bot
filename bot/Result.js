@@ -70,6 +70,7 @@ class Result {
   
   /**
    * Adds an item to the Result
+   * Strings will overwrite the existing text, embeds get appended
    * 
    * @param {(string|Discord.RichEmbed)} item
    * @returns {boolean}
@@ -78,7 +79,7 @@ class Result {
    */
   add(item) {
     if (typeof item === 'string') {
-      this._text += ` ${item}`;
+      this._text = item;
     } else if (item instanceof Discord.RichEmbed) {
       this.embeds.push(item);
     } else {
