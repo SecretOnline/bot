@@ -45,11 +45,14 @@ class Comm extends ScriptAddon {
   }
 
   say(input) {
-    return input.process();
+    return input.process()
+      .then((res) => {
+        return res.text;
+      });
   }
 
   raw(input) {
-    return input.raw;
+    return input.text;
   }
 
   /*
