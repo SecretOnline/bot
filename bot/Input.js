@@ -13,18 +13,17 @@ class Input {
    * 
    * @param {Discord.Message} message Message that this input stems from
    * @param {Bot} bot
-   * @param {string} [text=message.content] Override text
    * @param {Result} [result=null] Result object to use
+   * @param {InputOverride} [override=null] Override object
    * 
    * @memberOf Input
    */
-  constructor(message, bot, text = message.content, result = null, override = null) {
+  constructor(message, bot, result = null, override = null) {
     this.m = message;
-    this.t = text;
     this.b = bot;
     this.a = null;
     this.r = result || new Result();
-    this.o = override || new InputOverride(text, message.author, message.channel);
+    this.o = override || new InputOverride(message.content, message.author, message.channel);
   }
 
   //region Properties
@@ -38,7 +37,7 @@ class Input {
    * @memberOf Input
    */
   get text() {
-    return this.t;
+    return this.o.text;
   }
 
   /**
@@ -62,7 +61,19 @@ class Input {
    * @memberOf Input
    */
   get user() {
-    return this.m.author;
+    return this.o.user;
+  }
+
+  /**
+   * Channel the message was sent from
+   * 
+   * @readonly
+   * @returns {Discord.TextBasedChannel} User the original Message was sent by
+   * 
+   * @memberOf Input
+   */
+  get channel() {
+    return this.o.channel;
   }
 
   /**
@@ -77,7 +88,7 @@ class Input {
     if (this.a) {
       return this.a;
     } else {
-      this.a = quoteSplit(this.t);
+      this.a = quoteSplit(this.text);
       return this.a;
     }
   }
@@ -97,7 +108,7 @@ class Input {
     return new Promise((resolve, reject) => {
       var quickReturn = true;
       var output = '';
-      var words = this.t.split(' ');
+      var words = this.text.split(' ');
 
       // Iterate over all words
       for (var i = 0; i < words.length; i++) {
@@ -116,7 +127,8 @@ class Input {
             newStr = words.splice(i + 1).join(' ');
           }
           // Make new command object and run it
-          var newIn = this.from(newStr);
+          let over = new InputOverride(newStr);
+          var newIn = this.from(over);
           comm.run(newIn)
             .then((result) => {
               if (result instanceof Result) {
@@ -164,13 +176,19 @@ class Input {
   /**
    * Creates a new Input based on this one, but with new text
    * 
-   * @param {string} text Text for new Input
+   * @param {InputOverride} override Overriding information for the new Input
    * @returns {Input} New Input object
    * 
    * @memberOf Input
    */
-  from(text) {
-    return new Input(this.m, this.b, text, this.r);
+  from(override) {
+    // TODO: Remove deprecated option
+    if ((!(override instanceof InputOverride))) {
+      console.warn('use of Input.from(<string>) is deprecated. use Input.from(<Input.Override>) instead');
+      let over = new InputOverride(override);
+      return new Input(this.m, this.b, this.r, this.o.merge(over));
+    }
+    return new Input(this.m, this.b, this.r, this.o.merge(override));
   }
 
   //endregion
