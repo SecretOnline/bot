@@ -1186,7 +1186,18 @@ class Bot {
       // Send successful result to the origin
       .then((result) => {
         if (result) {
-          return this.send(newMessage.channel, result);
+          let destination = result.private ? newMessage.author : newMessage.channel;
+          let functions = [];
+          if (result.text) {
+            functions.push(() => {this.send(destination, result.text);});
+          }
+          result.embeds.forEach((embed) => {
+            functions.push(() => {this.send(destination, embed);});
+          });
+
+          if (functions.length) {
+            return promiseChain(functions);
+          }
         }
       })
       // Catch sending errors
