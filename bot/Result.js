@@ -81,7 +81,7 @@ class Result {
     if (typeof item === 'string') {
       this._text = item;
     } else if (item instanceof Discord.RichEmbed) {
-      this.embeds.push(item);
+      this._embeds.push(item);
     } else {
       return false;
     }

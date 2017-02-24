@@ -123,7 +123,9 @@ class Input {
           comm.run(newIn)
             .then((result) => {
               if (result instanceof Result) {
-                this.r.merge(result);
+                if (result !== this.r) {
+                  this.r.merge(result);
+                }
               } else if (typeof result === 'string') {
                 if (output) {
                   this.r.add(`${output} ${result}`);
@@ -131,6 +133,9 @@ class Input {
                   this.r.add(result);
                 }
               } else if (result instanceof Discord.RichEmbed) {
+                if (output) {
+                  this.r.add(`${this.r.text} ${output}`);
+                }
                 this.r.add(result);
               }
 
