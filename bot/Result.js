@@ -12,6 +12,7 @@ class Result {
     this._text = '';
     this._parts = null;
     this._updated = false;
+    this._private = false;
   }
 
   /**
@@ -54,7 +55,27 @@ class Result {
       return this._parts;
     }
   }
+
+  /**
+   * Whether this Result should be sent as a private message
+   * 
+   * @readonly
+   * @returns {boolean}
+   * 
+   * @memberOf Result
+   */
+  get private() {
+    return this._private;
+  }
   
+  /**
+   * Adds an item to the Result
+   * 
+   * @param {(string|Discord.RichEmbed)} item
+   * @returns {boolean}
+   * 
+   * @memberOf Result
+   */
   add(item) {
     if (typeof item === 'string') {
       this._text += ` ${item}`;
@@ -67,6 +88,13 @@ class Result {
     return true;
   }
 
+  /**
+   * Adds items from given Result to this one
+   * 
+   * @param {any} result
+   * 
+   * @memberOf Result
+   */
   merge(result) {
     if (!(result instanceof Result)) {
       throw 'unable to merge non-Result object';
@@ -80,6 +108,16 @@ class Result {
         this.add(embed);
       });
     }
+  }
+
+  /**
+   * Sets this Result as being private
+   * Note: this is irreversible 
+   * 
+   * @memberOf Result
+   */
+  setPrivate() {
+    this._private = true;
   }
 
   /**
