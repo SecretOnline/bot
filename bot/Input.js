@@ -1,3 +1,5 @@
+let Discord = require('discord.js');
+let Result = require('./Result');
 let {quoteSplit} = require('../util');
 
 /**
@@ -12,14 +14,20 @@ class Input {
    * @param {Discord.Message} message Message that this input stems from
    * @param {Bot} bot
    * @param {string} [text=message.content] Override text
+   * @param {Result} [result=null] Result object to use
    * 
    * @memberOf Input
    */
-  constructor(message, bot, text = message.content) {
+  constructor(message, bot, text = message.content, result = null) {
     this.m = message;
     this.t = text;
     this.b = bot;
     this.a = null;
+    if (result) {
+      this.r = result;
+    } else {
+      this.r = new Result();
+    }
   }
 
   //region Properties
@@ -90,20 +98,6 @@ class Input {
    */
   process() {
     return new Promise((resolve, reject) => {
-      /**
-       * Adds result to end of string and Resolves
-       * 
-       * @param {string} res String to append
-       */
-      function appendResult(res) {
-        if (output) {
-          output += ` ${res}`;
-        } else {
-          output = res;
-        }
-        resolve(output);
-      }
-
       var quickReturn = true;
       var output = '';
       var words = this.t.split(' ');
@@ -127,10 +121,18 @@ class Input {
           // Make new command object and run it
           var newIn = this.from(newStr);
           comm.run(newIn)
-            .then(appendResult, reject);
+            .then((result) => {
+              if (result instanceof Result) {
+                this.r.merge(result);
+              } else if ((typeof result === 'string') || (result instanceof Discord.RichEmbed)) {
+                this.r.add(result);
+              }
+
+              resolve(this.r);
+            }, reject);
 
           // Since command encountered, stop here
-          break;
+          return;
         } else {
           // If no command found, add word to string
           if (output) {
@@ -141,8 +143,12 @@ class Input {
         }
       }
 
+      if (output) {
+        this.r.add(output);
+      }
+
       if (quickReturn) {
-        resolve(output);
+        resolve(this.r);
       }
     });
   }
@@ -156,7 +162,7 @@ class Input {
    * @memberOf Input
    */
   from(text) {
-    return new Input(this.m, this.b, text);
+    return new Input(this.m, this.b, text, this.r);
   }
 
   //endregion
