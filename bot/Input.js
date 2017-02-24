@@ -18,16 +18,13 @@ class Input {
    * 
    * @memberOf Input
    */
-  constructor(message, bot, text = message.content, result = null) {
+  constructor(message, bot, text = message.content, result = null, override = null) {
     this.m = message;
     this.t = text;
     this.b = bot;
     this.a = null;
-    if (result) {
-      this.r = result;
-    } else {
-      this.r = new Result();
-    }
+    this.r = result || new Result();
+    this.o = override || new InputOverride(text, message.author, message.channel);
   }
 
   //region Properties
@@ -178,6 +175,80 @@ class Input {
 
   //endregion
 
+  //region Static
+  
+  static get Override() {
+    return InputOverride;
+  }
+  
+  //endregion
+}
+
+/**
+ * An override for an Input's data
+ * 
+ * @class InputOverride
+ */
+class InputOverride {
+  /**
+   * Creates an instance of InputOverride.
+   * 
+   * @param {string} [text=null]
+   * @param {(Discord.User|Discord.GuildMember)} [user=null]
+   * @param {(Discord.DMChannel|Discord.TextChannel)} [channel=null]
+   * 
+   * @memberOf InputOverride
+   */
+  constructor(text = null, user = null, channel = null) {
+    this._text = text;
+    this._user = user;
+    this._channel = channel;
+  }
+
+  /**
+   * Text of this override
+   * 
+   * @readonly
+   * 
+   * @memberOf InputOverride
+   */
+  get text() {
+    return this._text;
+  }
+
+  /**
+   * User of this override
+   * 
+   * @readonly
+   * 
+   * @memberOf InputOverride
+   */
+  get user() {
+    return this._user;
+  }
+
+  /**
+   * Channel of this override
+   * 
+   * @readonly
+   * 
+   * @memberOf InputOverride
+   */
+  get channel() {
+    return this._channel;
+  }
+
+  merge(override) {
+    if (override.text !== null) {
+      this._text = override.text;
+    }
+    if (override.user !== null) {
+      this._user = override.user;
+    }
+    if (override.channel !== null) {
+      this._channel = override.channel;
+    }
+  }  
 }
 
 module.exports = Input;
