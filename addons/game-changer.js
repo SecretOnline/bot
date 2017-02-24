@@ -34,7 +34,7 @@ class GameChange extends ScriptAddon {
     if (input.text) {
       return input.process()
         .then((result) => {
-          this.set(result);
+          this.set(result.text);
 
           clearTimeout(this.timeout);
 

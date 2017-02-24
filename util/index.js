@@ -4,6 +4,7 @@ const truncate = require('./truncate.js');
 const arrayRandom = require('./arrayRandom.js');
 const MarkovChain = require('./markov.js');
 const quoteSplit = require('./quoteSplit.js');
+const promiseChain = require('./promiseChain.js');
 
 module.exports = {
   promprint,
@@ -11,5 +12,6 @@ module.exports = {
   truncate,
   arrayRandom,
   MarkovChain,
-  quoteSplit
+  quoteSplit,
+  promiseChain
 };

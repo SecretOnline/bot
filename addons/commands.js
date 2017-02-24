@@ -45,11 +45,14 @@ class Comm extends ScriptAddon {
   }
 
   say(input) {
-    return input.process();
+    return input.process()
+      .then((res) => {
+        return res.text;
+      });
   }
 
   raw(input) {
-    return input.raw;
+    return input.text;
   }
 
   /*
@@ -62,7 +65,7 @@ class Comm extends ScriptAddon {
         var regexSymbolWithCombiningMarks = /(<%= allExceptCombiningMarks %>)(<%= combiningMarks %>+)/g;
         var regexSurrogatePair = /([\uD800-\uDBFF])([\uDC00-\uDFFF])/g;
         // Step 1: deal with combining marks and astral symbols (surrogate pairs)
-        result = result
+        let text = result.text
           // Swap symbols with their combining marks so the combining marks go first
           .replace(regexSymbolWithCombiningMarks, function($0, $1, $2) {
             // Reverse the combining marks so they will end up in the same order
@@ -73,9 +76,9 @@ class Comm extends ScriptAddon {
           .replace(regexSurrogatePair, '$2$1');
         // Step 2: reverse the code units in the string
         var ret = '';
-        var index = result.length;
+        var index = text.length;
         while (index--) {
-          ret += result.charAt(index);
+          ret += text.charAt(index);
         }
         return ret;
       });
@@ -85,7 +88,7 @@ class Comm extends ScriptAddon {
     return input.process()
       .then((result) => {
         var retString = '';
-        result.split().forEach(function(roll) {
+        result.text.split().forEach(function(roll) {
           if (roll.match(/\d+d\d+/)) {
             var rSplit = roll.split('d');
             var fResult = 0;
@@ -110,7 +113,7 @@ class Comm extends ScriptAddon {
   random(input) {
     return input.process()
       .then((res) => {
-        return arrayRandom(quoteSplit(res));
+        return arrayRandom(quoteSplit(res.text));
       });
   }
 }

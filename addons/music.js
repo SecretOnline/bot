@@ -160,7 +160,7 @@ class Music extends ScriptAddon {
           throw 'please join a voice channel before trying this command';
         }
 
-        let match = res.match(/youtu\.?be(?:\.com)?\/(?:watch\?v=)?([\w-]+)/);
+        let match = res.text.match(/youtu\.?be(?:\.com)?\/(?:watch\?v=)?([\w-]+)/);
         if (!match) {
           throw 'you must include a YouTube URL in your message';
         }

@@ -46,7 +46,7 @@ class Reactions extends ScriptAddon {
   wordReaction(input) {
     return input.process()
       .then((res) => {
-        let letters = res.toLowerCase().match(/[a-z]/g);
+        let letters = res.text.toLowerCase().match(/[a-z]/g);
         if (letters.length > 20) {
           throw 'reactions can\'t be longer than 20 characters';
         }

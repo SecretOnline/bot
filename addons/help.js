@@ -2,10 +2,11 @@ const Discord = require('discord.js');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
+const Result = require('../bot/Result.js');
 
 const defaultHelp = [
   'secret_bot *help*',
-  'secret_bot v7.7.x - the con(f)spiracy update',
+  'secret_bot v8.0.0 - the resulting update',
   '',
   'for a list of available commands, use `~commands` in the server you want a list for',
   'help for individual commands can be found by using `~help <command>`',
@@ -217,9 +218,10 @@ class Help extends ScriptAddon {
 
       });
 
-    this.bot.send(input.user, embed);
-    // Don't send anything to server channel
-    return '';
+    let result = new Result();
+    result.setPrivate();
+    result.add(embed);
+    return result;
   }
 
   getHelp(input) {
@@ -306,8 +308,10 @@ class Help extends ScriptAddon {
       response = defaultHelp.join('\n');
     }
 
-    this.bot.send(input.user, response);
-    return '';
+    let result = new Result();
+    result.setPrivate();
+    result.add(this.bot.embedify(response));
+    return result;
   }
 }
 

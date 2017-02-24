@@ -23,7 +23,7 @@ class Flip extends ScriptAddon {
   getFlip(input) {
     return input.process()
       .then((result) => {
-        return Flip.flip(result);
+        return Flip.flip(result.text);
       });
   }
 
