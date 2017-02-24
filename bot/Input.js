@@ -124,7 +124,13 @@ class Input {
             .then((result) => {
               if (result instanceof Result) {
                 this.r.merge(result);
-              } else if ((typeof result === 'string') || (result instanceof Discord.RichEmbed)) {
+              } else if (typeof result === 'string') {
+                if (output) {
+                  this.r.add(`${output} ${result}`);
+                } else {
+                  this.r.add(result);
+                }
+              } else if (result instanceof Discord.RichEmbed) {
                 this.r.add(result);
               }
 
