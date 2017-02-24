@@ -16,6 +16,7 @@ class Test extends ScriptAddon {
     this.addCommand('http-status-code', this.httpStatus, Command.PermissionLevels.OVERLORD);
     this.addCommand('dump-log', this.dumpLog, Command.PermissionLevels.OVERLORD);
     this.addCommand('args', this.args, Command.PermissionLevels.OVERLORD);
+    this.addCommand('embedify', this.embedify, Command.PermissionLevels.OVERLORD);
   }
 
   deinit() {
@@ -30,7 +31,7 @@ class Test extends ScriptAddon {
     return input.process()
       .then((result) => {
         return new Promise((resolve, reject) => {
-          reject(result);
+          reject(result.text);
         });
       });
   }
@@ -55,6 +56,13 @@ class Test extends ScriptAddon {
 
   args(input) {
     return JSON.stringify(input.args);
+  }
+
+  embedify(input) {
+    return input.process()
+      .then((res) => {
+        return this.bot.embedify(res.text);
+      });
   }
 }
 

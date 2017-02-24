@@ -20,28 +20,28 @@ class Latin extends ScriptAddon {
   getSecretText(input) {
     return input.process()
       .then((result) => {
-        return this.getSecretLatin(result);
+        return this.getSecretLatin(result.text);
       });
   }
 
   getTrkText(input) {
     return input.process()
       .then((result) => {
-        return this.getTrkLatin(result);
+        return this.getTrkLatin(result.text);
       });
   }
 
   getJadenText(input) {
     return input.process()
       .then((result) => {
-        return this.toTitleCase(result);
+        return this.toTitleCase(result.text);
       });
   }
 
   getAlvvText(input) {
     return input.process()
       .then((result) => {
-        return this.getAlvvLatin(result);
+        return this.getAlvvLatin(result.text);
       });
   }
 

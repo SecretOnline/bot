@@ -2,6 +2,7 @@ const Discord = require('discord.js');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
+const Result = require('../bot/Result.js');
 
 const defaultHelp = [
   'secret_bot *help*',
@@ -217,9 +218,10 @@ class Help extends ScriptAddon {
 
       });
 
-    this.bot.send(input.user, embed);
-    // Don't send anything to server channel
-    return '';
+    let result = new Result();
+    result.setPrivate();
+    result.add(embed);
+    return result;
   }
 
   getHelp(input) {
@@ -306,8 +308,10 @@ class Help extends ScriptAddon {
       response = defaultHelp.join('\n');
     }
 
-    this.bot.send(input.user, response);
-    return '';
+    let result = new Result();
+    result.setPrivate();
+    result.add(this.bot.embedify(response));
+    return result;
   }
 }
 

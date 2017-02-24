@@ -190,9 +190,9 @@ class Summaries extends ScriptAddon {
     return input.process()
       .then((result) => {
         return new Promise((resolve, reject) => {
-          let match = result.match(githubRegex);
+          let match = result.text.match(githubRegex);
           if (!match) {
-            reject(`${result} isn't a github url`);
+            reject(`${result.text} isn't a github url`);
             return;
           }
 
@@ -233,7 +233,7 @@ class Summaries extends ScriptAddon {
     return input.process()
       .then((res) => {
         return new Promise((resolve, reject) => {
-          google(res, (err, result) => {
+          google(res.text, (err, result) => {
             if (err) {
               reject('google search failed');
               return;
@@ -241,7 +241,7 @@ class Summaries extends ScriptAddon {
 
             let embed = new Discord.RichEmbed()
               .setColor('#34A853')
-              .setAuthor(res, 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png');
+              .setAuthor(res.text, 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png');
 
             result.links
               .filter(item => item.title && item.href)
@@ -259,7 +259,7 @@ class Summaries extends ScriptAddon {
   ytSummary(input) {
     return input.process()
       .then((res) => {
-        let match = res.match(/youtu\.?be(?:\.com)?\/(?:watch\?v=)?([\w-]+)/);
+        let match = res.text.match(/youtu\.?be(?:\.com)?\/(?:watch\?v=)?([\w-]+)/);
         if (!match) {
           throw 'you must include a youtube video link in your message';
         }
@@ -310,7 +310,8 @@ class Summaries extends ScriptAddon {
 
   ytSearch(input) {
     return input.process()
-      .then((text) => {
+      .then((res) => {
+        let text = res.text;
         if (!text) {
           throw 'you must provide text to search';
         }

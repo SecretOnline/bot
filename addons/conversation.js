@@ -4,7 +4,7 @@ const Input = require('../bot/Input.js');
 const Logger = require('../bot/Logger.js');
 
 const cleverbot = require('cleverbot.io');
-const {MarkovChain, arrayRandom} = require('../util');
+const {MarkovChain} = require('../util');
 
 class ConversationAddon extends ScriptAddon {
   constructor(bot) {
@@ -182,13 +182,13 @@ class ConversationAddon extends ScriptAddon {
         input.process()
           // Send successful result to the origin
           .then((result) => {
-            if (result) {
+            if (result.text) {
               if (isGunter) {
-                result = `${message.author.toString()} ${result}`;
-                return message.channel.sendMessage(result, {disableEveryone: true});
+                result = `${message.author.toString()} ${result.text}`;
+                return message.channel.sendMessage(result.text, {disableEveryone: true});
               }
 
-              return this.bot.send(message.channel, result);
+              return this.bot.send(message.channel, result.text);
             }
           })
           // Catch sending errors

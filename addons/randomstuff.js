@@ -141,7 +141,7 @@ class RandomStuff extends ScriptAddon {
     return input.process()
       .then((res) => {
         return new Promise((resolve, reject) => {
-          let parts = res.split(' ');
+          let parts = res.args;
           if (!parts.length) {
             reject('you need to specify which method of FOAAS you want to use. use `~help foaas` for more information');
             return;
