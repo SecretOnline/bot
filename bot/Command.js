@@ -147,19 +147,19 @@ class Command {
             let channel = input.message.channel instanceof Discord.TextChannel ? input.message.channel.toString() : 'private message';
 
             let replacement = str
-              .replace(/{args}/g, res)
+              .replace(/{args}/g, res.text)
               .replace(/{channel}/g, channel)
               .replace(/{server}/g, server)
               .replace(/{user}/g, input.user.toString());
 
             if (!str.match(/{args}/)) {
-              return `${replacement} ${res}`;
+              return `${replacement} ${res.text}`;
             }
 
             return replacement;
           } else {
-            if (res) {
-              return `${str} ${res}`;
+            if (res.text) {
+              return `${str} ${res.text}`;
             } else {
               return str;
             }
