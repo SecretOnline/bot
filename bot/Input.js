@@ -1,6 +1,6 @@
 let Discord = require('discord.js');
 let Result = require('./Result');
-let {quoteSplit} = require('../util');
+let {quoteSplit, firstNotNull} = require('../util');
 
 /**
  * An object to be used by commands
@@ -209,7 +209,7 @@ class Input {
  */
 class InputOverride {
   /**
-   * Creates an instance of InputOverride.
+   * Creates an instance of InputOverride
    * 
    * @param {string} [text=null]
    * @param {(Discord.User|Discord.GuildMember)} [user=null]
@@ -256,16 +256,20 @@ class InputOverride {
     return this._channel;
   }
 
+  /**
+   * Returns a new override based on this, but with features from the given override
+   * 
+   * @param {InputOverride} override A new Override
+   * @returns
+   * 
+   * @memberOf InputOverride
+   */
   merge(override) {
-    if (override.text !== null) {
-      this._text = override.text;
-    }
-    if (override.user !== null) {
-      this._user = override.user;
-    }
-    if (override.channel !== null) {
-      this._channel = override.channel;
-    }
+    return new InputOverride(
+      firstNotNull(override.text, this.text),
+      firstNotNull(override.user, this.user),
+      firstNotNull(override.channel, this.channel)
+    );
   }  
 }
 
