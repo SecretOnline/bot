@@ -109,6 +109,9 @@ class Result {
         this.add(embed);
       });
     }
+    if (result.private) {
+      this.setPrivate();
+    }
   }
 
   /**
