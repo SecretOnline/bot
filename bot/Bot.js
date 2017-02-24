@@ -9,7 +9,7 @@ const Command = require('./Command.js');
 const Input = require('./Input.js');
 const Logger = require('./Logger.js');
 
-const util = require('../util');
+const {promprint, promiseChain} = require('../util');
 
 /**
  * The main class of the bot
@@ -142,9 +142,9 @@ class Bot {
    */
   reloadConnections() {
     return this._closeConnections()
-      .then(util.promprint('[BOT] loading connections'))
+      .then(promprint('[BOT] loading connections'))
       .then(this._openConnections.bind(this))
-      .then(util.promprint('[BOT] loaded connections'));
+      .then(promprint('[BOT] loaded connections'));
   }
 
   /**
@@ -1095,7 +1095,18 @@ class Bot {
       // Send successful result to the origin
       .then((result) => {
         if (result) {
-          return this.send(message.channel, result);
+          let destination = result.private ? message.author : message.channel;
+          let functions = [];
+          if (result.text) {
+            functions.push(() => {this.send(destination, result.text);});
+          }
+          result.embeds.forEach((embed) => {
+            functions.push(() => {this.send(destination, embed);});
+          });
+
+          if (functions.length) {
+            return promiseChain(functions);
+          }
         }
       })
       // Catch sending errors
