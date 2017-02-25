@@ -507,14 +507,18 @@ class Bot {
     // TODO: Check whether s_b can actually use embeds
 
     if (target instanceof Result) {
-      let result = target;
-      let destination = result.private ? message.author : message.channel;
+      let result = message;
+
+      if (result.private && !(target instanceof Discord.User)) {
+        return Promise.reject('Private Result is not being sent to a User');
+      }
+
       let functions = [];
       if (result.text) {
-        functions.push(() => {return this.send(destination, result.text);});
+        functions.push(() => {return this.send(target, result.text);});
       }
       result.embeds.forEach((embed) => {
-        functions.push(() => {return this.send(destination, embed);});
+        functions.push(() => {return this.send(target, embed);});
       });
 
       if (functions.length) {
@@ -1117,7 +1121,8 @@ class Bot {
       // Send successful result to the origin
       .then((result) => {
         if (result) {
-          this.send(result);
+          let target = result.private ? message.author : message.channel;
+          this.send(target, result);
         }
       })
       // Catch sending errors
@@ -1197,7 +1202,8 @@ class Bot {
       // Send successful result to the origin
       .then((result) => {
         if (result) {
-          this.send(result);
+          let target = result.private ? newMessage.author : newMessage.channel;
+          this.send(target, result);
         }
       })
       // Catch sending errors
