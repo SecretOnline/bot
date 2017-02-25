@@ -1,3 +1,5 @@
+const Emoji = require('node-emoji');
+const emojiRegex = require('emoji-regex');
 const InputOverride = require('./InputOverride');
 
 /**
@@ -13,9 +15,30 @@ class ReAction {
    * 
    * @memberOf ReAction
    */
-  constructor(input, action) {
+  constructor(emoji, description, input, action) {
+    this._description = description;
     this._input = input;
     this._action = action;
+
+    // Check string to make sure it's all emoji
+    if (emoji.match(emojiRegex())[0] === emoji) {
+      this._emoji = emoji;
+    } else {
+      let e = Emoji.get(emoji);
+      if (e) {
+        this._emoji = e;
+      } else {
+        throw `${emoji} was not found to be an emoji`;
+      }
+    }
+  }
+
+  get emoji() {
+    return this._emoji;
+  }
+
+  get description() {
+    return this._description;
   }
   
   act(user, channel) {
@@ -45,9 +68,6 @@ class ReAction {
     return prom
       .catch((err) => {
         if (err) {
-          // Don't set edit cache
-          // Edits only work once
-
           if (typeof err === 'string') {
             let embed = this.embedify(err)
               .setFooter('edits will no longer work for this message');
