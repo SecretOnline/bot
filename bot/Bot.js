@@ -37,6 +37,7 @@ class Bot {
     this._discord = new Discord.Client();
 
     this.editCache = new Map();
+    this.reactions = new Map();
 
     this.logger = new Logger(this, this.conf.paths.logs);
   }
@@ -986,6 +987,7 @@ class Bot {
   _openConnections() {
     this._discord.on('message', this._onMessage.bind(this));
     this._discord.on('messageUpdate', this._onEdit.bind(this));
+    this._discord.on('messageReactionAdd', this._onReactAdd.bind(this));
     this.log('Logging in', 'djs');
     return this._discord.login(this.conf.login.token)
       .then(() => {
@@ -1207,6 +1209,22 @@ class Bot {
           }
         }
       });
+  }
+
+
+  /**
+   * Event handler for the 'messageReactionAdd' event
+   * 
+   * @param {Discord.MessageReaction} messageReaction
+   * @param {Discord.User} user
+   * 
+   * @memberOf Bot
+   */
+  _onReactAdd(messageReaction, user) {
+    // Only do stuff for reactions we actually have
+    if (this.reactions.has(messageReaction.message.id)) {
+
+    }
   }
 
   //endregion
