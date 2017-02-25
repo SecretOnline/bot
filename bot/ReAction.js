@@ -20,6 +20,7 @@ class ReAction {
   
   act(user, channel) {
     let str;
+    let prom;
     let over = new InputOverride('', user, channel);
 
     if (typeof this._action === 'string') {
@@ -29,15 +30,39 @@ class ReAction {
       if (typeof fRes === 'string') {
         str = fRes;
       } else if (fRes instanceof Promise) {
-        return fRes;
+        prom = fRes;
       }
     }
 
-    over = over.merge(new InputOverride(str));
+    if (!prom && str !== undefined) {
+      over = over.merge(new InputOverride(str));
+      prom = this._input
+        .from(over)
+        .process();
+    }
 
-    return this._input
-      .from(over)
-      .process();
+
+    return prom
+      .catch((err) => {
+        if (err) {
+          // Don't set edit cache
+          // Edits only work once
+
+          if (typeof err === 'string') {
+            let embed = this.embedify(err)
+              .setFooter('edits will no longer work for this message');
+
+            this.send(over.user, embed, true);
+          } else if (err instanceof Error) {
+            this.error(err);
+          }
+        }
+      })
+      .then((result) => {
+        if (result) {
+          this._input.bot.send(result);
+        }
+      });
   }
 }
 
