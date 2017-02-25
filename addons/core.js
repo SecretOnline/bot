@@ -3,6 +3,11 @@ const Discord = require('discord.js');
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
 
+// const time = 2 * 1000;
+const gameChangeTime = 30 * 60 * 1000;
+// const variation = 1 * 1000;
+const gameChangeVariation = 10 * 60 * 1000;
+
 const enablerHelp = [
   'syntax: `~<enable/disable>-addon <addon name>`',
   'the `enable/disable-addon` commands allow you to add and remove command groups from your server'
@@ -35,6 +40,11 @@ class Core extends ScriptAddon {
     super(bot, 'core');
 
     this.desc = 'Contains commands that are important for the bot\'s functionality';
+
+    this.games = this.getConfig('default').games;
+    this.timeout;
+
+    this.pickRandomGame();
   }
 
   init() {
@@ -47,6 +57,7 @@ class Core extends ScriptAddon {
     this.addCommand('disable-addon', this.removeFromServer, Command.PermissionLevels.ADMIN, enablerHelp);
     this.addCommand('allow-channel', this.addToFilter, Command.PermissionLevels.ADMIN, channelFilterHelp);
     this.addCommand('disallow-channel', this.removeFromFilter, Command.PermissionLevels.ADMIN, channelFilterHelp);
+    this.addCommand('change-game', this.changeGame, Command.PermissionLevels.OVERLORD);
   }
 
   doReload(input) {
@@ -263,6 +274,52 @@ class Core extends ScriptAddon {
     });
 
     return `removed ${channels.map(c=>c.toString()).join(', ')} from the list of allowed channels`;
+  }
+
+  updateGamesList(data) {
+    try {
+      this.games = JSON.parse(data);
+      this.log('loaded games');
+    } catch (e) {
+      this.games = this.games || [];
+    }
+  }
+
+  changeGame(input) {
+    if (input.text) {
+      return input.process()
+        .then((result) => {
+          this.setGameText(result.text);
+
+          clearTimeout(this.timeout);
+
+          return `set game to ${result.text}`;
+        });
+    } else {
+      if (this.timeout) {
+        clearTimeout(this.timeout);
+      }
+      this.pickRandomGame();
+      return 'going back to random games';
+    }
+  }
+
+  pickRandomGame() {
+    if (this.games.length === 0) {
+      throw new Error('no games to choose');
+    }
+
+    var game = this.games[Math.floor(Math.random() * this.games.length)];
+
+    var vary = Math.floor((Math.random() * gameChangeVariation * 2) - gameChangeVariation);
+    this.timeout = setTimeout(this.pickRandomGame.bind(this), gameChangeTime + vary);
+
+    this.setGameText(game);
+  }
+
+  setGameText(game) {
+    this.log(`set game to ${game}`);
+    this.bot.discord.user.setGame(game);
   }
 }
 
