@@ -8,6 +8,7 @@ const ScriptAddon = require('./ScriptAddon.js');
 const Command = require('./Command.js');
 const Input = require('./Input.js');
 const Logger = require('./Logger.js');
+const Result = require('./Result.js');
 
 const {promprint, promiseChain} = require('../util');
 
@@ -493,7 +494,7 @@ class Bot {
   /**
    * Sends a message to a target
    * 
-   * @param {Discord.Channel} target Target to send the message to
+   * @param {(Discord.Channel|Result)} target Target to send the message to OR Result to be sent
    * @param {(string|Discord.RichEmbed)} message Message to send to the target
    * @param {boolean} [error=false] Whether this message is an error
    * @param {boolean} [disableEveryone=true] Whether @everyone mentions should be disabled
@@ -503,6 +504,25 @@ class Bot {
    */
   send(target, message, error = false, disableEveryone = true) {
     // TODO: Check whether s_b can actually use embeds
+
+    if (target instanceof Result) {
+      let result = target;
+      let destination = result.private ? message.author : message.channel;
+      let functions = [];
+      if (result.text) {
+        functions.push(() => {return this.send(destination, result.text);});
+      }
+      result.embeds.forEach((embed) => {
+        functions.push(() => {return this.send(destination, embed);});
+      });
+
+      if (functions.length) {
+        return promiseChain(functions);
+      } else {
+        return Promise.resolve();
+      }
+    }
+
     let embed;
     let text = '';
     let isEmbed = false;
@@ -1095,18 +1115,7 @@ class Bot {
       // Send successful result to the origin
       .then((result) => {
         if (result) {
-          let destination = result.private ? message.author : message.channel;
-          let functions = [];
-          if (result.text) {
-            functions.push(() => {this.send(destination, result.text);});
-          }
-          result.embeds.forEach((embed) => {
-            functions.push(() => {this.send(destination, embed);});
-          });
-
-          if (functions.length) {
-            return promiseChain(functions);
-          }
+          this.send(result);
         }
       })
       // Catch sending errors
@@ -1186,18 +1195,7 @@ class Bot {
       // Send successful result to the origin
       .then((result) => {
         if (result) {
-          let destination = result.private ? newMessage.author : newMessage.channel;
-          let functions = [];
-          if (result.text) {
-            functions.push(() => {this.send(destination, result.text);});
-          }
-          result.embeds.forEach((embed) => {
-            functions.push(() => {this.send(destination, embed);});
-          });
-
-          if (functions.length) {
-            return promiseChain(functions);
-          }
+          this.send(result);
         }
       })
       // Catch sending errors
