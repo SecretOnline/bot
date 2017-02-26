@@ -21,10 +21,14 @@ class ReAction {
     this._action = action;
 
     // Check string to make sure it's all emoji
-    if (emoji.match(emojiRegex())[0] === emoji) {
+    let match = emoji.match(emojiRegex());
+    if (match && match[0] === emoji) {
       this._emoji = emoji;
     } else {
       let e = Emoji.get(emoji);
+      if (e.match(/^:.*:$/)) {
+        throw `${emoji} isn't in the emoji dictionary`;
+      }
       if (e) {
         this._emoji = e;
       } else {
@@ -35,6 +39,10 @@ class ReAction {
 
   get emoji() {
     return this._emoji;
+  }
+
+  get emojiName() {
+    return Emoji.which(this._emoji);
   }
 
   get description() {
