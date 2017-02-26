@@ -10,13 +10,13 @@ const {quoteSplit} = require('../util');
  * @class Result
  */
 class Result {
-  constructor() {
+  constructor(isPrivate) {
     this._embeds = [];
     this._reactions = [];
     this._text = '';
     this._parts = null;
     this._updated = false;
-    this._private = false;
+    this._private = !!isPrivate; // Explicit boolean cast
   }
 
   /**

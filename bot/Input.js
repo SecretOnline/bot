@@ -195,6 +195,9 @@ class Input {
    * @memberOf Input
    */
   from(override, result) {
+    if (result && this.r.private) {
+      result.setPrivate();
+    }
     // TODO: Remove deprecated option
     if ((!(override instanceof InputOverride))) {
       console.warn('use of Input.from(<string>) is deprecated. use Input.from(<Input.Override>) instead');
