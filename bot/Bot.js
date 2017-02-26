@@ -506,20 +506,46 @@ class Bot {
   send(target, message, error = false, disableEveryone = true) {
     // TODO: Check whether s_b can actually use embeds
 
-    if (target instanceof Result) {
+    if (message instanceof Result) {
       let result = message;
+      let functions = [];
 
       if (result.private && !(target instanceof Discord.User)) {
         return Promise.reject('Private Result is not being sent to a User');
       }
 
-      let functions = [];
       if (result.text) {
         functions.push(() => {return this.send(target, result.text);});
       }
+
       result.embeds.forEach((embed) => {
         functions.push(() => {return this.send(target, embed);});
       });
+
+      if (result.reactions.length) {
+        let desc = result.reactions.map(r => `${r.emoji}: ${r.description}`).join('\n');
+        let embed = new Discord.RichEmbed()
+          .setTitle('Actions')
+          .setDescription(desc);
+        
+        functions.push(() => {
+          return this.send(target, embed)
+            .then((message) => {
+              let reactionMap = new Map();
+              result.reactions.forEach((reaction) => {
+                reactionMap.set(reaction.emojiName, reaction);
+              });
+
+              this.reactions.set(message.id, reactionMap);
+              return message;
+            })
+            .then((message) => {
+              return promiseChain(result.reactions.map((reaction) => {
+                return () => {return message.react(reaction.emoji);};
+              }));
+            });
+        });
+      }
 
       if (functions.length) {
         return promiseChain(functions);

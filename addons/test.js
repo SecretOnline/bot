@@ -1,5 +1,6 @@
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
+const ReAction = require('../bot/ReAction.js');
 
 const request = require('../util').request;
 
@@ -17,6 +18,7 @@ class Test extends ScriptAddon {
     this.addCommand('dump-log', this.dumpLog, Command.PermissionLevels.OVERLORD);
     this.addCommand('args', this.args, Command.PermissionLevels.OVERLORD);
     this.addCommand('embedify', this.embedify, Command.PermissionLevels.OVERLORD);
+    this.addCommand('add-action', this.addAction, Command.PermissionLevels.OVERLORD);
   }
 
   deinit() {
@@ -62,6 +64,15 @@ class Test extends ScriptAddon {
     return input.process()
       .then((res) => {
         return this.bot.embedify(res.text);
+      });
+  }
+
+  addAction(input) {
+    return input.process()
+      .then((res) => {
+        let action = new ReAction('ok_hand', 'Will do `~lenny`', input, '~lenny');
+        res.add(action);
+        return 'there should be an action incoming';
       });
   }
 }
