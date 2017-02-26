@@ -8,7 +8,7 @@ const ReAction = Result.ReAction;
 
 const defaultHelp = [
   'secret_bot *help*',
-  'secret_bot v8.0.0 - the resulting update',
+  'secret_bot v8.1.0 - the reactioning update',
   '',
   'for a list of available commands, use `~commands` in the server you want a list for',
   'help for individual commands can be found by using `~help <command>`',
