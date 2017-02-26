@@ -10,7 +10,7 @@ const Input = require('./Input.js');
 const Logger = require('./Logger.js');
 const Result = require('./Result.js');
 
-const {promprint, promiseChain} = require('../util');
+const {promprint, promiseChain, embedify} = require('../util');
 
 /**
  * The main class of the bot
@@ -598,38 +598,9 @@ class Bot {
    * 
    * @memberOf Bot
    */
-  embedify(message) {
-    const embed = new Discord.RichEmbed();
-    //  .setAuthor('\u200b', this._discord.user.avatarURL);
-
-    // Set embed colour
-    if (this.conf.color) {
-      embed.setColor(this.conf.color.normal);
-    }
-
-    // See if message is a link
-    // TODO: Possibly
-    // Basic url matching regex
-    let urlRegex = /(https?:\/\/(?:\w+\.?)+\/?\S*\.(?:jpe?g|png|gif(?!v)))/g;
-    let match = message.match(urlRegex);
-    if (match) {
-      // Use last image in message
-      let last = match[match.length - 1];
-      embed.setImage(last);
-
-      // If the message more than just that link, put entire message in description
-      if (message !== last) {
-        // If only message, remove the link
-        if (match.length === 1) {
-          message = message.replace(match[0], '');
-        }
-        embed.setDescription(message);
-      }
-    } else {
-      embed.setDescription(message);
-    }
-
-    return embed;
+  embedify(message, isError) {
+    let color = isError ? this.conf.color.error : this.conf.color.normal;
+    return embedify(message, color);
   }
 
   /**
