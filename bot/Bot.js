@@ -1253,9 +1253,26 @@ class Bot {
    * @memberOf Bot
    */
   _onReactAdd(messageReaction, user) {
-    // Only do stuff for reactions we actually have
-    if (this.reactions.has(messageReaction.message.id)) {
+    // Ignore our own reactions
+    if (user.id === this.discord.user.id) {
+      return;
+    }
 
+    let message = messageReaction.message;
+    // Only do stuff for reactions we actually have
+    if (this.reactions.has(message.id)) {
+      let actions = this.reactions.get(message.id);
+
+      if (!actions) {
+        return;
+      }
+
+      let reaction = Array.from(actions.values()).find(a => a.emoji === messageReaction.emoji.name);
+      if (!reaction) {
+        return;
+      }
+
+      return reaction.act(user, message.channel);
     }
   }
 
