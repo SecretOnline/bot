@@ -1,5 +1,6 @@
-let Discord = require('discord.js');
-let {quoteSplit} = require('../util');
+const Discord = require('discord.js');
+const ReAction = require('./ReAction');
+const {quoteSplit} = require('../util');
 
 /**
  * A result from a command
@@ -9,6 +10,7 @@ let {quoteSplit} = require('../util');
 class Result {
   constructor() {
     this._embeds = [];
+    this._reactions = [];
     this._text = '';
     this._parts = null;
     this._updated = false;
@@ -82,6 +84,8 @@ class Result {
       this._text = item;
     } else if (item instanceof Discord.RichEmbed) {
       this._embeds.push(item);
+    } else if (item instanceof ReAction) {
+      this._reactions.push(item);
     } else {
       return false;
     }
