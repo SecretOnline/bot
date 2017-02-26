@@ -514,24 +514,25 @@ class Bot {
         return Promise.reject('Private Result is not being sent to a User');
       }
 
+      let textEmbed;
+      let textEmbedFunction;
       if (result.text) {
-        functions.push(() => {return this.send(target, result.text);});
+        textEmbed = this.embedify(result.text);
       }
 
-      result.embeds.forEach((embed) => {
-        functions.push(() => {return this.send(target, embed);});
-      });
-
       if (result.reactions.length) {
+        if (!textEmbed) {
+          textEmbed = new Discord.RichEmbed();
+        }
+
         let desc = result.reactions.map(r => `${r.emoji}: ${r.description}`).join('\n');
-        let embed = new Discord.RichEmbed()
-          .setTitle('Actions')
+
+        textEmbed.setFooter('you can only use each Action once')
           .setColor(this.conf.color.action)
-          .setDescription(desc)
-          .setFooter('you can only use each Action once');
-        
-        functions.push(() => {
-          return this.send(target, embed)
+          .addField('\u200b', desc);
+
+        textEmbedFunction = () => {
+          return this.send(target, textEmbed)
             .then((message) => {
               let reactionMap = new Map();
               result.reactions.forEach((reaction) => {
@@ -552,7 +553,23 @@ class Bot {
                 return () => {return message.react(reaction.emoji);};
               }));
             });
-        });
+        };
+      } else {
+        textEmbedFunction = () => {return this.send(target, textEmbed);};
+      }
+
+      result.embeds.forEach((embed) => {
+        functions.push(embed);
+      });
+
+      if (textEmbed) {
+        // If there's text, send this embed first
+        // Otherwise, send it last
+        if (result.text) {
+          functions.unshift(textEmbedFunction);
+        } else {
+          functions.push(textEmbedFunction);
+        }
       }
 
       if (functions.length) {
