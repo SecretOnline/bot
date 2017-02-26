@@ -2,6 +2,7 @@ const ytdl = require('ytdl-core');
 const Discord = require('discord.js');
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
+const Result = require('../bot/Result.js');
 
 const {truncate} = require('../util');
 
@@ -134,7 +135,14 @@ class Music extends ScriptAddon {
       ])
         .then(([start, embed]) => {
           obj.nowPlaying = vidUrl;
-          return this.bot.send(obj.textChannel, embed);
+          let res = new Result();
+          res.add(embed);
+          if (obj.queue.length > 0) {
+            res.add(new Result.ReAction('arrow_forward', 'skip to the next song', obj.input, '~vote-skip'));
+          } else {
+            res.add(new Result.ReAction('⏹', 'finish current music queue', obj.input, '~vote-skip'));
+          }
+          return this.bot.send(obj.textChannel, res);
         })
         .catch((err) => {
           this.error(`unable to send playing embed for ${vidUrl}`);
@@ -177,10 +185,12 @@ class Music extends ScriptAddon {
 
           obj.textChannel = input.message.channel;
           obj.queue.push(vidUrl);
+          obj.input = input;
 
           return `${vidUrl} has been added to the queue`;
         } else {
           obj = {
+            input: input,
             queue: [vidUrl],
             channel: null,
             textChannel: input.message.channel,
@@ -245,7 +255,11 @@ class Music extends ScriptAddon {
     return this.checkSkip(id)
       .then(() => {
         obj.skipUsers = [];
-        return 'Skipping to the next song';
+        if (obj.queue.length > 0) {
+          return 'skipping to the next song';
+        } else {
+          return 'finishing music queue';
+        }
       }, () => {
         return 'vote registered';
       });

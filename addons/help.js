@@ -2,7 +2,9 @@ const Discord = require('discord.js');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
+const {Override} = require('../bot/Input.js');
 const Result = require('../bot/Result.js');
+const ReAction = Result.ReAction;
 
 const defaultHelp = [
   'secret_bot *help*',
@@ -226,6 +228,7 @@ class Help extends ScriptAddon {
 
   getHelp(input) {
     let response;
+    let actions = [];
 
     if (input.text) {
       let prefix = this.bot.getConfig('default').prefix;
@@ -254,7 +257,8 @@ class Help extends ScriptAddon {
       if (comm) {
         header.push(`addon: ${comm.addon.namespace}`);
 
-        help = comm.help(input.from(''));
+        let over = new Override('');
+        help = comm.help(input.from(over, new Result(true))); // Give a fresh result to avoid mutation
         // Return on empty string. Allows for a no-response
         if (help === '') {
           return '';
@@ -306,11 +310,16 @@ class Help extends ScriptAddon {
       ].join('\n');
     } else {
       response = defaultHelp.join('\n');
+      actions.push(new ReAction('mag_right', 'view the source code for secret_bot', input, '~source'));
+      actions.push(new ReAction('page_facing_up', 'view a list of help topics', input, '~help topic'));
     }
 
     let result = new Result();
     result.setPrivate();
     result.add(this.bot.embedify(response));
+    actions.forEach((action) => {
+      result.add(action);
+    });
     return result;
   }
 }

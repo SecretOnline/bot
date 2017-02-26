@@ -2,6 +2,8 @@ const Discord = require('discord.js');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
+const {Override} = require('../bot/Input.js');
+
 
 const enablerHelp = [
   'syntax: `~<enable/disable>-addon <addon name>`',
@@ -132,7 +134,8 @@ class Core extends ScriptAddon {
       }
     }
 
-    return input.from(`${prefix}summaries.github ${sourceLink}`)
+    let over = new Override(`${prefix}summaries.github ${sourceLink}`);
+    return input.from(over)
       .process()
       .catch(() => {
         return sourceLink;

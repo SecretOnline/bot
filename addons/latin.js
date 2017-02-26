@@ -1,4 +1,5 @@
 const ScriptAddon = require('../bot/ScriptAddon.js');
+const {Override} = require('../bot/Input.js');
 
 class Latin extends ScriptAddon {
   constructor(bot) {
@@ -46,12 +47,14 @@ class Latin extends ScriptAddon {
   }
 
   getMessText(input) {
-    return input.from(`~secret_latin ~trk_latin ~jaden_latin ${input.text}`)
+    let over = new Override(`~secret_latin ~trk_latin ~jaden_latin ${input.text}`);
+    return input.from(over)
       .process();
   }
 
   getFuckText(input) {
-    return input.from(`~flip ~ohdear_latin ${input.text}`)
+    let over = new Override(`~flip ~ohdear_latin ${input.text}`);
+    return input.from(over)
       .process();
   }
 
