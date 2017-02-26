@@ -316,7 +316,7 @@ class Help extends ScriptAddon {
 
     let result = new Result();
     result.setPrivate();
-    result.add(this.bot.embedify(response));
+    result.add(response);
     actions.forEach((action) => {
       result.add(action);
     });

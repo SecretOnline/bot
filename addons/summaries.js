@@ -7,6 +7,7 @@ const ytdl = require('ytdl-core');
 const ytsearch = require('youtube-node');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
+const Result = require('../bot/Result.js');
 
 const truncate = require('../util').truncate;
 
@@ -103,9 +104,11 @@ class Summaries extends ScriptAddon {
 
       prom
         .then((embed) => {
-          this.bot.send(input.message.channel, embed);
-          resolve('');
-        }, reject);
+          let result = new Result();
+          result.add(embed);
+          return result;
+        })
+        .then(resolve, reject);
     });
   }
 
@@ -221,9 +224,9 @@ class Summaries extends ScriptAddon {
               .addField('Stats',`**${res.forks_count}** forks\n**${res.stargazers_count}** stars\n**${res.watchers_count}** watching`, true)
               .addField('\u200b', `Created: ${new Date(res.created_at).toDateString()}\nUpdated: ${new Date(res.pushed_at).toDateString()}\n**${res.open_issues_count}** [issues or PRs](${res.html_url}/issues)`, true);
 
-            this.bot.send(input.message.channel, embed);
-
-            resolve('');
+            let result = new Result();
+            result.add(embed);
+            resolve(result);
           });
         });
       });
@@ -250,7 +253,9 @@ class Summaries extends ScriptAddon {
                 embed.addField(item.title, `${item.href}\n ${truncate(item.description)}`);
               });
 
-            this.bot.send(input.message.channel, embed);
+            let r = new Result();
+            r.add(embed);
+            resolve(r);
           });
         });
       });
@@ -300,10 +305,9 @@ class Summaries extends ScriptAddon {
             `Views: ${info.view_count}`
           ].join('\n'));
 
-        return this.bot.send(input.message.channel, embed)
-          .then(() => {
-            return '';
-          });
+        let result = new Result();
+        result.add(embed);
+        return result;
       });
     
   }

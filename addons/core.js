@@ -124,15 +124,7 @@ class Core extends ScriptAddon {
 
   getSourceInfo(input) {
     // Try find the summary command, just for fun
-    let prefix = this.bot.getConfig('default').prefix;
-    let channel = input.message.channel;
-
-    if (channel instanceof Discord.TextChannel) {
-      let serverConf = this.bot.getConfig(input.message.guild);
-      if (serverConf.prefix) {
-        prefix = serverConf.prefix;
-      }
-    }
+    let prefix = this.bot.getConfig(input.message.guild).prefix;
 
     let over = new Override(`${prefix}summaries.github ${sourceLink}`);
     return input.from(over)

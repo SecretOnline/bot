@@ -559,7 +559,7 @@ class Bot {
       }
 
       result.embeds.forEach((embed) => {
-        functions.push(embed);
+        functions.push(() => {return this.send(target, embed);});
       });
 
       if (textEmbed) {

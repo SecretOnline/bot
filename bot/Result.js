@@ -119,9 +119,8 @@ class Result {
       throw 'unable to merge non-Result object';
     }
 
-    if (result.text) {
-      this.add(result.text);
-    }
+    this.add(result.text);
+    
     if (result.embeds.length) {
       result.embeds.forEach((embed) => {
         this.add(embed);
@@ -257,7 +256,7 @@ class ReAction {
             let embed = this._input.bot.embedify(err, true)
               .setFooter('this Action will not work again');
 
-            this._input.bot.send(over.user, embed, true);
+            this._input.bot.send(user, embed, true);
           } else if (err instanceof Error) {
             this._input.bot.error(err);
           }
