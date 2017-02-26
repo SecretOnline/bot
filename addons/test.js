@@ -1,6 +1,6 @@
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
-const ReAction = require('../bot/ReAction.js');
+const {ReAction} = require('../bot/Result.js');
 
 const request = require('../util').request;
 
