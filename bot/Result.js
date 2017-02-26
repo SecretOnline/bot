@@ -254,12 +254,12 @@ class ReAction {
       .catch((err) => {
         if (err) {
           if (typeof err === 'string') {
-            let embed = this.embedify(err)
-              .setFooter('edits will no longer work for this message');
+            let embed = this._input.bot.embedify(err, true)
+              .setFooter('this Action will not work again');
 
-            this.send(over.user, embed, true);
+            this._input.bot.send(over.user, embed, true);
           } else if (err instanceof Error) {
-            this.error(err);
+            this._input.bot.error(err);
           }
         }
       })
