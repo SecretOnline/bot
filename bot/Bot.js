@@ -537,6 +537,12 @@ class Bot {
               });
 
               this.reactions.set(message.id, reactionMap);
+
+              // Remove reactions from bot after 10 minutes
+              setTimeout(() => {
+                this.reactions.delete(message.id);
+              }, 10*60*1000);
+
               return message;
             })
             .then((message) => {
