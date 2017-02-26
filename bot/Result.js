@@ -30,6 +30,18 @@ class Result {
   }
 
   /**
+   * Array of reactions this message contains
+   * 
+   * @readonly
+   * @returns {Array<ReAction>} ReActions that can be used on this Result
+   * 
+   * @memberOf Result
+   */
+  get reactions() {
+    return this._reactions.slice();
+  }
+
+  /**
    * Text content of this Result
    * 
    * @readonly
@@ -111,6 +123,14 @@ class Result {
     if (result.embeds.length) {
       result.embeds.forEach((embed) => {
         this.add(embed);
+      });
+    }
+    if (result.reactions.length) {
+      // For every reaction...
+      result.reactions.forEach((reaction) => {
+        // ... there is an equal and equivalent reaction
+        // Not quite Newton's Third Law of Motion
+        this.add(reaction);
       });
     }
     if (result.private) {
