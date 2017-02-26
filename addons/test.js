@@ -70,8 +70,8 @@ class Test extends ScriptAddon {
   addAction(input) {
     return input.process()
       .then((res) => {
-        let action = new ReAction('ok_hand', 'Will do `~lenny`', input, '~lenny');
-        res.add(action);
+        res.add(new ReAction('ok_hand', 'Will do `~lenny`', input, '~lenny'));
+        res.add(new ReAction('thumbsdown', 'Will do `~reject you fail`', input, '~reject you fail'));
         return 'there should be an action incoming';
       });
   }
