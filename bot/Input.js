@@ -189,18 +189,19 @@ class Input {
    * Creates a new Input based on this one, but with new text
    * 
    * @param {InputOverride} override Overriding information for the new Input
+   * @param {?Result} result Result to replace with
    * @returns {Input} New Input object
    * 
    * @memberOf Input
    */
-  from(override) {
+  from(override, result) {
     // TODO: Remove deprecated option
     if ((!(override instanceof InputOverride))) {
       console.warn('use of Input.from(<string>) is deprecated. use Input.from(<Input.Override>) instead');
       let over = new InputOverride(override);
-      return new Input(this.m, this.b, this.r, this.o.merge(over));
+      return new Input(this.m, this.b, result || this.r, this.o.merge(over));
     }
-    return new Input(this.m, this.b, this.r, this.o.merge(override));
+    return new Input(this.m, this.b, result || this.r, this.o.merge(override));
   }
 
   //endregion
