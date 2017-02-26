@@ -1,5 +1,7 @@
 const Discord = require('discord.js');
-const ReAction = require('./ReAction');
+const Emoji = require('node-emoji');
+const emojiRegex = require('emoji-regex');
+const InputOverride = require('./InputOverride');
 const {quoteSplit} = require('../util');
 
 /**
@@ -156,6 +158,117 @@ class Result {
    */
   toString() {
     throw 'command has not been updated to handle Results';
+  }
+
+  /**
+   * An action to be taken when reacted to
+   * 
+   * @readonly
+   * @static
+   * 
+   * @memberOf Result
+   */
+  static get ReAction() {
+    return ReAction;
+  }
+}
+
+/**
+ * An action to be taken when reacted to
+ * 
+ * @class ReAction
+ */
+class ReAction {
+  /**
+   * Creates an instance of ReAction.
+   * 
+   * @param {(string|function)} action Action to be taken then reacted to
+   * 
+   * @memberOf ReAction
+   */
+  constructor(emoji, description, input, action) {
+    this._description = description;
+    this._input = input;
+    this._action = action;
+    this._users = [];
+
+    // Check string to make sure it's all emoji
+    let match = emoji.match(emojiRegex());
+    if (match && match[0] === emoji) {
+      this._emoji = emoji;
+    } else {
+      let e = Emoji.get(emoji);
+      if (e.match(/^:.*:$/)) {
+        throw `${emoji} isn't in the emoji dictionary`;
+      }
+      if (e) {
+        this._emoji = e;
+      } else {
+        throw `${emoji} was not found to be an emoji`;
+      }
+    }
+  }
+
+  get emoji() {
+    return this._emoji;
+  }
+
+  get emojiName() {
+    return Emoji.which(this._emoji);
+  }
+
+  get description() {
+    return this._description;
+  }
+  
+  act(user, channel) {
+    if (this._users.includes(user.id)) {
+      return;
+    }
+    this._users.push(user.id);
+
+    let str;
+    let prom;
+    let over = new InputOverride('', user, channel);
+
+    if (typeof this._action === 'string') {
+      str = this._action;
+    } else if (typeof this._action === 'function') {
+      let fRes = this._action(this._input.from(over, new Result()));
+      if (typeof fRes === 'string') {
+        str = fRes;
+      } else if (fRes instanceof Promise) {
+        prom = fRes;
+      }
+    }
+
+    if (!prom && str !== undefined) {
+      over = over.merge(new InputOverride(str));
+      prom = this._input
+        .from(over, new Result())
+        .process();
+    }
+
+
+    return prom
+      .catch((err) => {
+        if (err) {
+          if (typeof err === 'string') {
+            let embed = this.embedify(err)
+              .setFooter('edits will no longer work for this message');
+
+            this.send(over.user, embed, true);
+          } else if (err instanceof Error) {
+            this.error(err);
+          }
+        }
+      })
+      .then((result) => {
+        if (result) {
+          let target = result.private ? user : channel;
+          this._input.bot.send(target, result);
+        }
+      });
   }
 }
 
