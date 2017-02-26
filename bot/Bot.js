@@ -12,6 +12,9 @@ const Result = require('./Result.js');
 
 const {promprint, promiseChain, embedify} = require('../util');
 
+const REACTION_POINT_LIMIT = 500;
+const REACTION_POINT_INC = 200;
+
 /**
  * The main class of the bot
  * Handles Discord connections, and the creation of addons, as well as the interactions between them
@@ -38,8 +41,18 @@ class Bot {
 
     this.editCache = new Map();
     this.reactions = new Map();
+    this.reactionUsers = new Map();
 
     this.logger = new Logger(this, this.conf.paths.logs);
+
+    this.reactionUsersInterval = setInterval(() => {
+      Array.from(this.reactionUsers.entries()).forEach(([key, value]) => {
+        if (value <= 0) {
+          this.reactionUsers.delete(key);
+        }
+        this.reactionUsers.set(key, value - 1);
+      });
+    }, 1000);
   }
 
   //region Properties
@@ -1249,16 +1262,36 @@ class Bot {
    * @memberOf Bot
    */
   _onReactAdd(messageReaction, user) {
+    let message = messageReaction.message;
     // Ignore our own reactions
     if (user.id === this.discord.user.id) {
       return;
     }
+    if (user.bot) {
+      return;
+    }
 
-    let message = messageReaction.message;
-    // Only do stuff for reactions we actually have
+  // Only do stuff for reactions we actually have
     if (this.reactions.has(message.id)) {
-      let actions = this.reactions.get(message.id);
+      // Check if user has sent too many reactions
+      if (message.channel instanceof Discord.TextChannel){
+        let value;
+        if (this.reactionUsers.has(user.id)) {
+          value = this.reactionUsers.get(user.id);
+        } else {
+          value = 0;
+        }
 
+        value += REACTION_POINT_INC;
+
+        this.reactionUsers.set(user.id, value);
+      
+        if (value > REACTION_POINT_LIMIT) {
+          return this.send(user, 'in order to avoid server spamming with Actions, limits have been placed on how often you can use them', true);
+        }
+      }
+
+      let actions = this.reactions.get(message.id);
       if (!actions) {
         return;
       }
