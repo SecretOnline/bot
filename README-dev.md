@@ -23,7 +23,8 @@ You now need to add a couple of configuration files.
   "always-enabled": [] // list of addons that are always enabled
   "color": {
     "normal": "#7289DA", // color of normal replies
-    "error": "#E8261D" // color of error messages
+    "error": "#E8261D", // color of error messages
+    "action": "#FDFF88" // color of the 'ReAction' embeds
   },
   "login": {
     "token": "your discord bot token"

@@ -2,6 +2,8 @@ const Discord = require('discord.js');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
+const {Override} = require('../bot/Input.js');
+
 
 // const time = 2 * 1000;
 const gameChangeTime = 30 * 60 * 1000;
@@ -133,17 +135,10 @@ class Core extends ScriptAddon {
 
   getSourceInfo(input) {
     // Try find the summary command, just for fun
-    let prefix = this.bot.getConfig('default').prefix;
-    let channel = input.message.channel;
+    let prefix = this.bot.getConfig(input.message.guild).prefix;
 
-    if (channel instanceof Discord.TextChannel) {
-      let serverConf = this.bot.getConfig(input.message.guild);
-      if (serverConf.prefix) {
-        prefix = serverConf.prefix;
-      }
-    }
-
-    return input.from(`${prefix}summaries.github ${sourceLink}`)
+    let over = new Override(`${prefix}summaries.github ${sourceLink}`);
+    return input.from(over)
       .process()
       .catch(() => {
         return sourceLink;

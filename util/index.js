@@ -5,6 +5,8 @@ const arrayRandom = require('./arrayRandom.js');
 const MarkovChain = require('./markov.js');
 const quoteSplit = require('./quoteSplit.js');
 const promiseChain = require('./promiseChain.js');
+const firstNotNull = require('./firstNotNull.js');
+const embedify = require('./embedify.js');
 
 module.exports = {
   promprint,
@@ -13,5 +15,7 @@ module.exports = {
   arrayRandom,
   MarkovChain,
   quoteSplit,
-  promiseChain
+  promiseChain,
+  firstNotNull,
+  embedify
 };

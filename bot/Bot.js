@@ -8,8 +8,9 @@ const ScriptAddon = require('./ScriptAddon.js');
 const Command = require('./Command.js');
 const Input = require('./Input.js');
 const Logger = require('./Logger.js');
+const Result = require('./Result.js');
 
-const {promprint, promiseChain} = require('../util');
+const {promprint, promiseChain, embedify} = require('../util');
 
 /**
  * The main class of the bot
@@ -36,6 +37,7 @@ class Bot {
     this._discord = new Discord.Client();
 
     this.editCache = new Map();
+    this.reactions = new Map();
 
     this.logger = new Logger(this, this.conf.paths.logs);
   }
@@ -493,7 +495,7 @@ class Bot {
   /**
    * Sends a message to a target
    * 
-   * @param {Discord.Channel} target Target to send the message to
+   * @param {(Discord.Channel|Result)} target Target to send the message to OR Result to be sent
    * @param {(string|Discord.RichEmbed)} message Message to send to the target
    * @param {boolean} [error=false] Whether this message is an error
    * @param {boolean} [disableEveryone=true] Whether @everyone mentions should be disabled
@@ -503,6 +505,80 @@ class Bot {
    */
   send(target, message, error = false, disableEveryone = true) {
     // TODO: Check whether s_b can actually use embeds
+
+    if (message instanceof Result) {
+      let result = message;
+      let functions = [];
+
+      if (result.private && !(target instanceof Discord.User)) {
+        return Promise.reject('Private Result is not being sent to a User');
+      }
+
+      let textEmbed;
+      let textEmbedFunction;
+      if (result.text) {
+        textEmbed = this.embedify(result.text);
+      }
+
+      if (result.reactions.length) {
+        if (!textEmbed) {
+          textEmbed = new Discord.RichEmbed();
+        }
+
+        let desc = result.reactions.map(r => `${r.emoji}: ${r.description}`).join('\n');
+
+        textEmbed.setFooter('you can only use each Action once')
+          .setColor(this.conf.color.action)
+          .addField('\u200b', desc);
+
+        textEmbedFunction = () => {
+          return this.send(target, textEmbed)
+            .then((message) => {
+              let reactionMap = new Map();
+              result.reactions.forEach((reaction) => {
+                reactionMap.set(reaction.emojiName, reaction);
+              });
+
+              this.reactions.set(message.id, reactionMap);
+
+              // Remove reactions from bot after 10 minutes
+              setTimeout(() => {
+                this.reactions.delete(message.id);
+              }, 10*60*1000);
+
+              return message;
+            })
+            .then((message) => {
+              return promiseChain(result.reactions.map((reaction) => {
+                return () => {return message.react(reaction.emoji);};
+              }));
+            });
+        };
+      } else {
+        textEmbedFunction = () => {return this.send(target, textEmbed);};
+      }
+
+      result.embeds.forEach((embed) => {
+        functions.push(() => {return this.send(target, embed);});
+      });
+
+      if (textEmbed) {
+        // If there's text, send this embed first
+        // Otherwise, send it last
+        if (result.text) {
+          functions.unshift(textEmbedFunction);
+        } else {
+          functions.push(textEmbedFunction);
+        }
+      }
+
+      if (functions.length) {
+        return promiseChain(functions);
+      } else {
+        return Promise.resolve();
+      }
+    }
+
     let embed;
     let text = '';
     let isEmbed = false;
@@ -541,38 +617,9 @@ class Bot {
    * 
    * @memberOf Bot
    */
-  embedify(message) {
-    const embed = new Discord.RichEmbed();
-    //  .setAuthor('\u200b', this._discord.user.avatarURL);
-
-    // Set embed colour
-    if (this.conf.color) {
-      embed.setColor(this.conf.color.normal);
-    }
-
-    // See if message is a link
-    // TODO: Possibly
-    // Basic url matching regex
-    let urlRegex = /(https?:\/\/(?:\w+\.?)+\/?\S*\.(?:jpe?g|png|gif(?!v)))/g;
-    let match = message.match(urlRegex);
-    if (match) {
-      // Use last image in message
-      let last = match[match.length - 1];
-      embed.setImage(last);
-
-      // If the message more than just that link, put entire message in description
-      if (message !== last) {
-        // If only message, remove the link
-        if (match.length === 1) {
-          message = message.replace(match[0], '');
-        }
-        embed.setDescription(message);
-      }
-    } else {
-      embed.setDescription(message);
-    }
-
-    return embed;
+  embedify(message, isError) {
+    let color = isError ? this.conf.color.error : this.conf.color.normal;
+    return embedify(message, color);
   }
 
   /**
@@ -966,6 +1013,7 @@ class Bot {
   _openConnections() {
     this._discord.on('message', this._onMessage.bind(this));
     this._discord.on('messageUpdate', this._onEdit.bind(this));
+    this._discord.on('messageReactionAdd', this._onReactAdd.bind(this));
     this.log('Logging in', 'djs');
     return this._discord.login(this.conf.login.token)
       .then(() => {
@@ -1095,18 +1143,8 @@ class Bot {
       // Send successful result to the origin
       .then((result) => {
         if (result) {
-          let destination = result.private ? message.author : message.channel;
-          let functions = [];
-          if (result.text) {
-            functions.push(() => {this.send(destination, result.text);});
-          }
-          result.embeds.forEach((embed) => {
-            functions.push(() => {this.send(destination, embed);});
-          });
-
-          if (functions.length) {
-            return promiseChain(functions);
-          }
+          let target = result.private ? message.author : message.channel;
+          this.send(target, result);
         }
       })
       // Catch sending errors
@@ -1186,18 +1224,8 @@ class Bot {
       // Send successful result to the origin
       .then((result) => {
         if (result) {
-          let destination = result.private ? newMessage.author : newMessage.channel;
-          let functions = [];
-          if (result.text) {
-            functions.push(() => {this.send(destination, result.text);});
-          }
-          result.embeds.forEach((embed) => {
-            functions.push(() => {this.send(destination, embed);});
-          });
-
-          if (functions.length) {
-            return promiseChain(functions);
-          }
+          let target = result.private ? newMessage.author : newMessage.channel;
+          this.send(target, result);
         }
       })
       // Catch sending errors
@@ -1209,6 +1237,39 @@ class Bot {
           }
         }
       });
+  }
+
+
+  /**
+   * Event handler for the 'messageReactionAdd' event
+   * 
+   * @param {Discord.MessageReaction} messageReaction
+   * @param {Discord.User} user
+   * 
+   * @memberOf Bot
+   */
+  _onReactAdd(messageReaction, user) {
+    // Ignore our own reactions
+    if (user.id === this.discord.user.id) {
+      return;
+    }
+
+    let message = messageReaction.message;
+    // Only do stuff for reactions we actually have
+    if (this.reactions.has(message.id)) {
+      let actions = this.reactions.get(message.id);
+
+      if (!actions) {
+        return;
+      }
+
+      let reaction = Array.from(actions.values()).find(a => a.emoji === messageReaction.emoji.name);
+      if (!reaction) {
+        return;
+      }
+
+      return reaction.act(user, message.channel);
+    }
   }
 
   //endregion

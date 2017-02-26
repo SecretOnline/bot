@@ -1,6 +1,7 @@
 const url = require('url');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
+const {ReAction} = require('../bot/Result');
 const request = require('../util/').request;
 
 let uselessHelp = [
@@ -94,20 +95,38 @@ class RandomStuff extends ScriptAddon {
   }
 
   randomCat(input) {
-    return request('http://random.cat/meow')
-      .then(JSON.parse)
+    return input.process()
       .then((res) => {
-        return res.file;
+        return request('http://random.cat/meow')
+          .then(JSON.parse)
+          .then((response) => {
+            return response.file;
+          })
+          .then((imageUrl) => {
+            res.add(imageUrl);
+            res.add(new ReAction('cat', 'get another random cat', input, '~randomcat'));
+            res.add(new ReAction('dog', 'get a dog instead', input, '~randomdog'));
+            return res;
+          });
       });
   }
 
   randomDog(input) {
-    return request('http://random.dog', 'yes, i really want to bypass robots.txt')
+    return input.process()
       .then((res) => {
-        let match = res.match(/<img src='([\w-_.]+\.\w+)'/);
-        if (match) {
-          return `http://random.dog/${match[1]}`;
-        }
+        return request('http://random.dog', 'yes, i really want to bypass robots.txt')
+          .then((res) => {
+            let match = res.match(/<img src='([\w-_.]+\.\w+)'/);
+            if (match) {
+              return `http://random.dog/${match[1]}`;
+            }
+          })
+          .then((imageUrl) => {
+            res.add(imageUrl);
+            res.add(new ReAction('dog', 'get another random dog', input, '~randomdog'));
+            res.add(new ReAction('cat', 'get a cat instead', input, '~randomcat'));
+            return res;
+          });
       });
   }
 
