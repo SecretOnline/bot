@@ -526,7 +526,9 @@ class Bot {
         let desc = result.reactions.map(r => `${r.emoji}: ${r.description}`).join('\n');
         let embed = new Discord.RichEmbed()
           .setTitle('Actions')
-          .setDescription(desc);
+          .setColor(this.conf.color.action)
+          .setDescription(desc)
+          .setFooter('you can only use each Action once');
         
         functions.push(() => {
           return this.send(target, embed)
