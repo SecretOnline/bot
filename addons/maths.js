@@ -44,7 +44,7 @@ class Maths extends ScriptAddon {
       .then((res) => {
         let result;
         try {
-          result = this.maths.eval();
+          result = this.maths.eval(res.text);
           if (typeof result !== 'string') {
             result = result.toString();
           }
