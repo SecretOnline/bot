@@ -14,6 +14,14 @@ const mathsHelp = [
   '`~maths e ^ (pi * i)'
 ];
 
+const convertHelp = [
+  'converts between units',
+  'some common short-hands exist. Look at the math.js documentation for a list',
+  'examples:',
+  '`~convert 212 fahrenheit in celsius`',
+  '`~convert 88 miles/h to m/s`'
+];
+
 class Maths extends ScriptAddon {
   constructor(bot) {
     super(bot, 'maths');
@@ -26,8 +34,9 @@ class Maths extends ScriptAddon {
   }
 
   init() {
-    this.addCommand('maths', this.getMathsResult);
-    this.addCommand('math', this.getMathsResult);
+    this.addCommand('maths', this.getMathsResult, mathsHelp);
+    this.addCommand('math', this.getMathsResult, mathsHelp);
+    this.addCommand('convert', this.getMathsResult, convertHelp);
   }
 
   getMathsResult(input) {
