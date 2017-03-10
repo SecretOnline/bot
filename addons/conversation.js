@@ -2,6 +2,7 @@ const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
 const Input = require('../bot/Input.js');
 const Logger = require('../bot/Logger.js');
+const {Override} = require('../bot/Input');
 
 const cleverbot = require('cleverbot.io');
 const {MarkovChain} = require('../util');
@@ -26,9 +27,6 @@ class ConversationAddon extends ScriptAddon {
     this.addCommand('gunter', this.startGunter);
      
     this.addCommand('clear-gunter', this.clearGunter, Command.PermissionLevels.OVERLORD);
-
-    this.addCommand('<:secret_bot:275121482135240704>', this.doMarkov);
-    this.addCommand('<:gunter:275121524367687682>', this.startGunter);
 
     this.gunterInterval = setInterval(() => {
       if (this.gunter > 0) {
@@ -178,7 +176,7 @@ class ConversationAddon extends ScriptAddon {
 
         let command = Math.random() > this.markovChance ? 'markov' : 'cb';
 
-        let input = new Input(message, this.bot, `~${command} ${str}`);
+        let input = new Input(message, this.bot, null, new Override(`~${command} ${str}`));
         input.process()
           // Send successful result to the origin
           .then((result) => {
