@@ -152,7 +152,8 @@ class ConversationAddon extends ScriptAddon {
 
   onMessage(message) {
     if (message.content) {
-      let match = message.content.match(new RegExp(`^<@!?${this.bot.discord.user.id}>`));
+      // Allow mentions everywhere, but strip them at the back/front
+      let match = message.content.match(`^<@!?${this.bot.discord.user.id}> (.+)`) || message.content.match(`(.+) <@!?${this.bot.discord.user.id}>$`);
       if (match) {
         let str;
 
@@ -164,14 +165,6 @@ class ConversationAddon extends ScriptAddon {
           }
 
           this.gunter += 50;
-        }
-
-        // Allow mentions everywhere, but strip them at the back/front
-        let match = message.content.match(`^<@!?${this.bot.discord.user.id}> (.+)`) || message.content.match(`(.+) <@!?${this.bot.discord.user.id}>$`);
-        if (match) {
-          str = match[1];
-        } else {
-          str = message.cleanContent; 
         }
 
         let command = Math.random() > this.markovChance ? 'markov' : 'cb';
