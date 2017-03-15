@@ -1,6 +1,7 @@
 const ScriptAddon = require('../bot/ScriptAddon.js');
+const Result = require('../bot/Result.js');
 
-const {arrayRandom, promiseChain, embedify} = require('../util');
+const {arrayRandom, promiseChain, embedify, delay} = require('../util');
 
 const eightBallHelp = [
   'syntax: `~eightball <yes/no question>`',
@@ -35,7 +36,9 @@ const stageEmbeds = [
   '⚫🎱⚫',
   '⚫⚫🎱',
   '⚫🎱⚫',
+  initial
 ].map(embedify);
+const STAGE_DELAY = 1000;
 
 class Eightball extends ScriptAddon {
   constructor(bot) {
@@ -55,12 +58,15 @@ class Eightball extends ScriptAddon {
       .then((res) => {
         let messageProm = input.channel.send({embed: embedify(initial)});
 
-        messageProm
+        return messageProm
           .then((message) => {
             let answer = arrayRandom(eightBall);
 
             let stageFunctions = stageEmbeds.map((stage) => {
-              return () => message.edit({embed: stage});
+              return () => Promise.all([
+                message.edit({embed: stage}),
+                delay(STAGE_DELAY)
+              ]);
             });
             let startFunction = () => messageProm;
             let finalFunction = () => message.edit({embed: embedify(`${initial} ${answer}`)});
@@ -70,10 +76,10 @@ class Eightball extends ScriptAddon {
               ...stageFunctions,
               finalFunction
             ]);
-          })
-          .then(() => {
-            return '';
           });
+      })
+      .then(() => {
+        return '';
       });
   }
 }
