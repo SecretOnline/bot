@@ -56,7 +56,10 @@ class Eightball extends ScriptAddon {
   getEightball(input) {
     return input.process()
       .then((res) => {
-        let messageProm = input.channel.send({embed: embedify(initial)});
+        let messageProm = Promise.all([
+          input.channel.send({embed: embedify(initial)}),
+          delay(STAGE_DELAY)
+        ]);
 
         return messageProm
           .then((message) => {
