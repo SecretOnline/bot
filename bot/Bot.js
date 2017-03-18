@@ -201,15 +201,15 @@ class Bot {
    * 
    * @memberOf Bot
    */
-  removeCommand(trigger, group) {
+  removeCommand(trigger, addon) {
     var comm = this.commands.get(trigger);
 
     if (comm) {
       if (Array.isArray(comm)) {
-        let command = comm.find(c => c.addon.namespace === group);
+        let command = comm.find(c => c.addon.namespace === addon.namespace);
 
         if (command) {
-          if (command.addon.namespace === group) {
+          if (command.addon.namespace === addon.namespace) {
             let index = comm.indexOf(command);
             comm.splice(index, 1);
 
@@ -224,7 +224,7 @@ class Bot {
           return true;
         }
       } else {
-        if (comm.addon.namespace === group) {
+        if (comm.addon.namespace === addon.namespace) {
           this.commands.delete(trigger);
           return true;
         } else {
