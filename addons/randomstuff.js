@@ -18,8 +18,6 @@ class RandomStuff extends ScriptAddon {
     this.foaasCache = [];
     this.uselessWebTimeout = false;
     this.foaasTimeout = false;
-    this.loadUselessWeb();
-    this.loadFoaas();
 
     this.mahnaStage = 0;
   }
@@ -34,64 +32,74 @@ class RandomStuff extends ScriptAddon {
   }
 
   loadUselessWeb() {
-    request('http://www.theuselessweb.com/js/uselessweb.js?v=1')
+    return request('http://www.theuselessweb.com/js/uselessweb.js?v=1')
       .then((res) => {
         let match = res.match(/sitesList = (\[[\w\W\r\n]*?\]);/);
         if (match) {
           try {
-            let m = match[1].replace(/'/g, '"');
+            let m = match[1]
+              .replace(/'/g, '"')
+              .replace(/\/\/ \[.*\r?\n/g, '');
             this.theuselessweb = JSON.parse(m);
           } catch (e) {
             // do nothing on error
           }
         }
       }, (err) => {
-        this.log(err);
+        this.error(err);
+      })
+      .then(() => {
+        this.uselessWebTimeout = setTimeout(() => {
+          this.uselessWebTimeout = false;
+        }, 43200000);
+
+        return this.theuselessweb;
       });
-    this.uselessWebTimeout = setTimeout(() => {
-      this.uselessWebTimeout = false;
-    }, 43200000);
   }
 
   loadFoaas() {
     let reqObj = url.parse('https://www.foaas.com/operations');
     reqObj.headers = {Accept:'application/json'};
-    request(reqObj)
+    return request(reqObj)
       .then(JSON.parse)
       // Only keep those with arguments
       .then(r=>r.filter(i=>i.url.match(/\/(\w+)\//)))
       .then((res) => {
         this.foaasCache = res;
       }, (err) => {
-        this.log(err);
+        this.error(err);
+      })
+      .then(() => {
+        this.foaasTimeout = setTimeout(() => {
+          this.foaasTimeout = false;
+        }, 43200000);
+
+        return this.foaasCache;
       });
-    this.foaasTimeout = setTimeout(() => {
-      this.foaasTimeout = false;
-    }, 43200000);
   }
 
   uselessWeb(input) {
-    if (!this.uselessWebTimeout) {
-      this.loadUselessWeb();
+    let uselessReady;
+    if (this.uselessWebTimeout) {
+      uselessReady = Promise.resolve(this.theuselessweb);
+    } else {
+      uselessReady = this.loadUselessWeb();
     }
 
-    if (this.theuselessweb.length === 0) {
-      throw new Error('secret_bot is still loading The Useless Web');
-    }
+    return uselessReady
+      .then((uselessWeb) => {
+        // TODO: Add option to have flash enabled pages too
+        let arr = uselessWeb.filter(i => !i[1]);
 
-    let arr = this.theuselessweb;
+        let entry = arr[Math.floor(Math.random() * arr.length)];
 
-    // TODO: Add option to have flash enabled pages too
-    arr = this.theuselessweb.filter(i => !i[1]);
+        let res = entry[0];
+        if (entry[1]) {
+          res += ' (requires Flash)';
+        }
 
-    let entry = arr[Math.floor(Math.random() * arr.length)];
-
-    let res = entry[0];
-    if (entry[1]) {
-      res += ' (requires Flash)';
-    }
-
-    return res;
+        return res;
+      });
   }
 
   randomCat(input) {
@@ -153,21 +161,28 @@ class RandomStuff extends ScriptAddon {
   }
 
   foaas(input) {
-    if (!this.foaasTimeout) {
-      this.loadFoaas();
+    let foaasReady;
+    if (this.foaasTimeout) {
+      foaasReady = Promise.resolve(this.foaasCache);
+    } else {
+      foaasReady = this.loadFoaas();
     }
 
-    return input.process()
+    let resReady = input.process()
       .then((res) => {
+        return res.args;
+      });
+
+    return Promise.all([foaasReady, resReady])
+      .then(([foaas, parts]) => {
         return new Promise((resolve, reject) => {
-          let parts = res.args;
           if (!parts.length) {
             reject('you need to specify which method of FOAAS you want to use. use `~help foaas` for more information');
             return;
           }
 
           let type = parts.shift();
-          let service = this.foaasCache.find(a => (a.name === type) || (a.url.match(new RegExp(`^\\/${type}\\/.*$`))));
+          let service = foaas.find(a => (a.name === type) || (a.url.match(new RegExp(`^\\/${type}\\/.*$`))));
           if (!service) {
             reject('the service type was not recognised. use `~help foaas` for more information');
             return;
