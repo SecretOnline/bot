@@ -155,7 +155,7 @@ class ConversationAddon extends ScriptAddon {
       // Allow mentions everywhere, but strip them at the back/front
       let match = message.content.match(`^<@!?${this.bot.discord.user.id}> (.+)`) || message.content.match(`(.+) <@!?${this.bot.discord.user.id}>$`);
       if (match) {
-        let str;
+        let str = match[1];
 
         let isGunter = (message.author.id === '177964289091436544');
 
