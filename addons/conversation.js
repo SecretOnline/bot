@@ -175,8 +175,7 @@ class ConversationAddon extends ScriptAddon {
           .then((result) => {
             if (result.text) {
               if (isGunter) {
-                result = `${message.author.toString()} ${result.text}`;
-                return message.channel.sendMessage(result.text, {disableEveryone: true});
+                return message.channel.sendMessage(`${message.author.toString()} ${result.text}`, {disableEveryone: true});
               }
 
               return this.bot.send(message.channel, result.text);
