@@ -62,7 +62,7 @@ class Eightball extends ScriptAddon {
         ]);
 
         return messageProm
-          .then((message) => {
+          .then(([message]) => {
             let answer = arrayRandom(eightBall);
 
             let stageFunctions = stageEmbeds.map((stage) => {
