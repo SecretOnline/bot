@@ -1066,20 +1066,14 @@ class Bot {
   }
 
   /**
-   * Whether the bot should process this message
+   * Checks to see if the mesage should continue to be processed based on development mode
    * 
-   * @param {Discord.Message} message Message to test
-   * @returns {boolean} Whether this message should be sent
+   * @param {Discord.Message} message 
+   * @returns 
    * 
    * @memberOf Bot
    */
-  _shouldProcess(message) {
-    // Ignore bot messages
-    // Maybe later, allow certain bots to access certain functionality, but for now a full block
-    if (message.author.bot) {
-      return false;
-    }
-
+  _checkDevChannel(message) {
     // If a development channel is specified, restrict to just that
     // If dev mode is false, block that channel
     if (this.conf.dev) {
@@ -1094,6 +1088,24 @@ class Bot {
           return false;
         }
       }
+    }
+
+    return true;
+  }
+
+  /**
+   * Whether the bot should process this message
+   * 
+   * @param {Discord.Message} message Message to test
+   * @returns {boolean} Whether this message should be sent
+   * 
+   * @memberOf Bot
+   */
+  _shouldProcess(message) {
+    // Ignore bot messages
+    // Maybe later, allow certain bots to access certain functionality, but for now a full block
+    if (message.author.bot) {
+      return false;
     }
 
     let prefix = this.getConfig('default').prefix;
@@ -1182,6 +1194,10 @@ class Bot {
   _onMessage(message) {
     // Log everything that comes into bot
     this.log(message, message.channel);
+
+    if (!this._checkDevChannel(message)) {
+      return;
+    }
 
     this._messageToAddons(message);
 
