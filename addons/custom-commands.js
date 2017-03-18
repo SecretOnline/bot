@@ -4,6 +4,8 @@ const ScriptAddon = require('../bot/ScriptAddon.js');
 const JSONAddon = require('../bot/JSONAddon.js');
 const Command = require('../bot/Command.js');
 
+const {promiseChain} = require('../util');
+
 const commandHelp = [
   'syntax: `~add-command <command trigger> <words to output>`',
   'syntax: `~remove-command <command trigger>`',
@@ -35,6 +37,11 @@ class Custom extends ScriptAddon {
     if (this.commands) {
       promises = Object.keys(this.commands).map((server) => {
         return new Promise((resolve, reject) => {
+          if (server === 'default') {
+            resolve();
+            return;
+          }
+
           try {
             let addon = new JSONAddon(this.bot, this.commands[server], server);
             this.addons.set(server, addon);
@@ -52,25 +59,17 @@ class Custom extends ScriptAddon {
         return addons.filter(a => a);
       })
       .then((addons) => {
-        addons.forEach((addon) => {
-          this.bot._sneakAddon(addon);
+        let functions = addons.map((addon) => {
+          return () => this.bot._startAddon(addon)
+            .then(() => {
+              this.bot._sneakAddon(addon);
+            });
         });
-        return addons;
-      })
-      .then((addons) => {
-        return this.bot._initAddons(addons)
+        return promiseChain(functions)
           .then(() => {
-            return addons;
+            this.log(`loaded custom commands for ${addons.length} servers`);
           });
-      })
-      .then((addons) => {
-        this.log(`loaded custom commands for ${addons.length} servers`);
-        return addons;
       });
-  }
-
-  deinit() {
-    // Do nothing
   }
 
   addGuildCommand(input) {
