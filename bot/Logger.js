@@ -126,7 +126,7 @@ class Logger {
         } else {
           let out = `[${line.source}] ${line.message}`;
           if (line.type === 'error') {
-            out = `[ERROR]${out}`;
+            out = `[${line.source}][ERROR] ${line.message}`;
             console.error(out); // eslint-disable-line no-console
           } else {
             console.log(out); // eslint-disable-line no-console

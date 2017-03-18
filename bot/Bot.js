@@ -140,10 +140,10 @@ class Bot {
           })
           .then(this._createAddons.bind(this))
           .then(this._initAddons.bind(this))
-          .then((arr) => {
-            this.log(`loaded ${arr.length} addons`);
+          .then(() => {
+            this.log(`loaded ${this.addons.size} addons`);
+            this.log(Array.from(this.addons.keys()).join(', '));
             this.log(`${this.commands.size} commands`);
-            return arr;
           });
       });
   }
@@ -703,7 +703,6 @@ class Bot {
    */
   _loadConfig(files) {
     let promises = files.map(file => new Promise((resolve, reject) => {
-      this.log(`Loading config ${file}`);
       try {
         // Create JSONAddons for .json files'
         let match = file.match(/^(.*)\.conf\.json$/);
@@ -919,13 +918,14 @@ class Bot {
    * @memberOf Bot
    */
   _createAddons(files) {
-    let promises = files.map((file) => {
-      return new Promise((resolve, reject) => {
-        this.log(`Creating addon ${file}`);
+    this.log(`creating addons (${files.length})`);
+    let functions = files.map((file) => {
+      return () => new Promise((resolve, reject) => {
         if (file.match(/\.json$/)) {
           fs.readFile(`./${this.conf.paths.addons}${file}`, 'utf8', (err, data) => {
             if (err) {
-              this.error(`Failed to read ${file}, ${err}`);
+              this.error(`Failed to read ${file}`);
+              this.error(err);
               resolve();
               return;
             }
@@ -934,37 +934,37 @@ class Bot {
         }
         // Just require .js files
         else if (file.match(/\.js$/)) {
-          let addon;
           try {
             let AddonModule = require(`../${this.conf.paths.addons}${file}`);
-            addon = new AddonModule(this);
+            resolve(new AddonModule(this));
           } catch (err) {
+            this.error(`Failed to create addon ${file}`);
+            this.error(err);
             resolve();
-            return;
           }
-          resolve(addon);
         }
         // Default message
         else {
-          this.error(`Failed to create addon: ${file}, not a valid filetype`);
+          this.error(`${file} is not a valid filetype`);
           resolve();
           return;
         }
       })
-      .then((addon) => {
-        if (addon) {
-          if (this.addons.has(addon.namespace)) {
-            this.error(`Failed to create addon: ${file}, name ${addon.namespace} already exists`);
-            return;
-          }
+        .then((addon) => {
+          // Put addon into bot
+          if (addon) {
+            if (this.addons.has(addon.namespace)) {
+              this.error(`Failed to create addon: ${file}, name ${addon.namespace} already exists`);
+              return;
+            }
 
-          this.addons.set(addon.namespace, addon);
-          return addon;
-        }
-      });
+            this.addons.set(addon.namespace, addon);
+            return addon;
+          }
+        });
     });
-    return Promise.all(promises)
-      .then(ps => ps.filter(p => p)); // Eliminates the undefined addons
+
+    return promiseChain(functions);
   }
 
   /**
@@ -984,6 +984,26 @@ class Bot {
     this.addons.set(addon.namespace, addon);
   }
 
+  _startAddon(addon) {
+    let res;
+    try {
+      res = addon.init();
+    } catch (err) {
+      res = Promise.reject(err);
+    }
+
+    if (res instanceof Promise) {
+      return res
+        .catch((err) => {
+          this.error(`Failed to init addon ${addon.namespace}`);
+          this.error(err);
+          this.addons.delete(addon.namespace);
+        });
+    } else {
+      return Promise.resolve(res);
+    }
+  }
+
   /**
    * Initialises all the addons
    * 
@@ -992,9 +1012,18 @@ class Bot {
    * 
    * @memberOf Bot
    */
-  _initAddons(addons) {
-    let promises = addons.map(addon => addon.init());
-    return Promise.all(promises);
+  _initAddons() {
+    let addons = Array.from(this.addons.values());
+
+    this.log(`initialising addons (${addons.length})`);
+
+    let functions = addons.map((addon) => {
+      return () => {
+        return this._startAddon(addon);
+      };
+    });
+
+    return promiseChain(functions);
   }
 
   /**

@@ -45,8 +45,6 @@ class Core extends ScriptAddon {
 
     this.games = this.getConfig('default').games;
     this.timeout;
-
-    this.pickRandomGame();
   }
 
   init() {
@@ -60,6 +58,8 @@ class Core extends ScriptAddon {
     this.addCommand('allow-channel', this.addToFilter, Command.PermissionLevels.ADMIN, channelFilterHelp);
     this.addCommand('disallow-channel', this.removeFromFilter, Command.PermissionLevels.ADMIN, channelFilterHelp);
     this.addCommand('change-game', this.changeGame, Command.PermissionLevels.OVERLORD);
+
+    this.pickRandomGame();
   }
 
   doReload(input) {
