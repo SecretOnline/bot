@@ -31,13 +31,19 @@ const eightBall = [
   'Very doubtful'
 ];
 
-const initial = '🎱⚫⚫';
+const embedColor = '#292F33';
+const initialString = '🎱⚫⚫';
 const stageEmbeds = [
+  initialString,
   '⚫🎱⚫',
   '⚫⚫🎱',
   '⚫🎱⚫',
-  initial
-].map(embedify);
+  initialString
+].map((stage) => {
+  return {
+    embed: embedify(stage, embedColor)
+  };
+});
 const STAGE_DELAY = 1000;
 
 class Eightball extends ScriptAddon {
@@ -57,7 +63,7 @@ class Eightball extends ScriptAddon {
     return input.process()
       .then((res) => {
         let messageProm = Promise.all([
-          input.channel.send({embed: embedify(initial)}),
+          input.channel.send(stageEmbeds[0]),
           delay(STAGE_DELAY)
         ]);
 
@@ -65,14 +71,16 @@ class Eightball extends ScriptAddon {
           .then(([message]) => {
             let answer = arrayRandom(eightBall);
 
-            let stageFunctions = stageEmbeds.map((stage) => {
-              return () => Promise.all([
-                message.edit({embed: stage}),
-                delay(STAGE_DELAY)
-              ]);
-            });
+            let stageFunctions = stageEmbeds
+              .slice(1)
+              .map((stage) => {
+                return () => Promise.all([
+                  message.edit(stage),
+                  delay(STAGE_DELAY)
+                ]);
+              });
             let startFunction = () => messageProm;
-            let finalFunction = () => message.edit({embed: embedify(`${initial} ${answer}`)});
+            let finalFunction = () => message.edit({embed: embedify(`${initialString} ${answer}`, embedColor)});
 
             return promiseChain([
               startFunction, // Really only here for tidyness
