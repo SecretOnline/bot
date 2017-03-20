@@ -312,6 +312,7 @@ class Help extends ScriptAddon {
       response = defaultHelp.join('\n');
       actions.push(new ReAction('mag_right', 'view the source code for secret_bot', input, '~source'));
       actions.push(new ReAction('page_facing_up', 'view a list of help topics', input, '~help topic'));
+      actions.push(new ReAction('robot', 'add secret_bot to your server', input, '~bot-invite'));
     }
 
     let result = new Result();
