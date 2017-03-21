@@ -8,6 +8,7 @@ const promiseChain = require('./promiseChain.js');
 const firstNotNull = require('./firstNotNull.js');
 const embedify = require('./embedify.js');
 const delay = require('./delay.js');
+const Cooldown = require('./Cooldown.js');
 
 module.exports = {
   promprint,
@@ -19,5 +20,6 @@ module.exports = {
   promiseChain,
   firstNotNull,
   embedify,
-  delay
+  delay,
+  Cooldown
 };
