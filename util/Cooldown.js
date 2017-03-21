@@ -38,9 +38,10 @@ class Cooldown {
    * @memberOf Cooldown
    */
   bump(amount = this._bump, preCheck = true) {
-    if (amount === true) {
+    // Since amount is an optional parameter, handle the case where it's left out
+    if (amount === true || amount === false) {
+      preCheck = amount;
       amount = this._bump;
-      preCheck = true;
     }
 
     let current = this.update();
