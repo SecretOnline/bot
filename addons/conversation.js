@@ -5,7 +5,7 @@ const Logger = require('../bot/Logger.js');
 const {Override} = require('../bot/Input');
 
 const cleverbot = require('cleverbot.io');
-const {MarkovChain} = require('../util');
+const {MarkovChain, Cooldown} = require('../util');
 
 class ConversationAddon extends ScriptAddon {
   constructor(bot) {
@@ -14,9 +14,10 @@ class ConversationAddon extends ScriptAddon {
     this.channelData = new Map();
     this.channelCB = new Map();
     this.numMessages = 100;
-    this.gunter = 0;
-    this.gunterLimit = 500;
-    this.gunterInterval = null;
+
+    this.gunterLimits = new Map();
+    this.gunterLimit = 500000;
+    this.gunterBump =   50000;
   }
 
   get description() {
@@ -29,20 +30,6 @@ class ConversationAddon extends ScriptAddon {
     this.addCommand('gunter', this.startGunter);
      
     this.addCommand('clear-gunter', this.clearGunter, Command.PermissionLevels.OVERLORD);
-
-    this.gunterInterval = setInterval(() => {
-      if (this.gunter > 0) {
-        this.gunter--;
-        if (this.gunter === 0) {
-          // Add some variation to the gunter limit
-          this.gunterLimit = Math.floor(Math.random() * 100) + 450;
-        }
-      }
-    }, 1000);
-  }
-  
-  deinit() {
-    clearInterval(this.gunterInterval);
   }
 
   doMarkov(input) {
@@ -142,11 +129,15 @@ class ConversationAddon extends ScriptAddon {
   }
 
   clearGunter(input) {
-    this.gunter = 0;
+    if (this.gunterLimits.has(input.channel.id)) {
+      this.gunterLimits.get(input.channel.id).reset();
+    }
+
     return 'it\'s time to gunter again!';
   }
 
   transform(text) {
+    // TODO: Use the smarter markov parsing
     return text
       .replace(/[^\w-'"* ]+/g, '')
       .toLowerCase();
@@ -159,14 +150,20 @@ class ConversationAddon extends ScriptAddon {
       if (match) {
         let str = match[1];
 
-        let isGunter = (message.author.id === '177964289091436544');
+        let gunterCounter; // Like a Geiger counter, but less radioactive
 
-        if (isGunter) {
-          if (this.gunter > this.gunterLimit) {
+        if (message.author.id === '177964289091436544') {
+          // Get existing gunter cooldown, otherwise create a new one
+          if (this.gunterLimits.has(message.channel.id)) {
+            gunterCounter = this.gunterLimits.get(message.channel.id);
+          } else {
+            gunterCounter = new Cooldown(this.gunterLimit, this.gunterBump);
+            this.gunterLimits.set(message.channel.id, gunterCounter);
+          }
+          
+          if (!gunterCounter.bump()) {
             return;
           }
-
-          this.gunter += 50;
         }
 
         let input = new Input(message, this.bot, null, new Override(`~markov ${str}`));
@@ -183,7 +180,7 @@ class ConversationAddon extends ScriptAddon {
           .then((text) => {
           // Send successful result to the origin
             if (text) {
-              if (isGunter) {
+              if (gunterCounter) {
                 return message.channel.sendMessage(`${message.author.toString()} ${text}`, {disableEveryone: true});
               }
 

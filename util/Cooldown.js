@@ -95,6 +95,16 @@ class Cooldown {
 
     return this._value;
   }
+
+  /**
+   * Resets the cooldown to its initial state
+   * 
+   * @memberOf Cooldown
+   */
+  reset() {
+    this._timestamp = Date.now();
+    this._value = 0;
+  }
 }
 
 module.exports = Cooldown;
