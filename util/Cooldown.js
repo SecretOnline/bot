@@ -88,7 +88,7 @@ class Cooldown {
     }
 
     let now = Date.now();
-    let diff = this._timestamp - now;
+    let diff = now - this._timestamp;
 
     this._timestamp = now;
     this._value = Math.max(this._value - diff, 0);
