@@ -11,14 +11,16 @@ class ConversationAddon extends ScriptAddon {
   constructor(bot) {
     super(bot, 'conversation');
 
-    this.desc = 'Uses various techniques to generate replies to messages';
     this.channelData = new Map();
     this.channelCB = new Map();
     this.numMessages = 100;
     this.gunter = 0;
     this.gunterLimit = 500;
     this.gunterInterval = null;
-    this.markovChance = 0.3;
+  }
+
+  get description() {
+    return 'Uses various techniques to generate replies to messages';
   }
 
   init() {
@@ -167,18 +169,25 @@ class ConversationAddon extends ScriptAddon {
           this.gunter += 50;
         }
 
-        let command = Math.random() > this.markovChance ? 'markov' : 'cb';
-
-        let input = new Input(message, this.bot, null, new Override(`~${command} ${str}`));
+        let input = new Input(message, this.bot, null, new Override(`~markov ${str}`));
         input.process()
-          // Send successful result to the origin
           .then((result) => {
             if (result.text) {
+              return result.text;
+            }
+
+            // If markov failed, do cleverbot
+            return new Input(message, this.bot, null, new Override(`~cb ${str}`))
+              .process();
+          })
+          .then((text) => {
+          // Send successful result to the origin
+            if (text) {
               if (isGunter) {
-                return message.channel.sendMessage(`${message.author.toString()} ${result.text}`, {disableEveryone: true});
+                return message.channel.sendMessage(`${message.author.toString()} ${text}`, {disableEveryone: true});
               }
 
-              return this.bot.send(message.channel, result.text);
+              return this.bot.send(message.channel, text);
             }
           })
           // Catch sending errors
