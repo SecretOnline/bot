@@ -360,16 +360,8 @@ class Bot {
           let command = pair[1];
           // Multiple commands with this trigger, check each of them
           if (Array.isArray(command)) {
-            // Find command with matching group
+            // Find commands with matching group
             let res = command.filter(c => groups.find(g => c.addon.namespace.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`))));
-
-            if (res.length === 1) {
-              // Check permission
-              if (permLevel < res[0].permission) {
-                return false;
-              }
-              return groups.find(g => res[0].addon.namespace.match(new RegExp(`^${g}(\\.[\\w._-]+)?$`)));
-            }
 
             res.forEach((comm) => {
               // Check permission
