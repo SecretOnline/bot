@@ -5,7 +5,7 @@ const Logger = require('../bot/Logger.js');
 const {Override} = require('../bot/Input');
 
 const cleverbot = require('cleverbot.io');
-const {MarkovChain, Cooldown} = require('../util');
+const {MarkovChain, Cooldown, delay} = require('../util');
 
 class ConversationAddon extends ScriptAddon {
   constructor(bot) {
@@ -166,8 +166,11 @@ class ConversationAddon extends ScriptAddon {
           }
         }
 
+        // Start the typing
+        message.channel.startTyping();
+
         let input = new Input(message, this.bot, null, new Override(`~markov ${str}`));
-        input.process()
+        let resultPromise = input.process()
           .then((result) => {
             if (result.text) {
               return result.text;
@@ -176,9 +179,16 @@ class ConversationAddon extends ScriptAddon {
             // If markov failed, do cleverbot
             return new Input(message, this.bot, null, new Override(`~cb ${str}`))
               .process();
-          })
-          .then((text) => {
-          // Send successful result to the origin
+          });
+
+        Promise.all([
+          resultPromise,
+          delay(Math.floor((Math.random() * 200) + 500))
+        ])
+          .then(([text]) => {
+            message.channel.stopTyping();
+
+            // Send successful result to the origin
             if (text) {
               if (gunterCounter) {
                 return message.channel.sendMessage(`${message.author.toString()} ${text}`, {disableEveryone: true});
@@ -189,6 +199,9 @@ class ConversationAddon extends ScriptAddon {
           })
           // Catch sending errors
           .catch((err) => {
+            // Just in case the error happened before the sending
+            message.channel.stopTyping();
+
             if (err) {
               this.error('Unable to send reply');
               this.error(err);
