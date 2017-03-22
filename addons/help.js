@@ -109,13 +109,21 @@ const topics = {
   ]
 };
 const noTopic = {
-  text: 'no topic found',
+  text: [
+    'secret_bot *help topic*',
+    '',
+    'topic not found'
+  ],
   actions: [
     {emoji: 'page_facing_up', desc: 'view a list of help topics', action: '~help topic'}
   ]
 };
 const noCommand = {
-  text: 'no command found',
+  text: [
+    'secret_bot *help*',
+    '',
+    'command not found'
+  ],
   actions: [
     {emoji: 'page_facing_up', desc: 'view a list of commands', action: '~commands'}
   ]
@@ -266,7 +274,7 @@ class Help extends ScriptAddon {
 
       if (obj.actions) {
         obj.actions.forEach((action) => {
-          result.add(new ReAction(action.emoji, action.desc, action.action));
+          result.add(new ReAction(action.emoji, action.desc, input, action.action));
         });
       }
     }
@@ -279,12 +287,39 @@ class Help extends ScriptAddon {
       .then((res) => {
         if (res.args.length) {
           // Help topics
-          if (res.args.shift() === 'topic') {
-            if (topics[res.args[0]]) {
-              return topics[res.args[0]];
+          if (res.args[0] === 'topic') {
+            let content;
+
+            let topic = res.args.slice(1).join(' ');
+
+            if (topic) {
+              if (topics[topic]) {
+                content = topics[topic];
+                if (Array.isArray(content)) {
+                  content = {
+                    text: content
+                  };
+                }
+              } else {
+                return noTopic;
+              }
             } else {
-              return noTopic;
+              content = {
+                text:[
+                  'use `~help topic <name>` to view a help topic',
+                  Object.keys(topics)
+                    .map(k => `\`${k}\``)
+                    .join(', ')
+                ]
+              };
             }
+
+            content.text = [
+              `secret_bot *help topic*${topic?` -> *${topic}*`:''}`,
+              '',
+              ...content.text
+            ];
+            return content;
           }
 
           let prefix = this.bot.getConfig(input.message.guild || 'default').prefix;
@@ -344,7 +379,7 @@ class Help extends ScriptAddon {
       })
       .catch((err) => {
         this.error(err);
-        return `unable to find help for ${input.text}`;
+        throw `unable to find help for ${input.text}`;
       })
       .then((obj) => {
         return this.createResult(input, obj);
