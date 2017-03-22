@@ -184,7 +184,7 @@ class ConversationAddon extends ScriptAddon {
 
         Promise.all([
           resultPromise,
-          delay(Math.floor((Math.random() * 200) + 500))
+          delay(Math.floor((Math.random() * 200) + 700))
         ])
           .then(([text]) => {
             message.channel.stopTyping();
