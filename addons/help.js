@@ -18,7 +18,7 @@ const defaultHelp = {
   ],
   actions: [
     {emoji: 'mag_right', desc: 'view the source code for secret_bot', action: '~source'},
-    {emoji: 'page_facing_up', desc: 'view a list of help topics', action: '~help topic'},
+    {emoji: 'closed_book', desc: 'view a list of help topics', action: '~help topic'},
     {emoji: 'robot_face', desc: 'add secret_bot to your server', action: '~bot-invite'}
   ]
 }; 
@@ -49,46 +49,69 @@ const topics = {
     'for example `~help` can take an argument (the name of a command), but doesn\'t need one, so is written like `~help [command]`',
     '`~which` requires an argument, so is written as `~which <command>` in the help'
   ],
-  addons: [
-    'addons are groups of commands',
-    'the main benefit of this is for server admins, who can enable and disable addons, instead of having to enable/disable individual commands',
-    'you can get a list of all commands in an addon by using `~commands <addon>`',
-    'to find out which addon adds a particular command, use `~which <command>`. e.g. `~which source` will reply with `core`, because `~source` is addec by the "core" addon',
-    '',
-    'it is possible for two different commands to have the same name, but come from different addons',
-    'this generally only happens if the server owner uses `~add-command` to greate a command with the same name as an existing command',
-    'in this situation, you need to add the name of the addon followed by a dot (`.`)',
-    'e.g.: `~faces.lenny`, `~this.lenny`',
-    '',
-    'each server has a hidden addon (the server\'s ID) which can be used with the `this` keyword',
-    'it is mainly used by the `custom` addon, which allows custom commands',
-    'this ensures that custom commands will always work on the server they were created on'
-  ],
-  commands: [
-    'commands form the base of secret_bot',
-    'if you wanted a list of all commands available, use `~commands`. note that the result may be different depending on which server you type it in',
-    '',
-    'the first \'word\' of a message must be a valid command in order for secret_bot to process it',
-    '',
-    'commands are made of three parts: the prefix, the trigger, and arguments',
-    'prefixes and triggers are explained in thir own topics: `prefixes` and `triggers`',
-    'the arguments for a command are any text that follows',
-    'for example `~flip upside down` has the arguments `upside` and `down`',
-    'what a command does with the arguments it is given is up to that command',
-    '',
-    'many commands feature recursive processing. more can be read on that in the `recursive` topic'
-  ],
-  triggers: [
-    'no, not that type of triggers',
-    'in secret_bot, the trigger is the part of a command that says which command this is',
-    'as an example, in `~help` the trigger is `help`',
-    'some commands ask you to give a trigger. `~help`, for example, will give more specific help if you give it a trigger'
-  ],
-  prefixes: [
-    'the prefix is the part of a command before the trigger. usually it is a single character',
-    'by default it is a tilde `~`, but it can be changed per server with `~change-prefix`',
-    'throughout the help, the tilde is used to denote a command, for example `~help topic prefixes`'
-  ],
+  addons: {
+    text: [
+      'addons are groups of commands',
+      'the main benefit of this is for server admins, who can enable and disable addons, instead of having to enable/disable individual commands',
+      'you can get a list of all commands in an addon by using `~commands <addon>`',
+      'to find out which addon adds a particular command, use `~which <command>`. e.g. `~which source` will reply with `core`, because `~source` is addec by the "core" addon',
+      '',
+      'it is possible for two different commands to have the same name, but come from different addons',
+      'this generally only happens if the server owner uses `~add-command` to greate a command with the same name as an existing command',
+      'in this situation, you need to add the name of the addon followed by a dot (`.`)',
+      'e.g.: `~faces.lenny`, `~this.lenny`',
+      '',
+      'each server has a hidden addon (the server\'s ID) which can be used with the `this` keyword',
+      'it is mainly used by the `custom` addon, which allows custom commands',
+      'this ensures that custom commands will always work on the server they were created on'
+    ],
+    actions: [
+      {emoji: 'pencil', desc: 'see `commands` help topic', action: '~help topic commands'}
+    ]
+  },
+  commands: {
+    text: [
+      'commands form the base of secret_bot',
+      'if you wanted a list of all commands available, use `~commands`. note that the result may be different depending on which server you type it in',
+      '',
+      'the first \'word\' of a message must be a valid command in order for secret_bot to process it',
+      '',
+      'commands are made of three parts: the prefix, the trigger, and arguments',
+      'prefixes and triggers are explained in thir own topics: `prefixes` and `triggers`',
+      'the arguments for a command are any text that follows',
+      'for example `~flip upside down` has the arguments `upside` and `down`',
+      'what a command does with the arguments it is given is up to that command',
+      '',
+      'many commands feature recursive processing. more can be read on that in the `recursive` topic'
+    ],
+    actions: [
+      {emoji: 'page_facing_up', desc: 'view a list of commands avaialable in secret_bot', action: '~commands'},
+      {emoji: 'arrows_counterclockwise', desc: 'see `recursive` help topic', action: '~help topic recursive'},
+      {emoji: 'abc', desc: 'see `addons` help topic', action: '~help topic addons'}
+    ]
+  },
+  triggers: {
+    text: [
+      'no, not that type of triggers',
+      'in secret_bot, the trigger is the part of a command that says which command this is',
+      'as an example, in `~help` the trigger is `help`',
+      'some commands ask you to give a trigger. `~help`, for example, will give more specific help if you give it a trigger'
+    ],
+    actions: [
+      {emoji: 'page_facing_up', desc: 'view a list of commands avaialable in secret_bot', action: '~commands'},
+      {emoji: 'pencil', desc: 'see `commands` help topic', action: '~help topic commands'}
+    ]
+  },
+  prefixes: {
+    text: [
+      'the prefix is the part of a command before the trigger. usually it is a single character',
+      'by default it is a tilde `~`, but it can be changed per server with `~change-prefix`',
+      'throughout the help, the tilde is used to denote a command, for example `~help topic prefixes`'
+    ],
+    actions: [
+      {emoji: 'pencil', desc: 'see `commands` help topic', action: '~help topic commands'}
+    ]
+  },
   recursive: [
     'secret_bot features recursive command processing',
     'that means the output from one command can be used as the arguments for another',
@@ -96,17 +119,23 @@ const topics = {
     '`~fliptable` returns a unicode emote. this is then given to `~flip` to turn upside down',
     'as shown in that example, commands work from right to left, processing the \'last\' command in a message, finally making its way down to the first'
   ],
-  using: [
-    'this section is about using secret_bot on your own servers',
-    '',
-    '**Discord**',
-    'adding secret_bot to a Discord server is extremely easy',
-    'first, you must have the \'Manage Server\' permission on the server',
-    'then type `~bot-invite` to get the invite link',
-    'follow the link, and select the server in the dropdown box',
-    'done! secret_bot should now appear in you server\'s user list. it doesn\'t require any further setup, it will work right away',
-    'more information can be found on GitHub. use `~source` to go there'
-  ]
+  using: {
+    text: [
+      'this section is about using secret_bot on your own servers',
+      '',
+      '**Discord**',
+      'adding secret_bot to a Discord server is extremely easy',
+      'first, you must have the \'Manage Server\' permission on the server',
+      'then type `~bot-invite` to get the invite link',
+      'follow the link, and select the server in the dropdown box',
+      'done! secret_bot should now appear in you server\'s user list. it doesn\'t require any further setup, it will work right away',
+      'more information can be found on GitHub. use `~source` to go there'
+    ],
+    actions: [
+      {emoji: 'robot_face', desc: 'get the invite link for secret_bot', action: '~bot-invite'},
+      {emoji: 'mag_right', desc: 'view the source code for secret_bot', action: '~source'}
+    ]
+  }
 };
 const noTopic = {
   text: [
@@ -115,7 +144,7 @@ const noTopic = {
     'topic not found'
   ],
   actions: [
-    {emoji: 'page_facing_up', desc: 'view a list of help topics', action: '~help topic'}
+    {emoji: 'closed_book', desc: 'view a list of help topics', action: '~help topic'}
   ]
 };
 const noCommand = {
@@ -125,7 +154,7 @@ const noCommand = {
     'command not found'
   ],
   actions: [
-    {emoji: 'page_facing_up', desc: 'view a list of commands', action: '~commands'}
+    {emoji: 'closed_book', desc: 'view a list of commands', action: '~commands'}
   ]
 };
 
