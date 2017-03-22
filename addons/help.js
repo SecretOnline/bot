@@ -6,31 +6,38 @@ const {Override} = require('../bot/Input.js');
 const Result = require('../bot/Result.js');
 const ReAction = Result.ReAction;
 
-const defaultHelp = [
-  'secret_bot *help*',
-  'secret_bot v8.1.0 - the reactioning update',
-  '',
-  'for a list of available commands, use `~commands` in the server you want a list for',
-  'help for individual commands can be found by using `~help <command>`',
-  '',
-  'secret_bot is written by secret_online',
-  'use `~source` for the source code'
-];
+const defaultHelp = {
+  text: [
+    'secret_bot *help*',
+    'secret_bot v8.1.4 - the reactioning update',
+    '',
+    'for a list of available commands, use `~commands` in the server you want a list for',
+    'help for individual commands can be found by using `~help <command>`',
+    '',
+    'secret_bot is written by secret_online'
+  ],
+  actions: [
+    {emoji: 'mag_right', desc: 'view the source code for secret_bot', action: '~source'},
+    {emoji: 'page_facing_up', desc: 'view a list of help topics', action: '~help topic'},
+    {emoji: 'robot_face', desc: 'add secret_bot to your server', action: '~bot-invite'}
+  ]
+}; 
 const helpHelp = [
   'syntax: `~help [command]`',
   'finds help for the given command',
   'extra info about bot is available through the help topics `~help topic`',
   'for a list of all commands, use `~commands`',
-  'for all commands in a group, use `~commands <group>`',
-  'to find out which group a command is in, use `~which <command>`'
+  'for all commands in an addon, use `~commands <group>`',
+  'to find out which addon a command is in, use `~which <command>`'
 ];
 const whichHelp = [
   'syntax: `~which <command>`',
-  'alows you to find out which command group a command belongs to',
-  'for more information about groups, use `~help groups`',
+  'alows you to find out which addon a command belongs to',
+  'for more information about addons, use `~help topic addons`',
   'example usage:',
   '`~which which`'
 ];
+
 const topics = {
   help: [
     'secret_bot has support for commands to provide help and usage information',
@@ -99,6 +106,18 @@ const topics = {
     'follow the link, and select the server in the dropdown box',
     'done! secret_bot should now appear in you server\'s user list. it doesn\'t require any further setup, it will work right away',
     'more information can be found on GitHub. use `~source` to go there'
+  ]
+};
+const noTopic = {
+  text: 'no topic found',
+  actions: [
+    {emoji: 'page_facing_up', desc: 'view a list of help topics', action: '~help topic'}
+  ]
+};
+const noCommand = {
+  text: 'no command found',
+  actions: [
+    {emoji: 'page_facing_up', desc: 'view a list of commands', action: '~commands'}
   ]
 };
 
@@ -226,102 +245,110 @@ class Help extends ScriptAddon {
     return result;
   }
 
-  getHelp(input) {
-    let response;
-    let actions = [];
-
-    if (input.text) {
-      let prefix = this.bot.getConfig('default').prefix;
-
-      if (input.message.channel instanceof Discord.TextChannel) {
-        let serverConf = this.bot.getConfig(input.message.guild);
-        if (serverConf.prefix) {
-          prefix = serverConf.prefix;
-        }
-      }
-
-      let escapedPrefix = prefix.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&');
-      let match = input.text.match(new RegExp(`^${escapedPrefix}(.+)`));
-      let unprefixed = input.text;
-      if (match) {
-        unprefixed = match[1];
-      }
-
-      let header = [
-        `secret_bot *help* -> *${unprefixed}*`
-      ];
-      let help = '';
-
-      // Get command
-      let comm = this.bot.getCommand(`${prefix}${unprefixed}`, input.message);
-      if (comm) {
-        header.push(`addon: ${comm.addon.namespace}`);
-
-        let over = new Override('');
-        help = comm.help(input.from(over, new Result(true))); // Give a fresh result to avoid mutation
-        // Return on empty string. Allows for a no-response
-        if (help === '') {
-          return '';
-        }
-        if (!help) {
-          help = `no help for \`${unprefixed}\` can be found`;
-        }
-
-        if (comm.permission) {
-          switch (comm.permission) {
-            case Command.PermissionLevels.ADMIN:
-              header.push('permission required: Admin');
-              break;
-            case Command.PermissionLevels.OVERLORD:
-              header.push('permission required: Overlord');
-              break;
-            case Command.PermissionLevels.SUPERUSER:
-              header.push('permission required: SuperUser');
-              break;
-          }
-        }
-      } else {
-        let parts = input.text.split(' ');
-        if (parts.shift() === 'topic') {
-          header = [
-            'secret_bot *help* -> *topic*'
-          ];
-          let rest = parts.join(' ');
-          if (!rest) {
-            help = [
-              'available help topics (use `~help topic <topic>` to view):',
-              Object.keys(topics).sort().map(item => `\`${item}\``).join(', ')
-            ].join('\n');
-          } else if (topics[rest]) {
-            header[0] += ` -> *${rest}*`;
-            help = topics[rest].join('\n');
-          } else {
-            help = `no help topic named ${rest}`;
-          }
-        } else {
-          help = `unknown or disallowed command: ${unprefixed}`;
-        }
-      }
-
-      response = [
-        ...header,
-        '',
-        help
-      ].join('\n');
-    } else {
-      response = defaultHelp.join('\n');
-      actions.push(new ReAction('mag_right', 'view the source code for secret_bot', input, '~source'));
-      actions.push(new ReAction('page_facing_up', 'view a list of help topics', input, '~help topic'));
-      actions.push(new ReAction('robot_face', 'add secret_bot to your server', input, '~bot-invite'));
+  createResult(input, obj) {
+    if (!obj) {
+      return '';
     }
 
     let result = new Result();
     result.setPrivate();
-    result.add(response);
-    actions.forEach((action) => {
-      result.add(action);
-    });
+
+    if (Array.isArray(obj)) {
+      result.add(obj.join('\n'));
+    } else if (typeof obj === 'string') {
+      result.add(obj);
+    } else {
+      if (Array.isArray(obj.text)) {
+        result.add(obj.text.join('\n'));
+      } else {
+        result.add(obj.text);
+      }
+
+      if (obj.actions) {
+        obj.actions.forEach((action) => {
+          result.add(new ReAction(action.emoji, action.desc, action.action));
+        });
+      }
+    }
+
     return result;
+  }
+
+  getHelp(input) {
+    return input.process()
+      .then((res) => {
+        if (res.args.length) {
+          // Help topics
+          if (res.args.shift() === 'topic') {
+            if (topics[res.args[0]]) {
+              return topics[res.args[0]];
+            } else {
+              return noTopic;
+            }
+          }
+
+          let prefix = this.bot.getConfig(input.message.guild || 'default').prefix;
+          let escapedPrefix = prefix.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&');
+          let match = input.text.match(new RegExp(`^${escapedPrefix}(.+)`));
+          let unprefixed = input.text;
+          if (match) {
+            unprefixed = match[1];
+          }
+
+          let header = [
+            `secret_bot *help* -> *${unprefixed}*`
+          ];
+          let help = '';
+
+          // Get command
+          let comm = this.bot.getCommand(`${prefix}${unprefixed}`, input.message);
+          if (comm) {
+            header.push(`addon: ${comm.addon.namespace}`);
+
+            let over = new Override('');
+            help = comm.help(input.from(over, new Result(true))); // Give a fresh result to avoid mutation
+            // Return on empty string. Allows for a no-response
+            if (help === '') {
+              return '';
+            }
+            if (!help) {
+              help = `no help for \`${unprefixed}\` can be found`;
+            }
+
+            // Add permission info
+            if (comm.permission) {
+              switch (comm.permission) {
+                case Command.PermissionLevels.ADMIN:
+                  header.push('permission required: Admin');
+                  break;
+                case Command.PermissionLevels.OVERLORD:
+                  header.push('permission required: Overlord');
+                  break;
+                case Command.PermissionLevels.SUPERUSER:
+                  header.push('permission required: SuperUser');
+                  break;
+              }
+            }
+
+            return [
+              ...header,
+              '',
+              help
+            ];
+          } else {
+            return noCommand;
+          }
+        } else {
+          return defaultHelp;
+        }
+      })
+      .catch((err) => {
+        this.error(err);
+        return `unable to find help for ${input.text}`;
+      })
+      .then((obj) => {
+        return this.createResult(input, obj);
+      });
   }
 }
 
