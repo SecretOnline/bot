@@ -178,7 +178,8 @@ class ConversationAddon extends ScriptAddon {
 
             // If markov failed, do cleverbot
             return new Input(message, this.bot, null, new Override(`~cb ${str}`))
-              .process();
+              .process()
+              .then(r => r.text);
           });
 
         Promise.all([
