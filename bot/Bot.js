@@ -115,7 +115,7 @@ class Bot {
       userProm
     ])
       .then(([servers, users]) => {
-        this.log(`loaded ${servers.length} servers and ${users.length} users`);
+        this.log(`loaded configuration for ${servers.length} servers and ${users.length} users`);
       });
   }
 
