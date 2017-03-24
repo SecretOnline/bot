@@ -465,11 +465,16 @@ class Bot {
    * 
    * @memberOf Bot
    */
-  setConfig(obj, conf, server= 'default') {
+  setConfig(obj, conf, context) {
     if (obj instanceof Discord.Guild) {
       return this._setServerConfig(obj, conf);
+    } else if (obj instanceof Discord.User) {
+      return this._setUserConfig(obj, conf, context);
     } else if (obj instanceof ScriptAddon) {
-      return this._setAddonConfig(obj, conf, server);
+      if (!context) {
+        context = 'default';
+      }
+      return this._setAddonConfig(obj, conf, context);
     } else if (obj === 'default') {
       return this._setDefaultConfig(conf);
     }
