@@ -988,7 +988,8 @@ class Bot {
 
   _newUserConf(user) {
     return {
-      name: user.username
+      name: user.username,
+      'addon-conf': {}
     };
   }
 

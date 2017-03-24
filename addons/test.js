@@ -19,6 +19,7 @@ class Test extends ScriptAddon {
     this.addCommand('args', this.args, Command.PermissionLevels.OVERLORD);
     this.addCommand('embedify', this.embedify, Command.PermissionLevels.OVERLORD);
     this.addCommand('add-action', this.addAction, Command.PermissionLevels.OVERLORD);
+    this.addCommand('set-conf', this.userConf, Command.PermissionLevels.OVERLORD);
   }
 
   deinit() {
@@ -73,6 +74,15 @@ class Test extends ScriptAddon {
         res.add(new ReAction('ok_hand', 'Will do `~lenny`', input, '~lenny'));
         res.add(new ReAction('thumbsdown', 'Will do `~reject you fail`', input, '~reject you fail'));
         return 'there should be an action incoming';
+      });
+  }
+
+  userConf(input) {
+    return input.process()
+      .then((res) => {
+        let conf = this.getUser(input.user);
+        conf[res.args[0]] = res.args.slice(1).join(' ');
+        this.setUser(conf, input.user);
       });
   }
 }
