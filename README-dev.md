@@ -18,7 +18,9 @@ You now need to add a couple of configuration files.
   "paths": { // You'll probably want to use these defaults
     "addons": "addons/",
     "connections": "connections/",
-    "conf": "conf/"
+    "conf": "conf/",
+    "logs": "logs/",
+    "users": "users/"
   },
   "always-enabled": [] // list of addons that are always enabled
   "color": {
@@ -53,6 +55,8 @@ Now you should be able to just run the bot.
 ```
 $ node index.js
 ```
+
+Note: Many addons will not load due to missing configuration. Documentation for each addon will come eventually, hopefully.
 
 ## Why another rewrite?
 
