@@ -65,6 +65,31 @@ class ScriptAddon extends Addon {
   setConfig(conf, server = 'default') {
     return this.bot.setConfig(this, conf, server);
   }
+
+  /**
+   * Gets the configuration for a user for this addon
+   * 
+   * @param {Discord.User} user User to get configuration of
+   * @returns {any} Stored configuration for this user
+   * 
+   * @memberOf ScriptAddon
+   */
+  getUser(user) {
+    return this.bot.getConfig(user, this);
+  }
+
+  /**
+   * Sets a user's configuration for this addon
+   * 
+   * @param {any} conf Configuration to write
+   * @param {Discord.User} user User to set the configuration of
+   * @returns {Promise} Resolves when configuration is written
+   * 
+   * @memberOf ScriptAddon
+   */
+  setUser(conf, user) {
+    return this.bot.setConfig(user, conf, this);
+  }
 }
 
 module.exports = ScriptAddon;

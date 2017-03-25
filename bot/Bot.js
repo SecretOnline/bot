@@ -34,6 +34,7 @@ class Bot {
     this.confPath = confPath;
 
     this.serverConf = new Map();
+    this.userConf = new Map();
 
     this.commands = new Map();
     this.addons = new Map();
@@ -102,12 +103,19 @@ class Bot {
    * @memberOf Bot
    */
   reloadConfig() {
-    return this._listDirectory(this.conf.paths.conf)
+    let serverProm = this._listDirectory(this.conf.paths.conf)
       .then(this._loadConfig.bind(this))
-      .then(this._initConfig.bind(this))
-      .then((arr) => {
-        this.log(`loaded ${arr.length} config files`);
-        return arr;
+      .then(this._initServerConfig.bind(this));
+    let userProm = this._listDirectory(this.conf.paths.users)
+      .then(this._loadConfig.bind(this))
+      .then(this._initUserConfig.bind(this));
+
+    return Promise.all([
+      serverProm,
+      userProm
+    ])
+      .then(([servers, users]) => {
+        this.log(`loaded configuration for ${servers.length} servers and ${users.length} users`);
       });
   }
 
@@ -422,21 +430,23 @@ class Bot {
    * Gets the configuration for a given object
    * 
    * @param {(Discord.Guild|ScriptAddon|string)} obj Place to get config for
-   * @param {string} [server='default'] Server to get configuration for. Only used by ScriptAddons
+   * @param {(Discord.Guild|ScriptAddon)} [context] Server to get configuration for. Only used by ScriptAddons
    * @returns {any} Configuration for the object
    * 
    * @memberOf Bot
    */
-  getConfig(obj, server = 'default') {
+  getConfig(obj, context) {
     // Requires typechecking to prevent object literals being used to get/set
     // the configuration of other objects
     if (obj instanceof Discord.Guild) {
       return this._getServerConfig(obj);
+    } else if (obj instanceof Discord.User) {
+      return this._getUserConfig(obj, context);
     } else if (obj instanceof ScriptAddon) {
-      if (server === 'default') {
+      if (context === 'default') {
         return this._getDefaultConfig()['addon-conf'][obj.namespace];
       } else {
-        return this._getAddonConfig(obj, server);
+        return this._getAddonConfig(obj, context);
       }
     } else if (obj === 'default') {
       return this._getDefaultConfig();
@@ -455,11 +465,16 @@ class Bot {
    * 
    * @memberOf Bot
    */
-  setConfig(obj, conf, server= 'default') {
+  setConfig(obj, conf, context) {
     if (obj instanceof Discord.Guild) {
       return this._setServerConfig(obj, conf);
+    } else if (obj instanceof Discord.User) {
+      return this._setUserConfig(obj, conf, context);
     } else if (obj instanceof ScriptAddon) {
-      return this._setAddonConfig(obj, conf, server);
+      if (!context) {
+        context = 'default';
+      }
+      return this._setAddonConfig(obj, conf, context);
     } else if (obj === 'default') {
       return this._setDefaultConfig(conf);
     }
@@ -727,16 +742,31 @@ class Bot {
   }
 
   /**
-   * Stores all configs into the bot
+   * Stores all server configs into the bot
    * 
    * @param {Array<Object>} configs Set of configurations
    * @returns {Array<Object>} The configuration that was passed in
    * 
    * @memberOf Bot
    */
-  _initConfig(configs) {
+  _initServerConfig(configs) {
     configs.forEach((conf) => {
       this.serverConf.set(conf.name, conf.data);
+    });
+    return configs;
+  }
+
+  /**
+   * Stores all user configs into the bot
+   * 
+   * @param {Array<Object>} configs Set of configurations
+   * @returns {Array<Object>} The configuration that was passed in
+   * 
+   * @memberOf Bot
+   */
+  _initUserConfig(configs) {
+    configs.forEach((conf) => {
+      this.userConf.set(conf.name, conf.data);
     });
     return configs;
   }
@@ -764,7 +794,9 @@ class Bot {
     if (!this.serverConf.has(server.id)) {
       this.serverConf.set(server.id, this._newServerConf(server));
       this._writeServerConf(server)
-        .catch(() => {});
+        .catch((err) => {
+          this.error(err);
+        });
     }
     return this.serverConf.get(server.id);
   }
@@ -790,6 +822,28 @@ class Bot {
         }
         return obj;
       }, {});
+  }
+
+  _getUserConfig(user, addon) {
+    let userConf;
+
+    if (this.userConf.has(user.id)) {
+      userConf = this.userConf.get(user.id);
+    } else {
+      userConf = this._newUserConf(user);
+      this.userConf.set(user.id, userConf);
+
+      this._writeUserConf(user)
+        .catch((err) => {
+          this.error(err);
+        });
+    }
+
+    if (addon && addon instanceof Addon) {
+      return userConf['addon-conf'][addon.namespace] || {};
+    }
+
+    return userConf;
   }
 
   /**
@@ -839,12 +893,6 @@ class Bot {
       return this._writeServerConf(server);
     }
 
-    /**
-     * 
-     * 
-     * @param {any} s
-     * @returns
-     */
     let promises = Object.keys(conf)
       .map((s) => {
         let serverConf = this.getConfig(s);
@@ -854,6 +902,17 @@ class Bot {
       });
 
     return Promise.all(promises);
+  }
+
+  _setUserConfig(user, conf, addon) {
+    if (addon && addon instanceof Addon) {
+      let userConf = this.getConfig(user);
+      userConf['addon-conf'][addon.namespace] = conf;
+    } else {
+      this.userConf.set(user.id, conf);
+    }
+
+    return this._writeUserConf(user);
   }
 
   /**
@@ -883,6 +942,32 @@ class Bot {
   }
 
   /**
+   * Writes configuration for a user to disk
+   * 
+   * @param {Discord.User} user User to write configuration of
+   * @returns {Promise} Resolves when written
+   * 
+   * @memberOf Bot
+   */
+  _writeUserConf(user) {
+    return new Promise((resolve, reject) => {
+      let conf = this.userConf.get(user.id);
+
+      fs.writeFile(
+        `${this.conf.paths.users}${user.id}.conf.json`,
+        JSON.stringify(conf, null, 2),
+        (err) => {
+          if (err) {
+            reject(err);
+            this.error(`unable to write ${user.id}.conf.json`);
+            return;
+          }
+          resolve();
+        });
+    });
+  }
+
+  /**
    * Creates a new configutation for a server
    * 
    * @param {Discord.Guild} guild
@@ -897,6 +982,13 @@ class Bot {
       prefix: defaultConf.prefix,
       color: defaultConf.color,
       addons: defaultConf.addons.slice(),
+      'addon-conf': {}
+    };
+  }
+
+  _newUserConf(user) {
+    return {
+      name: user.username,
       'addon-conf': {}
     };
   }
