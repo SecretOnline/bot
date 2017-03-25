@@ -107,7 +107,7 @@ class Bot {
       .then(this._loadConfig.bind(this))
       .then(this._initServerConfig.bind(this));
     let userProm = this._listDirectory(this.conf.paths.users)
-      .then(this._loadConfig.bind(this))
+      .then(this._loadUserConfig.bind(this))
       .then(this._initUserConfig.bind(this));
 
     return Promise.all([
@@ -715,6 +715,47 @@ class Bot {
         let match = file.match(/^(.*)\.conf\.json$/);
         if (match) {
           fs.readFile(`./${this.conf.paths.conf}${file}`, 'utf8', (err, data) => {
+            if (err) {
+              this.error(`${file} read error: ${err}`);
+              resolve();
+              return;
+            }
+            resolve({
+              name: match[1],
+              data: JSON.parse(data)
+            });
+          });
+        }
+        // Default message
+        else {
+          this.error(`${file} is not a valid filetype for configs. must be \`*.conf.json\``);
+          resolve();
+        }
+      } catch (e) {
+        this.error(`${file}: ${e}`);
+        resolve();
+        return;
+      }
+    }));
+    return Promise.all(promises)
+      .then(ps => ps.filter(p => p)); // Eliminates the undefined configs
+  }
+
+  /**
+   * Loads the listed user configuration files
+   * 
+   * @param {Array<string>} files
+   * @returns {Promise<Array>} Resolves when all files are loaded
+   * 
+   * @memberOf Bot
+   */
+  _loadUserConfig(files) {
+    let promises = files.map(file => new Promise((resolve, reject) => {
+      try {
+        // Create JSONAddons for .json files'
+        let match = file.match(/^(.*)\.conf\.json$/);
+        if (match) {
+          fs.readFile(`./${this.conf.paths.users}${file}`, 'utf8', (err, data) => {
             if (err) {
               this.error(`${file} read error: ${err}`);
               resolve();
