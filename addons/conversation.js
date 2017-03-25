@@ -56,7 +56,7 @@ class ConversationAddon extends ScriptAddon {
           })
           .then((messages) => {
             messages.forEach((message) => {
-              newMarkov.add(this.transform(message));
+              newMarkov.add(message);
             });
           })
           .then(() => {
@@ -66,10 +66,9 @@ class ConversationAddon extends ScriptAddon {
 
       mkvReady
         .then((mkv) => {
-          let inStr = this.transform(input.text);
-          let res = mkv.respond(inStr);
+          let res = mkv.respond(input.text);
 
-          if (res === inStr) {
+          if (res === input.text) {
             resolve('');
             return;
           }
@@ -111,8 +110,7 @@ class ConversationAddon extends ScriptAddon {
 
       cbReady
           .then((cb) => {
-            let inStr = this.transform(input.text);
-            cb.ask(inStr, (err, response) => {
+            cb.ask(input.text, (err, response) => {
               if (err) {
                 reject(err);
                 return;
@@ -134,13 +132,6 @@ class ConversationAddon extends ScriptAddon {
     }
 
     return 'it\'s time to gunter again!';
-  }
-
-  transform(text) {
-    // TODO: Use the smarter markov parsing
-    return text
-      .replace(/[^\w-'"* ]+/g, '')
-      .toLowerCase();
   }
 
   onMessage(message) {
@@ -216,7 +207,7 @@ class ConversationAddon extends ScriptAddon {
       let id = message.channel.id;
       if (this.channelData.has(id)) {
         let mkv = this.channelData.get(id);
-        mkv.add(this.transform(message.cleanContent));
+        mkv.add(message.content);
       }
     }
   }
