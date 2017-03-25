@@ -9,6 +9,7 @@ const firstNotNull = require('./firstNotNull.js');
 const embedify = require('./embedify.js');
 const delay = require('./delay.js');
 const Cooldown = require('./Cooldown.js');
+const resolveMentions = require('./resolveMentions.js');
 
 module.exports = {
   promprint,
@@ -21,5 +22,6 @@ module.exports = {
   firstNotNull,
   embedify,
   delay,
-  Cooldown
+  Cooldown,
+  resolveMentions
 };
