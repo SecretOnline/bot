@@ -83,13 +83,13 @@ class Time extends ScriptAddon {
           if (args[0] instanceof Discord.User || args[0] instanceof Discord.GuildMember) {
             user = args[0];
           } else {
-            throw 'you must mention a user, or leave the rest of the mssage blank to get your own time';
+            throw 'you must mention a user, or leave the rest of the message blank to get your own time';
           }
         } else {
           user = input.user;
         }
 
-        let conf = this.getUser(input.user);
+        let conf = this.getUser(user);
         if (conf.tz) {
           return `the time for ${input.user} is ${new Date().toLocaleTimeString('en-US', {timeZone:conf.tz})}`;
           // do time stuff

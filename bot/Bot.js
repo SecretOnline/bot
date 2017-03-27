@@ -440,7 +440,7 @@ class Bot {
     // the configuration of other objects
     if (obj instanceof Discord.Guild) {
       return this._getServerConfig(obj);
-    } else if (obj instanceof Discord.User) {
+    } else if (obj instanceof Discord.User || obj instanceof Discord.GuildMember) {
       return this._getUserConfig(obj, context);
     } else if (obj instanceof ScriptAddon) {
       if (context === 'default') {
@@ -468,7 +468,7 @@ class Bot {
   setConfig(obj, conf, context) {
     if (obj instanceof Discord.Guild) {
       return this._setServerConfig(obj, conf);
-    } else if (obj instanceof Discord.User) {
+    } else if (obj instanceof Discord.User || obj instanceof Discord.GuildMember) {
       return this._setUserConfig(obj, conf, context);
     } else if (obj instanceof ScriptAddon) {
       if (!context) {
