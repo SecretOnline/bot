@@ -16,6 +16,7 @@ class Latin extends ScriptAddon {
     this.addCommand('ohdear_latin', this.getMessText);
     this.addCommand('ohfuck_latin', this.getFuckText);
     this.addCommand('wunter', this.getWunter);
+    this.addCommand('blacklist_latin', this.getBlacklist);
   }
 
   getSecretText(input) {
@@ -62,6 +63,18 @@ class Latin extends ScriptAddon {
     return input.process()
       .then((result) => {
         return result.toLowerCase().replace(/[gr]/, 'w');
+      });
+  }
+
+  getBlacklist(input) {
+    return input.process()
+      .then((res) => {
+        let words = res.args;
+        let regex = new RegExp(`[${words.shift()}]`, 'g');
+
+        return words
+          .join(' ')
+          .replace(regex, '');
       });
   }
 
