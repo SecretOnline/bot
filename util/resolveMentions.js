@@ -13,23 +13,25 @@ function resolveMentions(array, input) {
 
   return array.map((item) => {
     if (userMention.test(item)) {
-      let id = item.match(userMention);
+      let match = item.match(userMention);
 
-      // User server member list if available
-      let userList;
-      if (input.channel.guild) {
-        userList = input.channel.guild.members;
-      } else {
-        userList = discord.users;
+      // User server member list if available 
+      let userList; 
+      if (input.channel.guild) { 
+        userList = input.channel.guild.members; 
+      } else { 
+        userList = discord.users; 
       }
 
-      if (userList.has(id)) {
-        return userList.get(id);
+      if (userList.has(match[1])) {
+        return userList.get(match[1]);
       }
+
+      return item;
     } else 
     // Test for role mentions
     if (roleMention.test(item)) {
-      let id = item.match(roleMention);
+      let match = item.match(roleMention);
       let guild = input.channel.guild;
 
       // If there's no guild, return original string
@@ -37,22 +39,21 @@ function resolveMentions(array, input) {
         return item;
       }
 
-      if (guild.roles.has(id)) {
-        return guild.roles.get(id);
+      if (guild.roles.has(match[1])) {
+        return guild.roles.get(match[1]);
       }
     } else 
     // Test for channel mentions
     if (channelMention.test(item)) {
-      let id = item.match(channelMention);
+      let match = item.match(channelMention);
       
-      if (discord.channels.has(id)) {
-        return discord.channels.get(id);
+      if (discord.channels.has(match[1])) {
+        return discord.channels.get(match[1]);
       }
     } 
     // Default: just return the original string
-    else {
-      return item;
-    }
+    
+    return item;
   });
 }
 
