@@ -538,6 +538,13 @@ class Bot {
       let textEmbedFunction;
       if (result.text) {
         textEmbed = this.embedify(result.text);
+
+        if (target instanceof Discord.TextChannel) {
+          let c = this.serverConf.get(target.guild.id);
+          if (c.color) {
+            textEmbed.setColor(c.color);
+          }
+        }
       }
 
       if (result.reactions.length) {
