@@ -1390,6 +1390,11 @@ class Bot {
 
     this.editCache.delete(oldMessage.id);
 
+
+    if (!this._shouldProcess(newMessage)) {
+      return;
+    }
+
     // TODO: Run the edited command
     let input = new Input(newMessage, this);
 
