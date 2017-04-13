@@ -37,6 +37,7 @@ class RandomStuff extends ScriptAddon {
     this.addCommand('mahnamahna', this.mahnamahna, 'https://www.youtube.com/watch?v=8N_tupPBtWQ');
     this.addCommand('foaas', this.foaas, this.foaasList);
     this.addCommand('httpcat', this.httpcat);
+    this.addCommand('randomdonger', this.randomDonger);
   }
 
   loadUselessWeb() {
@@ -339,6 +340,48 @@ class RandomStuff extends ScriptAddon {
 
       return retObj;
     }
+  }
+
+  randomDonger(input) {
+    // This code is adapted from http://dongerlist.com/create-donger
+    return this.getDongers()
+      .then((parts) => {
+        // Get our parts together
+        let builder = {};
+        // Parts that are always here
+        builder.body = this.randomDongerPart('body', {
+          option: 'orientation',
+          value: 'left'
+        });
+        builder.eyes = this.randomDongerPart('eyes');
+        builder.mouth = this.randomDongerPart('mouth');
+
+        let number = Math.floor(Math.random() * 12);
+        // 1/3 change to include cheeks
+        // (I don't like cheeks that much)
+        if (number % 3 === 0) {
+          builder.cheeks = this.randomDongerPart('cheeks');
+        }
+        // 1/4 to not include arms
+        // (I like arms)
+        if (number % 4 !== 0) {
+          builder.arms = this.randomDongerPart('arms', {
+            option: 'orientation',
+            value: 'left'
+          });
+        }
+
+        let str = `${builder.eyes.l} ${builder.mouth.l} ${builder.eyes.r}`;
+        if (builder.cheeks) {
+          str = `${builder.cheeks.l} ${str} ${builder.cheeks.r}`;
+        }
+        str = `${builder.body.l} ${str} ${builder.body.r}`;
+        if (builder.arms) {
+          str = `${builder.arms.l}${str}${builder.arms.r}`;
+        }
+
+        return str;
+      });
   }
 
 }
