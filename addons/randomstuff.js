@@ -15,9 +15,11 @@ class RandomStuff extends ScriptAddon {
 
     this.theuselessweb = [];
     this.foaasCache = [];
+    this.dongerParts = new Map();
 
     this.uselessWebTimeout = false;
     this.foaasTimeout = false;
+    this.dongersTimeout = false;
 
     this.timeout = 1000 * 60 * 60 * 24 * 2;
 
@@ -81,6 +83,34 @@ class RandomStuff extends ScriptAddon {
         }, this.timeout);
 
         return this.foaasCache;
+      });
+  }
+
+  loadDongers() {
+    let promises = [
+      'arms',
+      'body',
+      'cheeks',
+      'eyes',
+      'mouth',
+      'accessories'
+    ]
+      .map((part) => {
+        return request(`http://dongerlist.com/wp-content/themes/dongerlist/json/${part}.json`)
+          .then(JSON.parse)
+          .then((partList) => {
+            this.dongerParts.set(part, partList);
+            return partList;
+          });
+      });
+
+    return Promise.all(promises)
+      .then(() => {
+        this.dongersTimeout = setTimeout(() => {
+          this.dongersTimeout = false;
+        }, this.timeout);
+
+        return this.dongerParts;
       });
   }
 
