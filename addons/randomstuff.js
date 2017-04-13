@@ -1,7 +1,8 @@
 const url = require('url');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
-const {ReAction} = require('../bot/Result');
+const Result = require('../bot/Result');
+const {ReAction} = Result;
 const {request, arrayRandom} = require('../util');
 
 let uselessHelp = [
@@ -135,7 +136,6 @@ class RandomStuff extends ScriptAddon {
     if (this.dongersTimeout) {
       return Promise.resolve(this.dongersCache);
     } else {
-      console.log('requesting donger');
       return this.loadDongers();
     }
   }
@@ -279,6 +279,7 @@ class RandomStuff extends ScriptAddon {
   }
 
   randomDongerPart(type, check) {
+    // Code adapted from http://dongerlist.com/create-donger
     // Will hold filtered parts
     let parts;
 
@@ -344,8 +345,11 @@ class RandomStuff extends ScriptAddon {
 
   randomDonger(input) {
     // This code is adapted from http://dongerlist.com/create-donger
-    return this.getDongers()
-      .then((parts) => {
+    return Promise.all([
+      input.process(),
+      this.getDongers()
+    ])
+      .then(([res, parts]) => {
         // Get our parts together
         let builder = {};
         // Parts that are always here
@@ -380,7 +384,10 @@ class RandomStuff extends ScriptAddon {
           str = `${builder.arms.l}${str}${builder.arms.r}`;
         }
 
-        return str;
+        let ret = new Result();
+        ret.add(new ReAction('😄', 'Get another random donger', input, '~randomdonger'));
+        ret.add(`${str}${res.text ? ` ${res.text}` : ''}`);
+        return ret;
       });
   }
 
