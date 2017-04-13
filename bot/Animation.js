@@ -41,7 +41,7 @@ class Animation {
       delay(this.interval)
     ]);
 
-    return messageProm
+    let completeProm = messageProm
       .then(([message]) => {
         // Fucntions that return the Promises to edit the message 
         let editFunctions = messageObjects
@@ -55,6 +55,9 @@ class Animation {
 
         return promiseChain(editFunctions);
       });
+    
+    // Resolves with promise that resolves when animation finished
+    return Promise.resolve(completeProm);
   }
 }
 

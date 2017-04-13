@@ -589,6 +589,10 @@ class Bot {
         functions.push(() => {return this.send(target, embed);});
       });
 
+      result.animations.forEach((animation) => {
+        functions.push(() => {return animation.play(target);});
+      });
+
       if (textEmbed) {
         // If there's text, send this embed first
         // Otherwise, send it last

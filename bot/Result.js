@@ -2,6 +2,7 @@ const Discord = require('discord.js');
 const Emoji = require('node-emoji');
 const emojiRegex = require('emoji-regex');
 const InputOverride = require('./InputOverride');
+const Animation = require('./Animation');
 const {quoteSplit} = require('../util');
 
 /**
@@ -13,6 +14,7 @@ class Result {
   constructor(isPrivate) {
     this._embeds = [];
     this._reactions = [];
+    this._animations = [];
     this._text = '';
     this._parts = null;
     this._updated = false;
@@ -73,6 +75,18 @@ class Result {
   }
 
   /**
+   * Animations to be played in this Result
+   * 
+   * @readonly
+   * @returns {Array<string>} Animations to play
+   * 
+   * @memberOf Result
+   */
+  get animations() {
+    return this._animations.slice();
+  }
+
+  /**
    * Whether this Result should be sent as a private message
    * 
    * @readonly
@@ -100,6 +114,8 @@ class Result {
       this._embeds.push(item);
     } else if (item instanceof ReAction) {
       this._reactions.push(item);
+    } else if (item instanceof Animation) {
+      this._animations.push(item);
     } else {
       return false;
     }
@@ -132,6 +148,11 @@ class Result {
         // ... there is an equal and equivalent reaction
         // Not quite Newton's Third Law of Motion
         this.add(reaction);
+      });
+    }
+    if (result.animations.length) {
+      result.animations.forEach((animation) => {
+        this.add(animation);
       });
     }
     if (result.private) {
