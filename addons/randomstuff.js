@@ -2,7 +2,7 @@ const url = require('url');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const {ReAction} = require('../bot/Result');
-const request = require('../util/').request;
+const {request, arrayRandom} = require('../util');
 
 let uselessHelp = [
   'Gives you a random website from The Useless Web',
@@ -114,15 +114,33 @@ class RandomStuff extends ScriptAddon {
       });
   }
 
-  uselessWeb(input) {
-    let uselessReady;
+  getUselessWeb() {
     if (this.uselessWebTimeout) {
-      uselessReady = Promise.resolve(this.theuselessweb);
+      return Promise.resolve(this.theuselessweb);
     } else {
-      uselessReady = this.loadUselessWeb();
+      return this.loadUselessWeb();
     }
+  }
 
-    return uselessReady
+  getFoaas() {
+    if (this.foaasTimeout) {
+      return Promise.resolve(this.foaasCache);
+    } else {
+      return this.loadFoaas();
+    }
+  }
+
+  getDongers() {
+    if (this.dongersTimeout) {
+      return Promise.resolve(this.dongersCache);
+    } else {
+      console.log('requesting donger');
+      return this.loadDongers();
+    }
+  }
+
+  uselessWeb(input) {
+    return this.getUselessWeb()
       .then((uselessWeb) => {
         // TODO: Add option to have flash enabled pages too
         let arr = uselessWeb.filter(i => !i[1]);
@@ -197,13 +215,7 @@ class RandomStuff extends ScriptAddon {
   }
 
   foaas(input) {
-    let foaasReady;
-    if (this.foaasTimeout) {
-      foaasReady = Promise.resolve(this.foaasCache);
-    } else {
-      foaasReady = this.loadFoaas();
-    }
-
+    let foaasReady = this.getFoaas();
     let resReady = input.process()
       .then((res) => {
         return res.args;
