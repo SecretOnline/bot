@@ -1,8 +1,9 @@
 const url = require('url');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
-const {ReAction} = require('../bot/Result');
-const request = require('../util/').request;
+const Result = require('../bot/Result');
+const {ReAction} = Result;
+const {request, arrayRandom, delay, embedify, promiseChain} = require('../util');
 
 let uselessHelp = [
   'Gives you a random website from The Useless Web',
@@ -13,13 +14,25 @@ class RandomStuff extends ScriptAddon {
   constructor(bot) {
     super(bot, 'randomstuff');
 
-    this.desc = 'As the name might suggest, this addon contains a few things that I was not sure where to put';
     this.theuselessweb = [];
     this.foaasCache = [];
+    this.dongerParts = new Map();
+
     this.uselessWebTimeout = false;
     this.foaasTimeout = false;
+    this.dongersTimeout = false;
+
+    this.timeout = 1000 * 60 * 60 * 24 * 2;
+
+    this.dongersColor = '#6B7A8D';
+    this.dongersDelay = 1000;
+    this.dongersCount = 20;
 
     this.mahnaStage = 0;
+  }
+
+  get decription() {
+    'Either things that are random, or things that use random';
   }
 
   init() {
@@ -29,6 +42,7 @@ class RandomStuff extends ScriptAddon {
     this.addCommand('mahnamahna', this.mahnamahna, 'https://www.youtube.com/watch?v=8N_tupPBtWQ');
     this.addCommand('foaas', this.foaas, this.foaasList);
     this.addCommand('httpcat', this.httpcat);
+    this.addCommand('randomdonger', this.randomDonger);
   }
 
   loadUselessWeb() {
@@ -51,7 +65,7 @@ class RandomStuff extends ScriptAddon {
       .then(() => {
         this.uselessWebTimeout = setTimeout(() => {
           this.uselessWebTimeout = false;
-        }, 43200000);
+        }, this.timeout);
 
         return this.theuselessweb;
       });
@@ -72,21 +86,66 @@ class RandomStuff extends ScriptAddon {
       .then(() => {
         this.foaasTimeout = setTimeout(() => {
           this.foaasTimeout = false;
-        }, 43200000);
+        }, this.timeout);
 
         return this.foaasCache;
       });
   }
 
-  uselessWeb(input) {
-    let uselessReady;
-    if (this.uselessWebTimeout) {
-      uselessReady = Promise.resolve(this.theuselessweb);
-    } else {
-      uselessReady = this.loadUselessWeb();
-    }
+  loadDongers() {
+    let promises = [
+      'arms',
+      'body',
+      'cheeks',
+      'eyes',
+      'mouth',
+      'accessories'
+    ]
+      .map((part) => {
+        return request(`http://dongerlist.com/wp-content/themes/dongerlist/json/${part}.json`)
+          .then(JSON.parse)
+          .then((partList) => {
+            this.dongerParts.set(part, partList);
+            return partList;
+          });
+      });
 
-    return uselessReady
+    return Promise.all(promises)
+      .then(() => {
+        this.dongersTimeout = setTimeout(() => {
+          this.dongersTimeout = false;
+        }, this.timeout);
+
+        return this.dongerParts;
+      });
+  }
+
+  getUselessWeb() {
+    if (this.uselessWebTimeout) {
+      return Promise.resolve(this.theuselessweb);
+    } else {
+      return this.loadUselessWeb();
+    }
+  }
+
+  getFoaas() {
+    if (this.foaasTimeout) {
+      return Promise.resolve(this.foaasCache);
+    } else {
+      return this.loadFoaas();
+    }
+  }
+
+  getDongers() {
+    if (this.dongersTimeout) {
+      return Promise.resolve(this.dongersCache);
+    } else {
+      return this.loadDongers();
+    }
+  }
+
+  uselessWeb(input) {
+    return this.getUselessWeb()
       .then((uselessWeb) => {
         // TODO: Add option to have flash enabled pages too
         let arr = uselessWeb.filter(i => !i[1]);
@@ -161,13 +220,7 @@ class RandomStuff extends ScriptAddon {
   }
 
   foaas(input) {
-    let foaasReady;
-    if (this.foaasTimeout) {
-      foaasReady = Promise.resolve(this.foaasCache);
-    } else {
-      foaasReady = this.loadFoaas();
-    }
-
+    let foaasReady = this.getFoaas();
     let resReady = input.process()
       .then((res) => {
         return res.args;
@@ -227,6 +280,150 @@ class RandomStuff extends ScriptAddon {
     }
 
     return `https://http.cat/${input.text}.jpg`;
+  }
+
+  randomDongerPart(type, check) {
+    // Code adapted from http://dongerlist.com/create-donger
+    // Will hold filtered parts
+    let parts;
+
+    // Get a list of parts of this type
+    if (check) {
+      parts = this.dongerParts
+        .get(type)
+        .filter((part) => {
+          if (part[check.option] === check.value || part[check.option] === 'both') {
+            return true;
+          }
+        });
+    } else {
+      // No need to check anything (except for eyes)
+      if (type === 'eyes') {
+        parts = this.dongerParts
+        .get(type)
+        .filter((part) => {
+          // Only grab the left and both-sided eyes
+          if (part.orientation === 'left' || part.orientation === 'both') {
+            return true;
+          }
+        });
+      } else {
+        // Make a copy of the array, to avoid
+        parts = this.dongerParts
+          .get(type)
+          .slice();
+      }
+    }
+
+    let tempPart = arrayRandom(parts);
+    // If this part has an opposite, add it in
+    if (tempPart.opposite) {
+      return {
+        l: tempPart.character,
+        r: tempPart.opposite
+      };
+    } else {
+      let retObj = {
+        l: tempPart.character,
+        r: ''
+      };
+      // If arm with no opposite, pick a random arm
+      if (type === 'arms') {
+
+        // Filter for right-sided arms
+        parts = this.dongerParts
+          .get(type)
+          .filter((part) => {
+            if (part.orientation === 'right' || 
+              part.orientation === 'both') {
+              return true;
+            }
+          });
+
+        retObj.r = arrayRandom(parts).character;
+      }
+
+      return retObj;
+    }
+  }
+
+  buildDonger() {
+    // Get our parts together
+    let builder = {};
+    // Parts that are always here
+    builder.body = this.randomDongerPart('body', {
+      option: 'orientation',
+      value: 'left'
+    });
+    builder.eyes = this.randomDongerPart('eyes');
+    builder.mouth = this.randomDongerPart('mouth');
+
+    let number = Math.floor(Math.random() * 12);
+    // 1/3 change to include cheeks
+    // (I don't like cheeks that much)
+    if (number % 3 === 0) {
+      builder.cheeks = this.randomDongerPart('cheeks');
+    }
+    // 1/4 to not include arms
+    // (I like arms)
+    if (number % 4 !== 0) {
+      builder.arms = this.randomDongerPart('arms', {
+        option: 'orientation',
+        value: 'left'
+      });
+    }
+
+    let str = `${builder.eyes.l} ${builder.mouth.l} ${builder.eyes.r}`;
+    if (builder.cheeks) {
+      str = `${builder.cheeks.l} ${str} ${builder.cheeks.r}`;
+    }
+    str = `${builder.body.l} ${str} ${builder.body.r}`;
+    if (builder.arms) {
+      str = `${builder.arms.l}${str}${builder.arms.r}`;
+    }
+
+    return str;
+  }
+
+  randomDonger(input) {
+    // This code is adapted from http://dongerlist.com/create-donger
+    return Promise.all([
+      input.process(),
+      this.getDongers()
+    ])
+      .then(([res, parts]) => {
+        let dongers = [];
+        for (let i = 0; i < this.dongersCount; i++) {
+          dongers.push(this.buildDonger());
+        }
+        let messages = dongers.map((donger) => {
+          return {
+            embed: embedify(donger, this.dongersColor)
+          };
+        });
+
+        let messageProm = Promise.all([
+          input.channel.send(messages[0]),
+          delay(this.dongersDelay)
+        ]);
+
+        return messageProm
+          .then(([message]) => {
+            let dongerFunctions = messages
+              .slice(1)
+              .map((donger) => {
+                return () => Promise.all([
+                  message.edit(donger),
+                  delay(this.dongersDelay)
+                ]);
+              });
+
+            return promiseChain(dongerFunctions);
+          });
+      })
+      .then(() => {
+        return '';
+      });
   }
 
 }
