@@ -9,7 +9,7 @@ const ReAction = Result.ReAction;
 const defaultHelp = {
   text: [
     'secret_bot *help*',
-    'secret_bot v8.1.4 - the reactioning update',
+    'secret_bot v8.3.1 - the animated update',
     '',
     'for a list of available commands, use `~commands` in the server you want a list for',
     'help for individual commands can be found by using `~help <command>`',

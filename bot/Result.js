@@ -109,6 +109,7 @@ class Result {
    */
   add(item) {
     if (typeof item === 'string') {
+      this._updated = true;
       this._text = item;
     } else if (item instanceof Discord.RichEmbed) {
       this._embeds.push(item);
@@ -119,7 +120,6 @@ class Result {
     } else {
       return false;
     }
-    this._updated = true;
     return true;
   }
 
