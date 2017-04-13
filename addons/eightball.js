@@ -1,7 +1,7 @@
 const ScriptAddon = require('../bot/ScriptAddon.js');
-const Result = require('../bot/Result.js');
+const Animation = require('../bot/Animation.js');
 
-const {arrayRandom, promiseChain, embedify, delay} = require('../util');
+const {arrayRandom} = require('../util');
 
 const eightBallHelp = [
   'syntax: `~eightball <yes/no question>`',
@@ -32,18 +32,13 @@ const eightBall = [
 ];
 
 const embedColor = '#292F33';
-const initialString = '🎱⚫⚫';
-const stageEmbeds = [
-  initialString,
+const frames = [
+  '🎱⚫⚫',
   '⚫🎱⚫',
   '⚫⚫🎱',
   '⚫🎱⚫',
-  initialString
-].map((stage) => {
-  return {
-    embed: embedify(stage, embedColor)
-  };
-});
+  '🎱⚫⚫'
+];
 const STAGE_DELAY = 1000;
 
 class Eightball extends ScriptAddon {
@@ -62,35 +57,13 @@ class Eightball extends ScriptAddon {
   getEightball(input) {
     return input.process()
       .then((res) => {
-        let messageProm = Promise.all([
-          input.channel.send(stageEmbeds[0]),
-          delay(STAGE_DELAY)
-        ]);
+        res.add(new Animation([
+          ...frames,
+          `${frames[0]} ${arrayRandom(eightBall)}`
+        ], STAGE_DELAY, embedColor));
+        res.add(''); // Since processed text isn't relevant for this command
 
-        return messageProm
-          .then(([message]) => {
-            let answer = arrayRandom(eightBall);
-
-            let stageFunctions = stageEmbeds
-              .slice(1)
-              .map((stage) => {
-                return () => Promise.all([
-                  message.edit(stage),
-                  delay(STAGE_DELAY)
-                ]);
-              });
-            let startFunction = () => messageProm;
-            let finalFunction = () => message.edit({embed: embedify(`${initialString} ${answer}`, embedColor)});
-
-            return promiseChain([
-              startFunction, // Really only here for tidyness
-              ...stageFunctions,
-              finalFunction
-            ]);
-          });
-      })
-      .then(() => {
-        return '';
+        return res;
       });
   }
 }
