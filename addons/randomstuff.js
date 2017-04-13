@@ -13,13 +13,19 @@ class RandomStuff extends ScriptAddon {
   constructor(bot) {
     super(bot, 'randomstuff');
 
-    this.desc = 'As the name might suggest, this addon contains a few things that I was not sure where to put';
     this.theuselessweb = [];
     this.foaasCache = [];
+
     this.uselessWebTimeout = false;
     this.foaasTimeout = false;
 
+    this.timeout = 1000 * 60 * 60 * 24 * 2;
+
     this.mahnaStage = 0;
+  }
+
+  get decription() {
+    'Either things that are random, or things that use random';
   }
 
   init() {
@@ -51,7 +57,7 @@ class RandomStuff extends ScriptAddon {
       .then(() => {
         this.uselessWebTimeout = setTimeout(() => {
           this.uselessWebTimeout = false;
-        }, 43200000);
+        }, this.timeout);
 
         return this.theuselessweb;
       });
@@ -72,7 +78,7 @@ class RandomStuff extends ScriptAddon {
       .then(() => {
         this.foaasTimeout = setTimeout(() => {
           this.foaasTimeout = false;
-        }, 43200000);
+        }, this.timeout);
 
         return this.foaasCache;
       });
