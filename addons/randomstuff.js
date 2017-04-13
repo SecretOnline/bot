@@ -25,8 +25,8 @@ class RandomStuff extends ScriptAddon {
     this.timeout = 1000 * 60 * 60 * 24 * 2;
 
     this.dongersColor = '#6B7A8D';
-    this.dongersDelay = 1000;
-    this.dongersCount = 20;
+    this.dongersDelay = 2000;
+    this.dongersCount = 10;
 
     this.mahnaStage = 0;
   }
