@@ -277,6 +277,70 @@ class RandomStuff extends ScriptAddon {
     return `https://http.cat/${input.text}.jpg`;
   }
 
+  randomDongerPart(type, check) {
+    // Will hold filtered parts
+    let parts;
+
+    // Get a list of parts of this type
+    if (check) {
+      parts = this.dongerParts
+        .get(type)
+        .filter((part) => {
+          if (part[check.option] === check.value || part[check.option] === 'both') {
+            return true;
+          }
+        });
+    } else {
+      // No need to check anything (except for eyes)
+      if (type === 'eyes') {
+        parts = this.dongerParts
+        .get(type)
+        .filter((part) => {
+          // Only grab the left and both-sided eyes
+          if (part.orientation === 'left' || part.orientation === 'both') {
+            return true;
+          }
+        });
+      } else {
+        // Make a copy of the array, to avoid
+        parts = this.dongerParts
+          .get(type)
+          .slice();
+      }
+    }
+
+    let tempPart = arrayRandom(parts);
+    // If this part has an opposite, add it in
+    if (tempPart.opposite) {
+      return {
+        l: tempPart.character,
+        r: tempPart.opposite
+      };
+    } else {
+      let retObj = {
+        l: tempPart.character,
+        r: ''
+      };
+      // If arm with no opposite, pick a random arm
+      if (type === 'arms') {
+
+        // Filter for right-sided arms
+        parts = this.dongerParts
+          .get(type)
+          .filter((part) => {
+            if (part.orientation === 'right' || 
+              part.orientation === 'both') {
+              return true;
+            }
+          });
+
+        retObj.r = arrayRandom(parts).character;
+      }
+
+      return retObj;
+    }
+  }
+
 }
 
 module.exports = RandomStuff;
