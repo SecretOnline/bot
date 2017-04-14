@@ -25,6 +25,7 @@
     "eslint-rc": "github:secretonline/eslint-rc",
     "github": "^7.2.0",
     "google": "^2.1.0",
+    "google-translate": "^2.0.4",
     "js-beautify": "^1.6.8",
     "mathjs": "^3.10.0",
     "node-emoji": "^1.5.1",
