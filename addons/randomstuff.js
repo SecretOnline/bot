@@ -1,9 +1,10 @@
 const url = require('url');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
+const Animation = require('../bot/Animation.js');
 const Result = require('../bot/Result');
 const {ReAction} = Result;
-const {request, arrayRandom, delay, embedify, promiseChain} = require('../util');
+const {request, arrayRandom} = require('../util');
 
 let uselessHelp = [
   'Gives you a random website from The Useless Web',
@@ -396,33 +397,9 @@ class RandomStuff extends ScriptAddon {
         for (let i = 0; i < this.dongersCount; i++) {
           dongers.push(this.buildDonger());
         }
-        let messages = dongers.map((donger) => {
-          return {
-            embed: embedify(donger, this.dongersColor)
-          };
-        });
 
-        let messageProm = Promise.all([
-          input.channel.send(messages[0]),
-          delay(this.dongersDelay)
-        ]);
-
-        return messageProm
-          .then(([message]) => {
-            let dongerFunctions = messages
-              .slice(1)
-              .map((donger) => {
-                return () => Promise.all([
-                  message.edit(donger),
-                  delay(this.dongersDelay)
-                ]);
-              });
-
-            return promiseChain(dongerFunctions);
-          });
-      })
-      .then(() => {
-        return '';
+        res.add(new Animation(dongers, this.dongersDelay, this.dongersColor));
+        return res;
       });
   }
 
