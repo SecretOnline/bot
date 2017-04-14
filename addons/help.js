@@ -6,10 +6,12 @@ const {Override} = require('../bot/Input.js');
 const Result = require('../bot/Result.js');
 const ReAction = Result.ReAction;
 
+const package = require('../package.json');
+
 const defaultHelp = {
   text: [
     'secret_bot *help*',
-    'secret_bot v8.3.1 - the animated update',
+    `secret_bot v${package.version} - ${package.versionName}`,
     '',
     'for a list of available commands, use `~commands` in the server you want a list for',
     'help for individual commands can be found by using `~help <command>`',
