@@ -28,7 +28,7 @@ class Translate extends ScriptAddon {
     });
 
     this.translateColor = '#4A8CF7';
-    this.translateDelay = 1000;
+    this.translateDelay = 2000;
     this.partyNumLangs = 8;
   }
 
