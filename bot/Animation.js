@@ -1,3 +1,5 @@
+const Discord = require('discord.js');
+
 const {delay, embedify, promiseChain} = require('../util');
 
 /**
@@ -15,11 +17,37 @@ class Animation {
    * @memberOf Animation
    */
   constructor(frames, interval = 1000, color = '#C90101') {
-    this.frames = frames;
+    this.framePromises = frames
+      .map(f => this.createMessage(f));
     this.interval = Math.max(interval, 500);
     this.color = color;
   }
-  
+
+  /**
+   * Creates a message object from a frame
+   * 
+   * @param {(string|Discord.RichEmbed|Promise)} frame 
+   * 
+   * @memberOf Animation
+   */
+  createMessage(frame) {
+    return Promise.resolve(frame)
+      .then((res) => {
+        if (res instanceof Discord.RichEmbed) {
+          return res;
+        } else if (typeof res === 'string') {
+          return embedify(res, this.color);
+        } else {
+          throw 'animation frame was not a valid type';
+        }
+      })
+      .then((embed) => {
+        return {
+          embed
+        };
+      });
+  }
+
   /**
    * Plays the animation in a channel
    * 
@@ -29,26 +57,22 @@ class Animation {
    * @memberOf Animation
    */
   play(channel) {
-    let messageObjects = this.frames.map((frame) => {
-      return {
-        embed: embedify(frame, this.color)
-      };
-    });
-
     // Initial message promise
     let messageProm = Promise.all([
-      channel.send(messageObjects[0]),
+      this.framePromises[0]
+        .then(f => channel.send(f)),
       delay(this.interval)
     ]);
 
     let completeProm = messageProm
       .then(([message]) => {
         // Fucntions that return the Promises to edit the message 
-        let editFunctions = messageObjects
+        let editFunctions = this.framePromises
           .slice(1)
-          .map((frame) => {
+          .map((frameProm) => {
             return () => Promise.all([
-              message.edit(frame),
+              frameProm
+                .then(f =>  message.edit(f)),
               delay(this.interval)
             ]);
           });

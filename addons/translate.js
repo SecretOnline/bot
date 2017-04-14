@@ -118,36 +118,29 @@ class Translate extends ScriptAddon {
         });
 
         // Modified version of promiseChain util function
-        let translatePromises = [];
-        return translateFunctions
-          .reduce((prom, nextFunc) => {
+        let animPromises = [];
+        translateFunctions
+          .reduce((prom, nextFunc, index) => {
             // First: do translations in order
-            return prom
-              .then((res) => {
-                let prom = nextFunc(res);
-                translatePromises.push(prom);
-                return prom;
+            let transProm = prom
+              .then(res => nextFunc(res));
+            
+            let formatProm = transProm
+              .then((text) => {
+                let breadcrumbs = languages
+                  .slice(0, index + 2)
+                  .join(' > ');
+
+                return `**${breadcrumbs}**\n\n${text}`;
               });
-          }, Promise.resolve(res.text))
-          .then(() => {
-            // Secondly, get the values from each promise
-            // All promises are resolved at this stage
-            return Promise.all(translatePromises);
-          })
-          .then((translations) => {
-            // Finally, turn them into frames
-            let frames = translations.map((text, index) => {
-              let breadcrumbs = languages
-                .slice(0, index + 2)
-                .join(' > ');
-
-              return `**${breadcrumbs}**\n\n${text}`;
-            });
-
-            res.add(new Animation(frames, this.translateDelay, this.translateColor));
-            res.add('');
-            return res;
-          });
+            animPromises.push(formatProm);
+            
+            return transProm;
+          }, Promise.resolve(res.text));
+        
+        res.add(new Animation(animPromises, this.translateDelay, this.translateColor));
+        res.add('');
+        return res;
       });
   }
 }
