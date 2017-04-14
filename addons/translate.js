@@ -1,6 +1,9 @@
 const translate = require('google-translate');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
+const Animation = require('../bot/Animation.js');
+
+const {arrayRandom} = require('../util');
 
 const translateHelp = [];
 const translatePartyHelp = [];
@@ -23,6 +26,10 @@ class Translate extends ScriptAddon {
         resolve(langs);
       });
     });
+
+    this.translateColor = '#4A8CF7';
+    this.translateDelay = 1000;
+    this.partyNumLangs = 8;
   }
 
   get description() {
@@ -85,6 +92,63 @@ class Translate extends ScriptAddon {
         return this.doTranslation(from, to, args.join(' '));
       });
   }
+
+  translateParty(input) {
+    return Promise.all([
+      input.process(),
+      this.getLangs
+    ])
+      .then(([res, langs]) => {
+        // Starting and ending with English, do languages
+        let languages = [];
+        languages.push('en');
+        for (let i = 0; i < this.partyNumLangs; i++) {
+          languages.push(arrayRandom(langs));
+        }
+        languages.push('en');
+
+        let pairs = languages
+          .map((lang, index) => {
+            return [lang, languages[index + 1]];
+          })
+          .slice(0, -1);
+        
+        let translateFunctions = pairs.map((pair) => {
+          return (str) => this.doTranslation(pair[0], pair[1], str);
+        });
+
+        // Modified version of promiseChain util function
+        let translatePromises = [];
+        return translateFunctions
+          .reduce((prom, nextFunc) => {
+            // First: do translations in order
+            return prom
+              .then((res) => {
+                let prom = nextFunc(res);
+                translatePromises.push(prom);
+                return prom;
+              });
+          }, Promise.resolve(res.text))
+          .then(() => {
+            // Secondly, get the values from each promise
+            // All promises are resolved at this stage
+            return Promise.all(translatePromises);
+          })
+          .then((translations) => {
+            // Finally, turn them into frames
+            let frames = translations.map((text, index) => {
+              let breadcrumbs = languages
+                .slice(0, index + 2)
+                .join(' > ');
+
+              return `**${breadcrumbs}**\n\n${text}`;
+            });
+
+            res.add(new Animation(frames, this.translateDelay, this.translateColor));
+            res.add('');
+            return res;
+          });
+      });
   }
 }
 
