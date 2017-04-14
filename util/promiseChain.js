@@ -1,10 +1,11 @@
 /**
  * Runs over async functions in squence
  * 
- * @param {Array<function>} functions Functions to run
+ * @param {Array<function>} functions Functions to run\
+ * @param {any} initial Initial value
  * @returns {Promise}
  */
-function promiseChain(functions) {
+function promiseChain(functions, initial) {
   if (functions.length === 0) {
     return Promise.resolve();
   }
@@ -13,7 +14,7 @@ function promiseChain(functions) {
       .then((res) => {
         return nextFunc(res);
       });
-  }, Promise.resolve());
+  }, Promise.resolve(initial));
 }
 
 module.exports = promiseChain;
