@@ -1,4 +1,5 @@
 const ScriptAddon = require('../bot/ScriptAddon.js');
+const Command = require('../bot/Command.js');
 const Animation = require('../bot/Animation.js');
 const {delay} = require('../util');
 
@@ -17,11 +18,11 @@ class StarWars extends ScriptAddon {
   }
 
   init() {
-
+    this.addCommand('sw-ascii', this.playAnimation, Command.PermissionLevels.ADMIN);
   }
 
   createAnimation() {
-    this.getData()
+    return this.getData()
       .then((data) => {
         let frames = [];
         while (data.length > 0) {
@@ -62,9 +63,20 @@ class StarWars extends ScriptAddon {
               .then(res => nextFunc(res));
             animPromises.push(frameProm);
             return frameProm;
-          });
+          }, Promise.resolve());
         
         return new Animation(animPromises, this.interval, '#FFFF00');
+      });
+  }
+
+  playAnimation(input) {
+    return Promise.all([
+      input.process(),
+      this.animPromise
+    ])
+      .then(([res, anim]) => {
+        res.add(anim);
+        return res;
       });
   }
 }
