@@ -1,6 +1,5 @@
 node_modules/
 addons-disabled/
-data/
 logs/
 conf/
 *.conf.json
