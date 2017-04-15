@@ -17,7 +17,7 @@ class NoMansSky extends ScriptAddon {
     let count = input.message.channel.members
       .map(m => m.presence.game)
       .filter(g => g === 'No Man\'s Sky')
-      .length;
+      .size;
   
     if (count) {
       return `yes, ${count} are playing right now`;
