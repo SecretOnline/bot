@@ -18,7 +18,7 @@ class StarWars extends ScriptAddon {
   }
 
   init() {
-    this.addCommand('sw-ascii', this.playAnimation, Command.PermissionLevels.ADMIN);
+    this.addCommand('sw-ascii', this.playAnimation, Command.PermissionLevels.OVERLORD);
   }
 
   createAnimation() {
