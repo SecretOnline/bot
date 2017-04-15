@@ -90,6 +90,17 @@ class ScriptAddon extends Addon {
   setUser(conf, user) {
     return this.bot.setConfig(user, conf, this);
   }
+
+  /**
+   * Gets the static data for this addon
+   * 
+   * @returns {Promise}
+   * 
+   * @memberOf ScriptAddon
+   */
+  getData() {
+    return this.bot.getData(this);
+  }
 }
 
 module.exports = ScriptAddon;

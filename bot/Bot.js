@@ -685,6 +685,45 @@ class Bot {
     return this.logger.getLogs(filter, limit);
   }
 
+  /**
+   * Gets data for an addon
+   * 
+   * @param {Addon} addon 
+   * @returns {Promise}
+   * 
+   * @memberOf Bot
+   */
+  getData(addon) {
+    return new Promise((resolve, reject) => {
+      let filepath;
+      if (addon instanceof JSONAddon) {
+        filepath = `./${this.conf.paths.addons}${addon.namespace}.json`;
+        fs.readFile(`./${this.conf.paths.addons}${addon.namespace}.json`, 'utf8', (err, data) => {
+          if (err) {
+            reject(`Failed to read ${this.conf.paths.addons}${addon.namespace}.json`);
+            this.error(err);
+            return;
+          }
+          resolve(JSON.parse(data));
+        });
+      } else if (addon instanceof ScriptAddon) {
+        filepath = `./${this.conf.paths.data}${addon.namespace}.json`;
+      } else {
+        reject('invalid object');
+        return;
+      }
+
+      fs.readFile(filepath, 'utf8', (err, data) => {
+        if (err) {
+          reject(`Failed to read ${this.conf.paths.addons}${addon.namespace}.json`);
+          this.error(err);
+          return;
+        }
+        resolve(JSON.parse(data));
+      });
+    });
+  }
+
   //endregion
 
   //region Private Functions
