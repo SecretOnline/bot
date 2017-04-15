@@ -1,8 +1,13 @@
 const ScriptAddon = require('../bot/ScriptAddon.js');
+const Animation = require('../bot/Animation.js');
+const {delay} = require('../util');
 
 class StarWars extends ScriptAddon {
   constructor(bot) {
     super(bot, 'sw-ascii');
+
+    let fps = 10;
+    this.interval = fps / 1000;
 
     this.animPromise = this.createAnimation();
   }
@@ -29,6 +34,37 @@ class StarWars extends ScriptAddon {
             lines: frame
           };
         });
+      })
+      .then((frames) => {
+        let frameFunctions = frames.map((frame, index) => {
+          let period = 0;
+          if (index > 0) {
+            period = frames[index - 1];
+          }
+          let time = period * this.interval;
+
+          let str = `\`\`\`\n${frame.lines.join('\n')}\n\`\`\``;
+
+          return () => Promise
+            .all([
+              Promise.resolve(str),
+              delay(time)
+            ])
+            .then(r => r[0]);
+        });
+
+        // Modified version of promiseChain util function
+        let animPromises = [];
+        frameFunctions
+          .reduce((prom, nextFunc, index) => {
+            // First: do translations in order
+            let frameProm = prom
+              .then(res => nextFunc(res));
+            animPromises.push(frameProm);
+            return frameProm;
+          });
+        
+        return new Animation(animPromises, this.interval, '#FFFF00');
       });
   }
 }
