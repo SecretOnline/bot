@@ -91,7 +91,7 @@ class Time extends ScriptAddon {
 
         let conf = this.getUser(user);
         if (conf.tz) {
-          return `the time for ${input.user} is ${new Date().toLocaleTimeString('en-US', {timeZone:conf.tz})}`;
+          return `the time for ${user} is ${new Date().toLocaleTimeString('en-US', {timeZone:conf.tz})}`;
           // do time stuff
         } else {
           if (user.id === input.user.id) {
