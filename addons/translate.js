@@ -103,7 +103,7 @@ class Translate extends ScriptAddon {
         let languages = [];
         languages.push('en');
         for (let i = 0; i < this.partyNumLangs; i++) {
-          let filteredLangs = languages.filter(l => l !== languages[i]);
+          let filteredLangs = langs.filter(l => l !== languages[i]);
           languages.push(arrayRandom(filteredLangs));
         }
         languages.push('en');
