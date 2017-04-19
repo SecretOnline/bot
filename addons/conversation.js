@@ -65,6 +65,12 @@ class ConversationAddon extends ScriptAddon {
       }      
 
       mkvReady
+          .catch((err) => {
+            this.error('failed to create markov');
+            this.error(err);
+
+            reject(err);
+          })
         .then((mkv) => {
           let res = mkv.respond(input.text);
 
@@ -109,6 +115,12 @@ class ConversationAddon extends ScriptAddon {
       }
 
       cbReady
+          .catch((err) => {
+            this.error('failed to create cb');
+            this.error(err);
+
+            reject(err);
+          })
           .then((cb) => {
             cb.ask(input.text, (err, response) => {
               if (err) {
