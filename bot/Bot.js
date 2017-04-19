@@ -43,7 +43,7 @@ class Bot {
     this.reactions = new Map();
     this.reactionUsers = new Map();
 
-    this.logger = new Logger(this, this.conf.paths.logs);
+    this.logger = new Logger(this, this.conf.paths.logs, this.conf.logs.size);
 
     this.reactionUsersInterval = setInterval(() => {
       Array.from(this.reactionUsers.entries()).forEach(([key, value]) => {

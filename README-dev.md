@@ -30,6 +30,9 @@ You now need to add a couple of configuration files.
       "error": "#E8261D", // color of error messages
       "action": "#FDFF88" // color of the 'ReAction' embeds
     },
+    "logs": {
+      "size": 2000
+    },
     "overlords": [
       "a list of user IDs that can run all commands all the time"
     ]
