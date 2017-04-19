@@ -24,27 +24,26 @@ const REACTION_POINT_INC = 200;
 class Bot {
   /**
    * Creates an instance of Bot.
-   * 
-   * @param {string} confPath Path to the main configuration file
+   * @param {Discord.Client} client discord.js client
+   * @param {object} conf Configuration for the bot
    * 
    * @memberOf Bot
    */
-  constructor(confPath) {
-    this.conf = require(`../${confPath}`);
-    this.confPath = confPath;
+  constructor(client, conf) {
+    this._discord = client;
+    this.conf = conf;
 
     this.serverConf = new Map();
     this.userConf = new Map();
 
     this.commands = new Map();
     this.addons = new Map();
-    this._discord = new Discord.Client();
 
     this.editCache = new Map();
     this.reactions = new Map();
     this.reactionUsers = new Map();
 
-    this.logger = new Logger(this, this.conf.paths.logs);
+    this.logger = new Logger(this, this.conf.paths.logs, this.conf.logs.size);
 
     this.reactionUsersInterval = setInterval(() => {
       Array.from(this.reactionUsers.entries()).forEach(([key, value]) => {
@@ -1228,15 +1227,19 @@ class Bot {
    * @memberOf Bot
    */
   _openConnections() {
-    this._discord.on('message', this._onMessage.bind(this));
-    this._discord.on('messageUpdate', this._onEdit.bind(this));
-    this._discord.on('messageReactionAdd', this._onReactAdd.bind(this));
-    this.log('Logging in', 'djs');
-    return this._discord.login(this.conf.login.token)
-      .then(() => {
-        this.log('Logged in', 'djs');
-        return this._discord;
+    if (this._discord.readyTimestamp) {
+      return Promise.resolve(this._discord);
+    } else {
+      return new Promise((resolve, reject) => {
+        this._discord.once('ready', () => {
+          this._discord.on('message', this._onMessage.bind(this)); 
+          this._discord.on('messageUpdate', this._onEdit.bind(this)); 
+          this._discord.on('messageReactionAdd', this._onReactAdd.bind(this)); 
+          
+          resolve(this._discord);
+        });
       });
+    }
   }
 
   /**

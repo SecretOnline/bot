@@ -13,16 +13,17 @@ class Logger {
    * 
    * @param {Bot} bot
    * @param {string} directory
+   * @param {number} size
    * 
    * @memberOf Logger
    */
-  constructor(bot, directory) {
+  constructor(bot, directory, size = 2000) {
     this.bot = bot;
     this.dir = directory;
     this.logs = null;
     this.cache = new Map();
     this.currentId = null;
-    this.maxLogLength = 2000;
+    this.maxLogLength = size;
     this._ready = new Promise((resolve, reject) => {
       // Store resolution function so we can call it in .start()
       this._readyFunc = resolve;
