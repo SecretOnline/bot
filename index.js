@@ -8,9 +8,6 @@ let conf = require(`./${confFile}`);
 
 let client = new Discord.Client();
 client.login(conf.token);
-client.on('ready', () => {
-  console.log('thing is ready');
-});
 
 let bot = new Bot(client, conf.bot);
 
