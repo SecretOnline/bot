@@ -11,33 +11,34 @@ $ cd bot && npm install
 
 You now need to add a couple of configuration files.
 
-#### main.conf.json
+#### bot.conf.json
 
 ```js
 {
-  "paths": { // You'll probably want to use these defaults
-    "addons": "addons/",
-    "connections": "connections/",
-    "conf": "conf/",
-    "logs": "logs/",
-    "users": "users/"
-  },
-  "always-enabled": [] // list of addons that are always enabled
-  "color": {
-    "normal": "#7289DA", // color of normal replies
-    "error": "#E8261D", // color of error messages
-    "action": "#FDFF88" // color of the 'ReAction' embeds
-  },
-  "login": {
-    "token": "your discord bot token"
-  },
-  "overlords": [
-    "a list of user IDs that can run all commands all the time"
-  ]
+  "token": "your discord bot token",
+  "bot": { // This section is sent to the bot
+    "paths": { // You'll probably want to use these defaults
+      "addons": "addons/",
+      "connections": "connections/",
+      "conf": "conf/",
+      "logs": "logs/",
+      "users": "users/"
+    },
+    "always-enabled": [] // list of addons that are always enabled
+    "color": {
+      "normal": "#7289DA", // color of normal replies
+      "error": "#E8261D", // color of error messages
+      "action": "#FDFF88" // color of the 'ReAction' embeds
+    },
+    "overlords": [
+      "a list of user IDs that can run all commands all the time"
+    ]
+  }
 }
+
 ```
 
-#### default.conf.json
+#### conf/default.conf.json
 
 ```js
 {
@@ -50,7 +51,7 @@ You now need to add a couple of configuration files.
 
 ```
 
-Now you should be able to just run the bot.
+Now you should be able to just run the bot. Some addons will require default configuration defined in the `addon-conf` section of `conf/default.conf.json`. This is often used for API keys, since they aren't required to be different for each server.
 
 ```
 $ node index.js
