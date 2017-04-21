@@ -39,12 +39,21 @@ class Maths extends ScriptAddon {
     this.addCommand('convert', this.getMathsResult, convertHelp);
   }
 
+  getScope(message) {
+    if (message.channel.guild) {
+      return this.getConfig(message.channel.guild);
+    } else {
+      return this.getUser(message.user);
+    }
+  }
+
   getMathsResult(input) {
     return input.process()
       .then((res) => {
+        let scope = this.getScope(input.message);
         let result;
         try {
-          result = this.maths.eval(res.text);
+          result = this.maths.eval(res.text, scope);
           if (typeof result !== 'string') {
             result = result.toString();
           }
