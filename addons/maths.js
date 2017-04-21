@@ -1,6 +1,7 @@
 const mathjs = require('mathjs');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
+const {noop} = require('../util');
 
 const mathsHelp = [
   'evaluates mathematical expressions',
@@ -26,7 +27,7 @@ class Maths extends ScriptAddon {
   constructor(bot) {
     super(bot, 'maths');
 
-    this.maths = mathjs.parser();
+    this.maths = mathjs;
   }
 
   get description() {
@@ -47,10 +48,18 @@ class Maths extends ScriptAddon {
     }
   }
 
+  setScope(message, conf) {
+    if (message.channel.guild) {
+      return this.setConfig(conf, message.channel.guild);
+    } else {
+      return this.setUser(conf, message.author);
+    }
+  }
+
   getMathsResult(input) {
     return input.process()
       .then((res) => {
-        let scope = this.getScope(input.message);
+        let scope = this.getScope(input.message) || {};
         let result;
         try {
           result = this.maths.eval(res.text, scope);
@@ -60,6 +69,11 @@ class Maths extends ScriptAddon {
         } catch (err) {
           result = err.message;
         }
+
+        // Save the scope, but don't care if it fails
+        this.setScope(input.message, scope)
+          .catch(noop);
+
         return result;
       });
   }

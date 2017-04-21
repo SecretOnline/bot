@@ -10,6 +10,7 @@ const embedify = require('./embedify.js');
 const delay = require('./delay.js');
 const Cooldown = require('./Cooldown.js');
 const resolveMentions = require('./resolveMentions.js');
+const noop = require('./noop.js');
 
 module.exports = {
   promprint,
@@ -23,5 +24,6 @@ module.exports = {
   embedify,
   delay,
   Cooldown,
-  resolveMentions
+  resolveMentions,
+  noop
 };
