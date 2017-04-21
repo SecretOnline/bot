@@ -5,14 +5,15 @@ const {noop} = require('../util');
 
 const mathsHelp = [
   'evaluates mathematical expressions',
-  'right now, it doesn\'t include the calculus features of math.js, but it does do the core basic operations',
-  'it also does trigonometry, matricies, and complex numbers',
-  'in case you did need help for your calc, `(nx)^m => (nmx)^(m-1)`',
+  'as well as being able to use the basic operators, functions are made availalbe',
+  'a full list of functions can be [found here](http://mathjs.org/docs/reference/functions.html#algebra-functions) down',
   'note: some small errors may occur due to the way computers handle numbers. this is unavoidable',
   'examples:',
   '`~maths 1 + 1`',
   '`~maths sin(pi / 4) ^ 2`',
-  '`~maths e ^ (pi * i)'
+  '`~maths e ^ (pi * i)',
+  '`~maths combinations(10, 5)`',
+  '`~maths mean(1, 2, 3, 4, 5, 6, 7, 8, 9, 0)`'
 ];
 
 const simplifyHelp = [
