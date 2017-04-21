@@ -116,7 +116,7 @@ class Maths extends ScriptAddon {
       .then((res) => {
         let result;
         try {
-          result = this.maths.derivative(res.text);
+          result = this.maths.derivative(res.text, 'x');
           if (typeof result !== 'string') {
             result = result.toString();
           }
