@@ -15,6 +15,19 @@ const mathsHelp = [
   '`~maths e ^ (pi * i)'
 ];
 
+const simplifyHelp = [
+  'simplifies an algebraic expression',
+  'examples:',
+  '`~simplify x^2 + x + 3 + x^2`'
+];
+
+const deriveHelp = [
+  'finds the derivative of a linear expression, with respect to `x`',
+  'at this time, secret_bot does not support integration',
+  'examples:',
+  '`~derive 2x^2 + 3x + 4`'
+];
+
 const convertHelp = [
   'converts between units',
   'some common short-hands exist. Look at the math.js documentation for a list',
@@ -38,6 +51,8 @@ class Maths extends ScriptAddon {
     this.addCommand('maths', this.getMathsResult, mathsHelp);
     this.addCommand('math', this.getMathsResult, mathsHelp);
     this.addCommand('convert', this.getMathsResult, convertHelp);
+    this.addCommand('simplify', this.getSimplifyResult, simplifyHelp);
+    this.addCommand('derive', this.getDeriveResult, deriveHelp);
   }
 
   getScope(message) {
@@ -73,6 +88,40 @@ class Maths extends ScriptAddon {
         // Save the scope, but don't care if it fails
         this.setScope(input.message, scope)
           .catch(noop);
+
+        return result;
+      });
+  }
+
+  getSimplifyResult(input) {
+    return input.process()
+      .then((res) => {
+        let result;
+        try {
+          result = this.maths.simplify(res.text);
+          if (typeof result !== 'string') {
+            result = result.toString();
+          }
+        } catch (err) {
+          result = err.message;
+        }
+
+        return result;
+      });
+  }
+
+  getDeriveResult(input) {
+    return input.process()
+      .then((res) => {
+        let result;
+        try {
+          result = this.maths.derivative(res.text);
+          if (typeof result !== 'string') {
+            result = result.toString();
+          }
+        } catch (err) {
+          result = err.message;
+        }
 
         return result;
       });
