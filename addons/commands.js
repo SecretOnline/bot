@@ -1,5 +1,5 @@
 const ScriptAddon = require('../bot/ScriptAddon.js');
-const {arrayRandom, quoteSplit} = require('../util');
+const {arrayRandom} = require('../util');
 
 const sayHelp = [
   'syntax: `~<say/raw> <text to output>`',
@@ -13,9 +13,8 @@ const rollHelp = [
   'syntax: `~roll <roll> [more rolls]`',
   'where a roll is in the format `ndm`, `n` being the number of dice to roll, and `m` being the magnitude of the dice',
   'example usage:',
-  '~roll 5d6',
-  '~roll 1d20',
-  '~roll 3d6 2d4'
+  '~roll 4d6',
+  '~roll 1d20'
 ];
 const unReverseHelp = 'takes a reversed string and puts it the right way around';
 const reverseHelp = 'takes a string and reverses the letter order';
@@ -24,7 +23,6 @@ const randomHelp = [
   'selects one of the options given in the list',
   'example usage:',
   '~random Imperial Stormcloak',
-  '~random ~randomcat ~randomdog',
   '~random "Procrastinate for a few hours" "Add commands to secret_bot" Study'
 ];
 
@@ -57,21 +55,13 @@ class Comm extends ScriptAddon {
 
   /*
    * Reverse taken from https://github.com/mathiasbynens/esrever/blob/master/src/esrever.js
-   * to deal with javascript's unicode encoding
+   * to deal with javascript's unicode encoding (at least part of it)
    */
   reverse(input) {
     return input.process()
       .then((result) => {
-        var regexSymbolWithCombiningMarks = /(<%= allExceptCombiningMarks %>)(<%= combiningMarks %>+)/g;
         var regexSurrogatePair = /([\uD800-\uDBFF])([\uDC00-\uDFFF])/g;
-        // Step 1: deal with combining marks and astral symbols (surrogate pairs)
         let text = result.text
-          // Swap symbols with their combining marks so the combining marks go first
-          .replace(regexSymbolWithCombiningMarks, function($0, $1, $2) {
-            // Reverse the combining marks so they will end up in the same order
-            // later on (after another round of reversing)
-            return this.reverse($2) + $1;
-          })
           // Swap high and low surrogates so the low surrogates go first
           .replace(regexSurrogatePair, '$2$1');
         // Step 2: reverse the code units in the string
@@ -87,33 +77,40 @@ class Comm extends ScriptAddon {
   getRoll(input) {
     return input.process()
       .then((result) => {
-        var retString = '';
-        result.text.split().forEach(function(roll) {
-          if (roll.match(/\d+d\d+/)) {
-            var rSplit = roll.split('d');
-            var fResult = 0;
-            var rolls = '';
-            for (var i = 1; i <= rSplit[0]; i++) {
-              var result = Math.floor(Math.random() * rSplit[1]) + 1;
-              fResult += result;
-              rolls += result + '';
-              if (i !== rSplit[0]) {
-                rolls += '+';
-              }
+        let dice = result.args
+          .filter(r => r.match(/^\d+d\d+$/));
+
+        if (dice.length === 0) {
+          throw 'you just include a roll in your message. see `~help roll` for more information';
+        }
+
+        let rollResults = dice
+          .map((roll) => {
+            let [num, mag] = roll.split('d');
+            let values = [];
+            
+            for (let i = 0; i < num; i++) {
+              values.push(Math.floor(Math.random() * mag) + 1);
             }
-            retString += fResult + ' (' + rolls + ') ';
-          } else {
-            retString += 'bad roll ';
-          }
-        });
-        return retString;
+
+            return values;
+          });
+        
+        let total = rollResults.reduce((total, current) => {
+          return total + current.reduce((a, b) => a + b, 0);
+        }, 0);
+        let rolls = rollResults.reduce((all, current) => {
+          return all.concat(current);
+        }, []);
+
+        return `${total} (${rolls.join('+')})`;
       });
   }
 
   random(input) {
     return input.process()
       .then((res) => {
-        return arrayRandom(quoteSplit(res.text));
+        return arrayRandom(res.args);
       });
   }
 }
