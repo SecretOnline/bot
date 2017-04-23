@@ -1,4 +1,5 @@
 const ScriptAddon = require('../bot/ScriptAddon.js');
+const Animation = require('../bot/Animation.js');
 const {arrayRandom} = require('../util');
 
 const sayHelp = [
@@ -33,6 +34,10 @@ const flipHelp = [
   '`~flip example text`',
   '`~flip ~dance`'
 ];
+const eightBallHelp = [
+  'syntax: `~eightball <yes/no question>`',
+  ''
+];
 
 class Comm extends ScriptAddon {
   constructor(bot) {
@@ -49,6 +54,7 @@ class Comm extends ScriptAddon {
     this.addCommand('unreverse', this.reverse, unReverseHelp);
     this.addCommand('random', this.random, randomHelp);
     this.addCommand('flip', this.getFlip, flipHelp);
+    this.addCommand('eightball', this.getEightball, eightBallHelp);
   }
 
   say(input) {
@@ -97,14 +103,14 @@ class Comm extends ScriptAddon {
           .map((roll) => {
             let [num, mag] = roll.split('d');
             let values = [];
-            
+
             for (let i = 0; i < num; i++) {
               values.push(Math.floor(Math.random() * mag) + 1);
             }
 
             return values;
           });
-        
+
         let total = rollResults.reduce((total, current) => {
           return total + current.reduce((a, b) => a + b, 0);
         }, 0);
@@ -139,6 +145,19 @@ class Comm extends ScriptAddon {
       result[last - i] = r !== undefined ? r : c;
     }
     return result.join('');
+  }
+
+  getEightball(input) {
+    return input.process()
+      .then((res) => {
+        res.add(new Animation([
+          ...eightballFrames,
+          `${eightballFrames[0]} ${arrayRandom(eightBallResponses)}`
+        ], EIGHTBALL_DELAY, eightballColor));
+        res.add(''); // Since processed text isn't relevant for this command
+
+        return res;
+      });
   }
 }
 
@@ -207,5 +226,37 @@ const flipTable = {
 for (let i in flipTable) {
   flipTable[flipTable[i]] = i;
 }
+
+const eightBallResponses = [
+  'It is certain',
+  'It is decidedly so',
+  'Without a doubt',
+  'Yes definitely',
+  'You may rely on it',
+  'As I see it, yes',
+  'Most likely',
+  'Outlook good',
+  'Yes',
+  'Signs point to yes',
+  'Reply hazy, try again',
+  'Ask again later',
+  'Better not tell you now',
+  'Cannot predict now',
+  'Concentrate and ask again',
+  'Don\'t count on it',
+  'My reply is no',
+  'My sources say no',
+  'Outlook not so good',
+  'Very doubtful'
+];
+const eightballColor = '#292F33';
+const eightballFrames = [
+  '🎱⚫⚫',
+  '⚫🎱⚫',
+  '⚫⚫🎱',
+  '⚫🎱⚫',
+  '🎱⚫⚫'
+];
+const EIGHTBALL_DELAY = 1000;
 
 module.exports = Comm;
