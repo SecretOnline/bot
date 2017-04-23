@@ -22,11 +22,11 @@
   "dependencies": {
     "cleverbot.io": "^1.0.4",
     "discord.js": "^11.0.0",
-    "emoji-regex": "^6.1.0",
+    "emoji-regex": "^6.4.2",
     "github": "^7.2.0",
     "google": "^2.1.0",
     "google-translate": "^2.0.4",
-    "mathjs": "^3.10.0",
+    "mathjs": "^3.12.0",
     "node-emoji": "^1.5.1",
     "robots": "^0.9.4",
     "snoowrap": "^1.11.3",
