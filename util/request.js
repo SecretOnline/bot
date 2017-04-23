@@ -3,8 +3,10 @@ const https = require('https');
 const url = require('url');
 const robots = require('robots');
 
+const package = require('../package.json');
+
 const parsers = new Map();
-const UA = '[BOT] secret_bot/8.x.x - https://secretonline.co/bot/user-agent/';
+const UA = `[BOT] secret_bot/${package.version} - https://secretonline.co/bot/user-agent/`;
 
 /**
  * Requests the content of a URL
