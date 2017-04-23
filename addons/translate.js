@@ -113,7 +113,7 @@ class Translate extends ScriptAddon {
             return [lang, languages[index + 1]];
           })
           .slice(0, -1);
-        
+
         let translateFunctions = pairs.map((pair) => {
           return (str) => this.doTranslation(pair[0], pair[1], str);
         });
@@ -125,7 +125,7 @@ class Translate extends ScriptAddon {
             // First: do translations in order
             let transProm = prom
               .then(res => nextFunc(res));
-            
+
             let formatProm = transProm
               .then((text) => {
                 let breadcrumbs = languages
@@ -135,10 +135,10 @@ class Translate extends ScriptAddon {
                 return `**${breadcrumbs}**\n\n${text}`;
               });
             animPromises.push(formatProm);
-            
+
             return transProm;
           }, Promise.resolve(res.text));
-        
+
         res.add(new Animation(animPromises, this.translateDelay, this.translateColor));
         res.add('');
         return res;

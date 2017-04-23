@@ -18,7 +18,7 @@ const REACTION_POINT_INC = 200;
 /**
  * The main class of the bot
  * Handles Discord connections, and the creation of addons, as well as the interactions between them
- * 
+ *
  * @class Bot
  */
 class Bot {
@@ -26,7 +26,7 @@ class Bot {
    * Creates an instance of Bot.
    * @param {Discord.Client} client discord.js client
    * @param {object} conf Configuration for the bot
-   * 
+   *
    * @memberOf Bot
    */
   constructor(client, conf) {
@@ -59,10 +59,10 @@ class Bot {
 
   /**
    * The Discord.Client this bot uses to connect
-   * 
+   *
    * @readonly
    * @returns {Discord.Client} Discord Client
-   * 
+   *
    * @memberOf Bot
    */
   get discord() {
@@ -75,9 +75,9 @@ class Bot {
 
   /**
    * Initialises the bot
-   * 
+   *
    * @returns {Promise<undefined>} Resolves when the bot has loaded
-   * 
+   *
    * @memberOf Bot
    */
   start() {
@@ -95,10 +95,10 @@ class Bot {
   }
 
   /**
-   * Reloads all configuration files for servers 
-   * 
+   * Reloads all configuration files for servers
+   *
    * @returns {Promise<Array>} Resolves when config is reloaded
-   * 
+   *
    * @memberOf Bot
    */
   reloadConfig() {
@@ -120,9 +120,9 @@ class Bot {
 
   /**
    * Reloads all addons loaded by the bot
-   * 
+   *
    * @returns {Promise<Array>} Resolves when addons are ready
-   * 
+   *
    * @memberOf Bot
    */
   reloadAddons() {
@@ -157,9 +157,9 @@ class Bot {
 
   /**
    * Reconnects to Discord
-   * 
+   *
    * @returns {Promise<Discord.Client>} Resolves when connected to Discord
-   * 
+   *
    * @memberOf Bot
    */
   reloadConnections() {
@@ -171,11 +171,11 @@ class Bot {
 
   /**
    * Adds a command to the bot
-   * 
+   *
    * @param {string} trigger Word that triggers the command
    * @param {Command} command Command to run when triggered
    * @returns {boolean} Whether the command was added
-   * 
+   *
    * @memberOf Bot
    */
   addCommand(trigger, command) {
@@ -201,11 +201,11 @@ class Bot {
 
   /**
    * Removes a command from the bot
-   * 
+   *
    * @param {string} trigger Trigger for the command
    * @param {string} group Group the command belongs to
    * @returns {boolean} Whether the command was removed
-   * 
+   *
    * @memberOf Bot
    */
   removeCommand(trigger, addon) {
@@ -245,11 +245,11 @@ class Bot {
 
   /**
    * Gets a Command from the bot
-   * 
+   *
    * @param {string} trigger Trigger for the command
    * @param {Discord.Message} message Message that triggered the Command lookup
    * @returns {Command} The requested Command
-   * 
+   *
    * @memberOf Bot
    */
   getCommand(trigger, message) {
@@ -336,12 +336,12 @@ class Bot {
 
   /**
    * Gives a list of all commands usable by the message's author in this location
-   * 
+   *
    * @param {Discord.Message} message Message to get the context from
    * @param {string} group Command group to filter by
    * @param {boolean} [useObj=false] If set, will return list of trigger/Command pairs instead of just the triggers
    * @returns {(Array<string>|Array<Array>)} Command listing
-   * 
+   *
    * @memberOf Bot
    */
   listCommands(message, group, useObj = false) {
@@ -402,11 +402,11 @@ class Bot {
 
   /**
    * Gives a list of all the addons enabled by a guild
-   * 
+   *
    * @param {Discord.Message} message
    * @param {boolean} [useObj=false] Whether to return names or the actual addon objects
    * @returns
-   * 
+   *
    * @memberOf Bot
    */
   listAddons(guild, useObj = false) {
@@ -427,11 +427,11 @@ class Bot {
 
   /**
    * Gets the configuration for a given object
-   * 
+   *
    * @param {(Discord.Guild|ScriptAddon|string)} obj Place to get config for
    * @param {(Discord.Guild|ScriptAddon)} [context] Server to get configuration for. Only used by ScriptAddons
    * @returns {any} Configuration for the object
-   * 
+   *
    * @memberOf Bot
    */
   getConfig(obj, context) {
@@ -455,13 +455,13 @@ class Bot {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param {(Discord.Guild|ScriptAddon|string)} obj Place to set the config of
    * @param {any} conf Configuration for the object
    * @param {string} [server='default'] Server to set the configuration of. Only used by ScriptAddons
    * @returns {Promise} Resolves when the configuration is writter to disk
-   * 
+   *
    * @memberOf Bot
    */
   setConfig(obj, conf, context) {
@@ -483,10 +483,10 @@ class Bot {
 
   /**
    * Gets the permission lever of the Message's author
-   * 
+   *
    * @param {Discord.Message} message Message to get permission level of
    * @returns {number} Permission level of user
-   * 
+   *
    * @memberOf Bot
    */
   getPermissionLevel(message) {
@@ -513,13 +513,13 @@ class Bot {
 
   /**
    * Sends a message to a target
-   * 
+   *
    * @param {(Discord.Channel|Result)} target Target to send the message to OR Result to be sent
    * @param {(string|Discord.RichEmbed)} message Message to send to the target
    * @param {boolean} [error=false] Whether this message is an error
    * @param {boolean} [disableEveryone=true] Whether @everyone mentions should be disabled
    * @returns
-   * 
+   *
    * @memberOf Bot
    */
   send(target, message, error = false, disableEveryone = true) {
@@ -641,10 +641,10 @@ class Bot {
 
   /**
    * Transform a string into an embed
-   * 
+   *
    * @param {string} message Message to convert
    * @returns {Discord.RichEmbed} Embed to send
-   * 
+   *
    * @memberOf Bot
    */
   embedify(message, isError) {
@@ -654,12 +654,12 @@ class Bot {
 
   /**
    * Logs a message coming from a location
-   * 
+   *
    * @param {string} message Message to log
    * @param {(Bot|Addon|string)} [from=this] Place where message is from
    * @param {boolean} [error=false] Whether this message is an error
    * @returns {string} Content that was written to the console
-   * 
+   *
    * @memberOf Bot
    */
   log(message, from = 'BOT', isError = false) {
@@ -668,28 +668,28 @@ class Bot {
 
   /**
    * Logs an error coming from a location
-   * 
+   *
    * @param {string} message Error to log
    * @param {(Bot|Addon|string)} from Place where message is from
    * @returns {string} Content that was written to the console
-   * 
+   *
    * @memberOf Bot
    */
   error(message, from) {
     return this.log(message, from, true);
   }
 
-  
+
   getLogs(filter, limit = 80) {
     return this.logger.getLogs(filter, limit);
   }
 
   /**
    * Gets data for an addon
-   * 
-   * @param {Addon} addon 
+   *
+   * @param {Addon} addon
    * @returns {Promise}
-   * 
+   *
    * @memberOf Bot
    */
   getData(addon) {
@@ -729,10 +729,10 @@ class Bot {
 
   /**
    * Lists the files in a directory
-   * 
+   *
    * @param {string} path Path to list
    * @returns {Promise<Array>} Resolves with a list of files
-   * 
+   *
    * @memberOf Bot
    */
   _listDirectory(path) {
@@ -751,10 +751,10 @@ class Bot {
 
   /**
    * Loads the listed configuration files
-   * 
+   *
    * @param {Array<string>} files
    * @returns {Promise<Array>} Resolves when all files are loaded
-   * 
+   *
    * @memberOf Bot
    */
   _loadConfig(files) {
@@ -792,10 +792,10 @@ class Bot {
 
   /**
    * Loads the listed user configuration files
-   * 
+   *
    * @param {Array<string>} files
    * @returns {Promise<Array>} Resolves when all files are loaded
-   * 
+   *
    * @memberOf Bot
    */
   _loadUserConfig(files) {
@@ -833,10 +833,10 @@ class Bot {
 
   /**
    * Stores all server configs into the bot
-   * 
+   *
    * @param {Array<Object>} configs Set of configurations
    * @returns {Array<Object>} The configuration that was passed in
-   * 
+   *
    * @memberOf Bot
    */
   _initServerConfig(configs) {
@@ -848,10 +848,10 @@ class Bot {
 
   /**
    * Stores all user configs into the bot
-   * 
+   *
    * @param {Array<Object>} configs Set of configurations
    * @returns {Array<Object>} The configuration that was passed in
-   * 
+   *
    * @memberOf Bot
    */
   _initUserConfig(configs) {
@@ -863,9 +863,9 @@ class Bot {
 
   /**
    * Gets the default configuration
-   * 
+   *
    * @returns {any} Default configuration
-   * 
+   *
    * @memberOf Bot
    */
   _getDefaultConfig() {
@@ -874,10 +874,10 @@ class Bot {
 
   /**
    * Gets the configuration for a server
-   * 
+   *
    * @param {Discord.Guild} server The id of a server
    * @returns {any} Server configuration
-   * 
+   *
    * @memberOf Bot
    */
   _getServerConfig(server) {
@@ -893,11 +893,11 @@ class Bot {
 
   /**
    * Gets the configuration for an Addon
-   * 
+   *
    * @param {Addon} addon Addon to get configuration for
    * @param {Discord.Guild} [server] Server to get the configuration from
    * @returns {any} Addon configuration
-   * 
+   *
    * @memberOf Bot
    */
   _getAddonConfig(addon, server) {
@@ -938,10 +938,10 @@ class Bot {
 
   /**
    * Sets the default configuration
-   * 
+   *
    * @param {any} conf Configuration to set
    * @returns {Promise} Resolves when configuration is written to disk
-   * 
+   *
    * @memberOf Bot
    */
   _setDefaultConfig(conf) {
@@ -952,11 +952,11 @@ class Bot {
 
   /**
    * Sets the configuration for a server
-   * 
+   *
    * @param {Discord.Guild} server Server to set configuration of
    * @param {any} conf Configuration to set
    * @returns {Promise} Resolves when configuration is written to disk
-   * 
+   *
    * @memberOf Bot
    */
   _setServerConfig(server, conf) {
@@ -967,12 +967,12 @@ class Bot {
 
   /**
    * Sets the configuration for an Addon
-   * 
+   *
    * @param {Addon} addon Addon to set configuration of
    * @param {any} conf Configuration to set
    * @param {Discord.Guild} [server] Server to set configuration of
    * @returns {Promise} Resolves when configuration is written to disk
-   * 
+   *
    * @memberOf Bot
    */
   _setAddonConfig(addon, conf, server) {
@@ -1007,10 +1007,10 @@ class Bot {
 
   /**
    * Writes configuration for a server to disk
-   * 
+   *
    * @param {Discord.Guild} server Server to write the configuration of
    * @returns {Promise} Resolves when written
-   * 
+   *
    * @memberOf Bot
    */
   _writeServerConf(server) {
@@ -1033,10 +1033,10 @@ class Bot {
 
   /**
    * Writes configuration for a user to disk
-   * 
+   *
    * @param {Discord.User} user User to write configuration of
    * @returns {Promise} Resolves when written
-   * 
+   *
    * @memberOf Bot
    */
   _writeUserConf(user) {
@@ -1059,10 +1059,10 @@ class Bot {
 
   /**
    * Creates a new configutation for a server
-   * 
+   *
    * @param {Discord.Guild} guild
    * @returns {Object} New configuration
-   * 
+   *
    * @memberOf Bot
    */
   _newServerConf(guild) {
@@ -1085,10 +1085,10 @@ class Bot {
 
   /**
    * Creates Addons from the list of files
-   * 
+   *
    * @param {Array<string>} files Files to load
    * @returns {Promise<Array>} Resolves when all Addon subclasses have been created
-   * 
+   *
    * @memberOf Bot
    */
   _createAddons(files) {
@@ -1144,9 +1144,9 @@ class Bot {
   /**
    * For sneaking an addon into the list
    * Mostly, this will be used by custom commands
-   * 
+   *
    * @param {Addon} addon
-   * 
+   *
    * @memberOf Bot
    */
   _sneakAddon(addon) {
@@ -1180,10 +1180,10 @@ class Bot {
 
   /**
    * Initialises all the addons
-   * 
+   *
    * @param {Array<Addon>} addons List of addons to initialise
    * @returns {Promise<Array>} Resolves when all Addons have been initialised
-   * 
+   *
    * @memberOf Bot
    */
   _initAddons() {
@@ -1202,10 +1202,10 @@ class Bot {
 
   /**
    * Shus down all of the addons
-   * 
+   *
    * @param {Array<Addon>} addons Addons to shut down
    * @returns {Promise<Array>} Resolves when all Addons have stopped
-   * 
+   *
    * @memberOf Bot
    */
   _deinitAddons(addons) {
@@ -1221,9 +1221,9 @@ class Bot {
   /**
    * Begins a connection to Discord
    * Here for legacy purposes, since the previous version of bot supported more than just Discord
-   * 
+   *
    * @returns {Promise<Discord.Client>} Resolves when connected to Discord
-   * 
+   *
    * @memberOf Bot
    */
   _openConnections() {
@@ -1232,10 +1232,10 @@ class Bot {
     } else {
       return new Promise((resolve, reject) => {
         this._discord.once('ready', () => {
-          this._discord.on('message', this._onMessage.bind(this)); 
-          this._discord.on('messageUpdate', this._onEdit.bind(this)); 
-          this._discord.on('messageReactionAdd', this._onReactAdd.bind(this)); 
-          
+          this._discord.on('message', this._onMessage.bind(this));
+          this._discord.on('messageUpdate', this._onEdit.bind(this));
+          this._discord.on('messageReactionAdd', this._onReactAdd.bind(this));
+
           resolve(this._discord);
         });
       });
@@ -1245,9 +1245,9 @@ class Bot {
   /**
    * Disconnects from Discord
    * DOESN'T ACUTALLY DO ANYTHING
-   * 
+   *
    * @returns {Promise} Just resolves. Nothing else
-   * 
+   *
    * @memberOf Bot
    */
   _closeConnections() {
@@ -1256,10 +1256,10 @@ class Bot {
 
   /**
    * Runs a message through listeners for all incoming messages
-   * 
+   *
    * @param {Discord.Message} message Message to pass around
    * @param {boolean} [processed=false] Whether this message has been processed
-   * 
+   *
    * @memberOf Bot
    */
   _messageToAddons(message) {
@@ -1274,10 +1274,10 @@ class Bot {
 
   /**
    * Checks to see if the mesage should continue to be processed based on development mode
-   * 
-   * @param {Discord.Message} message 
-   * @returns 
-   * 
+   *
+   * @param {Discord.Message} message
+   * @returns
+   *
    * @memberOf Bot
    */
   _checkDevChannel(message) {
@@ -1302,10 +1302,10 @@ class Bot {
 
   /**
    * Whether the bot should process this message
-   * 
+   *
    * @param {Discord.Message} message Message to test
    * @returns {boolean} Whether this message should be sent
-   * 
+   *
    * @memberOf Bot
    */
   _shouldProcess(message) {
@@ -1345,15 +1345,15 @@ class Bot {
   /**
    * Processes an Input
    * Don't use, this is here for testing and experimental purposes
-   * 
+   *
    * @param {any} input
-   * 
+   *
    * @memberOf Bot
    */
   _process(input) {
     let message = input.message;
     return input.process()
-      // Catch any errors in 
+      // Catch any errors in
       .catch((err) => {
         if (err) {
           this.editCache.set(message.id, message); // Value stored in map may change
@@ -1392,10 +1392,10 @@ class Bot {
 
   /**
    * Event hamdler for the 'message' event
-   * 
+   *
    * @param {Discord.Message} message Incoming message
    * @returns {Promise} Resolves once this message has been processed
-   * 
+   *
    * @memberOf Bot
    */
   _onMessage(message) {
@@ -1419,11 +1419,11 @@ class Bot {
 
   /**
    * Event handler for the 'messageUpdate' event
-   * 
+   *
    * @param {Discord.Message} oldMessage Previous state of the message
    * @param {Discord.Message} newMessage New state of the message
    * @returns {Promise} Resolves once this edit has been processed
-   * 
+   *
    * @memberOf Bot
    */
   _onEdit(oldMessage, newMessage) {
@@ -1445,7 +1445,7 @@ class Bot {
     let input = new Input(newMessage, this);
 
     input.process()
-      // Catch any errors in 
+      // Catch any errors in
       .catch((err) => {
         if (err) {
           // Don't set edit cache
@@ -1483,10 +1483,10 @@ class Bot {
 
   /**
    * Event handler for the 'messageReactionAdd' event
-   * 
+   *
    * @param {Discord.MessageReaction} messageReaction
    * @param {Discord.User} user
-   * 
+   *
    * @memberOf Bot
    */
   _onReactAdd(messageReaction, user) {
@@ -1513,7 +1513,7 @@ class Bot {
         value += REACTION_POINT_INC;
 
         this.reactionUsers.set(user.id, value);
-      
+
         if (value > REACTION_POINT_LIMIT) {
           return this.send(user, 'in order to avoid server spamming with Actions, limits have been placed on how often you can use them', true);
         }

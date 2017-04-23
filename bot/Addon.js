@@ -3,16 +3,16 @@ const Command = require('../bot/Command.js');
 /**
  * An addon. Generally manages commands
  * Should be extended by addons
- * 
+ *
  * @class Addon
  */
 class Addon {
   /**
    * Creates an instance of Addon.
-   * 
+   *
    * @param {Bot} bot Bot this Addon belongs to
    * @param {string} [namespace='NONAME'] Namespace for this Addon. Configs are shared for addons with the same namespace
-   * 
+   *
    * @memberOf Addon
    */
   constructor(bot, namespace = 'NONAME') {
@@ -24,10 +24,10 @@ class Addon {
   /**
    * The namespace for this addon
    * Addons with the same namespace share the same configuration
-   * 
+   *
    * @readonly
    * @returns {string} Namespace for the Addon
-   * 
+   *
    * @memberOf Addon
    */
   get namespace() {
@@ -36,10 +36,10 @@ class Addon {
 
   /**
    * The description of this addon
-   * 
+   *
    * @readonly
    * @returns {string} Addon's description
-   * 
+   *
    * @memberOf Addon
    */
   get description() {
@@ -48,9 +48,9 @@ class Addon {
 
   /**
    * Starts up the Addon
-   * 
+   *
    * @returns {(Promise<any>|any)} Resolves (or returns) when Addon is loaded
-   * 
+   *
    * @memberOf Addon
    */
   init() {
@@ -60,9 +60,9 @@ class Addon {
   /**
    * Shuts down the Addon
    * UNUSED, DOESN'T DO ANYTHING
-   * 
-   * @returns {(Promise<any>|any)} Resolves (or returns) when the Addon is no longer loaded 
-   * 
+   *
+   * @returns {(Promise<any>|any)} Resolves (or returns) when the Addon is no longer loaded
+   *
    * @memberOf Addon
    */
   deinit() {
@@ -71,12 +71,12 @@ class Addon {
 
   /**
    * Adds a command to the bot
-   * 
+   *
    * @param {string} trigger Word that is used to trigger the command
    * @param {function} funct Function to call. Autobound
    * @param {number} [permission=Command.PermissionLevels.DEFAULT] Permission level required for this command
    * @param {(function|string|Array<string>)} [help=null]
-   * 
+   *
    * @memberOf Addon
    */
   addCommand(trigger, funct, permission = Command.PermissionLevels.DEFAULT, help = null) {
@@ -97,10 +97,10 @@ class Addon {
 
   /**
    * Removes a command from the bot
-   * 
+   *
    * @param {string} trigger Word that is used to trigger the command
    * @returns
-   * 
+   *
    * @memberOf Addon
    */
   removeCommand(trigger) {
@@ -109,9 +109,9 @@ class Addon {
 
   /**
    * A handler for when a message is sent
-   * 
+   *
    * @param {Discord.Message} message
-   * 
+   *
    * @memberOf Addon
    */
   onMessage(message) {
@@ -120,10 +120,10 @@ class Addon {
 
   /**
    * Logs a message from this Addon
-   * 
+   *
    * @param {string} message Message to log
    * @returns {string} Content that was written to the console
-   * 
+   *
    * @memberOf Addon
    */
   log(message) {
@@ -132,10 +132,10 @@ class Addon {
 
   /**
    * Logs an error from this Addon
-   * 
+   *
    * @param {string} message Error message to log
    * @returns {string} Content that was written to the console
-   * 
+   *
    * @memberOf Addon
    */
   error(message) {

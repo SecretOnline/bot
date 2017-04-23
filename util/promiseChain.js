@@ -1,6 +1,6 @@
 /**
  * Runs over async functions in squence
- * 
+ *
  * @param {Array<function>} functions Functions to run\
  * @param {any} initial Initial value
  * @returns {Promise}

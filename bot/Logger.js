@@ -4,17 +4,17 @@ const Addon = require('./Addon.js');
 
 /**
  * Handles reading/writing of logs
- * 
+ *
  * @class Logger
  */
 class Logger {
   /**
    * Creates an instance of Logger.
-   * 
+   *
    * @param {Bot} bot
    * @param {string} directory
    * @param {number} size
-   * 
+   *
    * @memberOf Logger
    */
   constructor(bot, directory, size = 2000) {
@@ -29,14 +29,14 @@ class Logger {
       this._readyFunc = resolve;
     });
   }
-  
+
   //region Functions
 
   /**
    * Starts the logger
-   * 
+   *
    * @returns {Promise} Resolves when logger is ready to accept messages
-   * 
+   *
    * @memberOf Logger
    */
   start() {
@@ -60,13 +60,13 @@ class Logger {
         this._readyFunc();
       });
   }
-  
+
   /**
    * Gets the latest logs that match a particular function
-   * 
+   *
    * @param {function} filter
    * @param {number} [limit=80]
-   * 
+   *
    * @memberOf Logger
    */
   getLogs(filter, limit = 80) {
@@ -133,7 +133,7 @@ class Logger {
             console.log(out); // eslint-disable-line no-console
           }
         }
-        
+
         return line;
       })
       .then((line) => {
@@ -161,20 +161,20 @@ class Logger {
         });
       });
   }
-  
+
   //endregion
 
   //region Private functions
 
   /**
-   * Tries to get <limit> lines of log 
+   * Tries to get <limit> lines of log
    * Will recur to get morefrom previous log files
-   * 
+   *
    * @param {function} filter Filtering function to apply
    * @param {number} limit Number of lines to get
    * @param {number} id File id to gets logs from
    * @returns {Promise} Resolves with lines of log
-   * 
+   *
    * @memberOf Logger
    */
   _filterLogs(filter, limit, id) {
@@ -202,10 +202,10 @@ class Logger {
 
   /**
    * Wrapper that either gets log from cache or from disk
-   * 
+   *
    * @param {number} id
    * @returns {Promise<Array>} Resolves with log data
-   * 
+   *
    * @memberOf Logger
    */
   _getLogFile(id) {
@@ -239,14 +239,14 @@ class Logger {
           .then(resolve, reject);
       }
     });
-  } 
-  
+  }
+
   /**
    * Reads a log file
-   * 
+   *
    * @param {number} id
    * @returns {Promise<string>} Resolves with file contents
-   * 
+   *
    * @memberOf Logger
    */
   _readFile(id) {
@@ -263,10 +263,10 @@ class Logger {
 
   /**
    * Parses the log data into an array
-   * 
+   *
    * @param {string} data
    * @returns {Promise<Array>} Resolves with parsed data
-   * 
+   *
    * @memberOf Logger
    */
   _parseLog(data) {
@@ -274,11 +274,11 @@ class Logger {
       .filter(l => !l.match(/^#|^\/\/|(?:^.{0}$)/)) // Remove comments and newline
       .map(l => JSON.parse(l));
   }
-  
+
   //endregion
 
   //region Static Functions
-  
+
   static filterByGuild(guild) {
     return (line) => {
       if (line.type !== 'message') {
@@ -291,7 +291,7 @@ class Logger {
       return true;
     };
   }
-  
+
   static filterByChannel(channel) {
     return (line) => {
       if (line.type !== 'message') {
@@ -317,7 +317,7 @@ class Logger {
       return true;
     };
   }
-  
+
   static filterByAddon(addon) {
     return (line) => {
       if (line.type !== 'log') {
@@ -330,7 +330,7 @@ class Logger {
       return true;
     };
   }
-  
+
   static filterByError(addon) {
     return (line) => {
       if (line.type !== 'error') {
@@ -343,7 +343,7 @@ class Logger {
       return true;
     };
   }
-  
+
   //endregion
 }
 

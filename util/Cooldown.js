@@ -2,7 +2,7 @@
  * A cooldown that can be "bumped" in smaller increments
  * Timer value descreases by 1 every millisecond
  * Does not create any setInterval loops
- * 
+ *
  * @class Cooldown
  */
 class Cooldown {
@@ -10,7 +10,7 @@ class Cooldown {
    * Creates an instance of Cooldown.
    * @param {number} max Maximum value for the cooldown (ms)
    * @param {number} [amount=max] Amount to increase value by each bump
-   * 
+   *
    * @memberOf Cooldown
    */
   constructor(max, amount = max) {
@@ -20,21 +20,21 @@ class Cooldown {
     this._value = 0;
     this._timestamp = Date.now();
   }
-  
+
   /**
    * Bumps the value of the countdown
    * If no parameter given, uses the default bump defined in the constructor
-   * 
+   *
    * If this function returns true, then everything's fine
    * If it returns false, then either:
    *   The value was already over the max
    *   If preCheck is set, the future value would be over the max
    *   The value once updated is over the max
-   * 
+   *
    * @param {number} [amount=this._bump] Amount to increase the value by
    * @param {boolean} [preCheck=true] Allows the bypassing of the initial check, so value can exceed the max (once, unitl it goes back under)
    * @returns {boolean} Whether the countdown is over the max
-   * 
+   *
    * @memberOf Cooldown
    */
   bump(amount = this._bump, preCheck = true) {
@@ -64,9 +64,9 @@ class Cooldown {
 
   /**
    * Whether the cooldown is below the max
-   * 
+   *
    * @returns {boolean} Whether the cooldown is below the max
-   * 
+   *
    * @memberOf Cooldown
    */
   status() {
@@ -76,9 +76,9 @@ class Cooldown {
   /**
    * Updates the internal value
    * Since this class is reactive, it must update the value before testing the current value
-   * 
+   *
    * @returns {number} The current cooldown value
-   * 
+   *
    * @memberOf Cooldown
    */
   update() {
@@ -98,7 +98,7 @@ class Cooldown {
 
   /**
    * Resets the cooldown to its initial state
-   * 
+   *
    * @memberOf Cooldown
    */
   reset() {

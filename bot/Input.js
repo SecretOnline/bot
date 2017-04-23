@@ -5,18 +5,18 @@ let {quoteSplit} = require('../util');
 
 /**
  * An object to be used by commands
- * 
+ *
  * @class Input
  */
 class Input {
   /**
    * Creates an instance of Input.
-   * 
+   *
    * @param {Discord.Message} message Message that this input stems from
    * @param {Bot} bot
    * @param {Result} [result=null] Result object to use
    * @param {InputOverride} [override=null] Override object
-   * 
+   *
    * @memberOf Input
    */
   constructor(message, bot, result = null, override = null) {
@@ -31,9 +31,9 @@ class Input {
 
   /**
    * The bot that this Input comes from
-   * 
+   *
    * @readonly
-   * 
+   *
    * @memberOf Input
    */
   get bot() {
@@ -42,10 +42,10 @@ class Input {
 
   /**
    * The current text value for this Input
-   * 
+   *
    * @readonly
    * @returns {string} Text of this Input
-   * 
+   *
    * @memberOf Input
    */
   get text() {
@@ -54,10 +54,10 @@ class Input {
 
   /**
    * Message this Input is based off
-   * 
+   *
    * @readonly
    * @returns {Discord.Message} Message this Input comes from
-   * 
+   *
    * @memberOf Input
    */
   get message() {
@@ -66,10 +66,10 @@ class Input {
 
   /**
    * User who sent the original Message
-   * 
+   *
    * @readonly
    * @returns {Discord.User} User the original Message was sent by
-   * 
+   *
    * @memberOf Input
    */
   get user() {
@@ -78,10 +78,10 @@ class Input {
 
   /**
    * Channel the message was sent from
-   * 
+   *
    * @readonly
    * @returns {Discord.TextBasedChannel} User the original Message was sent by
-   * 
+   *
    * @memberOf Input
    */
   get channel() {
@@ -90,10 +90,10 @@ class Input {
 
   /**
    * Splits the text by whitespace, except inside quotes
-   * 
+   *
    * @readonly
    * @returns {Array<string>} Parts of the string given
-   * 
+   *
    * @memberOf Input
    */
   get args() {
@@ -111,9 +111,9 @@ class Input {
 
   /**
    * Processes this input
-   * 
+   *
    * @returns {Promise<string>} Resolves with final output
-   * 
+   *
    * @memberOf Input
    */
   process() {
@@ -187,11 +187,11 @@ class Input {
 
   /**
    * Creates a new Input based on this one, but with new text
-   * 
+   *
    * @param {InputOverride} override Overriding information for the new Input
    * @param {?Result} result Result to replace with
    * @returns {Input} New Input object
-   * 
+   *
    * @memberOf Input
    */
   from(override, result) {
@@ -210,11 +210,11 @@ class Input {
   //endregion
 
   //region Static
-  
+
   static get Override() {
     return InputOverride;
   }
-  
+
   //endregion
 }
 

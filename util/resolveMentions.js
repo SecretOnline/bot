@@ -4,9 +4,9 @@ const channelMention = /<#(\d+)>/;
 
 /**
  * Resolves any mentions or other Discord objects in the array
- * 
- * @param {Array<string>} array 
- * @param {Input} input 
+ *
+ * @param {Array<string>} array
+ * @param {Input} input
  */
 function resolveMentions(array, input) {
   let discord = input.bot.discord;
@@ -15,12 +15,12 @@ function resolveMentions(array, input) {
     if (userMention.test(item)) {
       let match = item.match(userMention);
 
-      // User server member list if available 
-      let userList; 
-      if (input.channel.guild) { 
-        userList = input.channel.guild.members; 
-      } else { 
-        userList = discord.users; 
+      // User server member list if available
+      let userList;
+      if (input.channel.guild) {
+        userList = input.channel.guild.members;
+      } else {
+        userList = discord.users;
       }
 
       if (userList.has(match[1])) {
@@ -28,7 +28,7 @@ function resolveMentions(array, input) {
       }
 
       return item;
-    } else 
+    } else
     // Test for role mentions
     if (roleMention.test(item)) {
       let match = item.match(roleMention);
@@ -42,17 +42,17 @@ function resolveMentions(array, input) {
       if (guild.roles.has(match[1])) {
         return guild.roles.get(match[1]);
       }
-    } else 
+    } else
     // Test for channel mentions
     if (channelMention.test(item)) {
       let match = item.match(channelMention);
-      
+
       if (discord.channels.has(match[1])) {
         return discord.channels.get(match[1]);
       }
-    } 
+    }
     // Default: just return the original string
-    
+
     return item;
   });
 }

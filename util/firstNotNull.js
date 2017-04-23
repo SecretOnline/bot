@@ -1,6 +1,6 @@
 /**
  * Returns the first given parameter that is not null, or null if they all are
- * 
+ *
  * @param {any} options
  * @returns
  */

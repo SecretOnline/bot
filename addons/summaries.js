@@ -63,7 +63,7 @@ class Summaries extends ScriptAddon {
     this.addCommand('yt', this.ytSummary, ytHelp);
     this.addCommand('youtube', this.ytSearch, ytSearchHelp);
   }
-  
+
   redditSummary(input) {
     return new Promise((resolve, reject) => {
       let exps = [
@@ -309,7 +309,7 @@ class Summaries extends ScriptAddon {
         result.add(embed);
         return result;
       });
-    
+
   }
 
   ytSearch(input) {
@@ -329,7 +329,7 @@ class Summaries extends ScriptAddon {
 
             resolve(res.items[0]);
           });
-        });  
+        });
       })
       .then((info) => {
         return `https://www.youtube.com/watch?v=${info.id.videoId}`;

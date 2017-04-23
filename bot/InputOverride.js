@@ -2,17 +2,17 @@ let {firstNotNull} = require('../util');
 
 /**
  * An override for an Input's data
- * 
+ *
  * @class InputOverride
  */
 class InputOverride {
   /**
    * Creates an instance of InputOverride
-   * 
+   *
    * @param {string} [text=null]
    * @param {(Discord.User|Discord.GuildMember)} [user=null]
    * @param {(Discord.DMChannel|Discord.TextChannel)} [channel=null]
-   * 
+   *
    * @memberOf InputOverride
    */
   constructor(text = null, user = null, channel = null) {
@@ -23,9 +23,9 @@ class InputOverride {
 
   /**
    * Text of this override
-   * 
+   *
    * @readonly
-   * 
+   *
    * @memberOf InputOverride
    */
   get text() {
@@ -34,9 +34,9 @@ class InputOverride {
 
   /**
    * User of this override
-   * 
+   *
    * @readonly
-   * 
+   *
    * @memberOf InputOverride
    */
   get user() {
@@ -45,9 +45,9 @@ class InputOverride {
 
   /**
    * Channel of this override
-   * 
+   *
    * @readonly
-   * 
+   *
    * @memberOf InputOverride
    */
   get channel() {
@@ -56,10 +56,10 @@ class InputOverride {
 
   /**
    * Returns a new override based on this, but with features from the given override
-   * 
+   *
    * @param {InputOverride} override A new Override
    * @returns
-   * 
+   *
    * @memberOf InputOverride
    */
   merge(override) {
@@ -68,7 +68,7 @@ class InputOverride {
       firstNotNull(override.user, this.user),
       firstNotNull(override.channel, this.channel)
     );
-  }  
+  }
 }
 
 module.exports = InputOverride;

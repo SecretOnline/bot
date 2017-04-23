@@ -23,7 +23,7 @@ const defaultHelp = {
     {emoji: 'closed_book', desc: 'view a list of help topics', action: '~help topic'},
     {emoji: 'robot_face', desc: 'add secret_bot to your server', action: '~bot-invite'}
   ]
-}; 
+};
 const helpHelp = [
   'syntax: `~help [command]`',
   'finds help for the given command',

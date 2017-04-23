@@ -28,7 +28,7 @@ class ConversationAddon extends ScriptAddon {
     this.addCommand('markov', this.doMarkov);
     this.addCommand('cb', this.doCleverbot);
     this.addCommand('gunter', this.startGunter);
-     
+
     this.addCommand('clear-gunter', this.clearGunter, Command.PermissionLevels.OVERLORD);
   }
 
@@ -62,7 +62,7 @@ class ConversationAddon extends ScriptAddon {
           .then(() => {
             return newMarkov;
           });
-      }      
+      }
 
       mkvReady
           .catch((err) => {
@@ -163,7 +163,7 @@ class ConversationAddon extends ScriptAddon {
             gunterCounter = new Cooldown(this.gunterLimit, this.gunterBump);
             this.gunterLimits.set(message.channel.id, gunterCounter);
           }
-          
+
           if (!gunterCounter.bump()) {
             return;
           }

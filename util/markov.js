@@ -1,14 +1,14 @@
 /**
  * A Markov Chain generator
- * 
+ *
  * @class MarkovChain
  */
 class MarkovChain {
   /**
    * Creates an instance of MarkovChain.
-   * 
+   *
    * @param {number} [size=200] How many inputs to keep. Old inputs are removed as new ones are added
-   * 
+   *
    * @memberOf MarkovChain
    */
   constructor(size = 200) {
@@ -20,12 +20,12 @@ class MarkovChain {
     this.size = Math.min(size, this.maxSize);
     this.endString = '#### END ####'; // Contains spaces, so is safe for special meaning
   }
-  
+
   /**
    * Finds the next word in the chain
-   * 
+   *
    * @param {string} word Word to find the next of
-   * 
+   *
    * @memberOf MarkovChain
    */
   next(word, tryContinue) {
@@ -65,12 +65,12 @@ class MarkovChain {
 
   /**
    * Creates a chain of the given length with the given starter
-   * 
+   *
    * @param {string} start String to start with
    * @param {number} [length=20] Max length
    * @param {number} [min = 8] Min length (not guaranteed)
    * @returns
-   * 
+   *
    * @memberOf MarkovChain
    */
   chain(start, length = 20, min = 8) {
@@ -91,9 +91,9 @@ class MarkovChain {
 
   /**
    * Picks a word from the input string and generates from that
-   * 
+   *
    * @param {string} text
-   * 
+   *
    * @memberOf MarkovChain
    */
   respond(text) {
@@ -106,9 +106,9 @@ class MarkovChain {
   /**
    * Adds text to the chain generator
    * If the generator is at its size, will also remove old entries
-   * 
+   *
    * @param {string} text Words to add to the chain generator
-   * 
+   *
    * @memberOf MarkovChain
    */
   add(text) {
@@ -156,7 +156,7 @@ class MarkovChain {
             nexts.delete(next);
           }
         }
-        
+
         // Remove unneeded entries
         if (nexts.size === 0) {
           this.pairs.delete(word);
@@ -164,7 +164,7 @@ class MarkovChain {
       }
     }
 
-    
+
 
     this.index++; // Increment index
     if (this.index >= Number.MAX_SAFE_INTEGER) { // And make sure it won't go wrong
@@ -175,9 +175,9 @@ class MarkovChain {
 
   /**
    * Dumps out the state of the current generator dictionary
-   * 
+   *
    * @returns {Object}
-   * 
+   *
    * @memberOf MarkovChain
    */
   dump() {
@@ -196,11 +196,11 @@ class MarkovChain {
 
   /**
    * Splits a string into a list of tokens for use with the MarkovChain
-   * 
+   *
    * @static
    * @param {string} str String to split
    * @returns {Array} List of tokens
-   * 
+   *
    * @memberOf MarkovChain
    */
   static tokenize(str) {

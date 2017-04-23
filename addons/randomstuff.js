@@ -335,7 +335,7 @@ class RandomStuff extends ScriptAddon {
         parts = this.dongerParts
           .get(type)
           .filter((part) => {
-            if (part.orientation === 'right' || 
+            if (part.orientation === 'right' ||
               part.orientation === 'both') {
               return true;
             }
