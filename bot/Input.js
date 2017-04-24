@@ -89,6 +89,18 @@ class Input {
   }
 
   /**
+   * Server the message was sent from
+   *
+   * @readonly
+   * @returns {Discord.Guild} Server the original Message was sent from
+   *
+   * @memberOf Input
+   */
+  get server() {
+    return this.o.channel.guild;
+  }
+
+  /**
    * Splits the text by whitespace, except inside quotes
    *
    * @readonly

@@ -2,6 +2,9 @@ const Discord = require('discord.js');
 
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
+const InputOverride = require('../bot/InputOverride.js');
+const Result = require('../bot/Result.js');
+const {ReAction} = Result;
 
 let supportHelp = [
   'syntax: `~support <reason>`',
@@ -14,8 +17,11 @@ class Support extends ScriptAddon {
   constructor(bot) {
     super(bot, 'support');
 
-    this.desc = 'Allows server admins to get in contact with people who can help with secret_bot';
     this.discord = bot.discord;
+  }
+
+  get description() {
+    return 'Allows server admins to get in contact with people who can help with secret_bot';
   }
 
   init() {
@@ -100,8 +106,13 @@ class Support extends ScriptAddon {
           .setDescription(`a new support request has been created. here is an invite to a channel where you can get help: ${invite.toString()}`)
           .addField('Reason', input.text);
 
+        let newInput = input.from(new InputOverride('', input.user, channel));
+        let result = new Result();
+        result.add(new ReAction('🇽', 'close this support ticket', newInput, '~support-close'));
+        result.add(chanEmbed);
+
         return Promise.all([
-          this.bot.send(channel, chanEmbed, false, false),
+          this.bot.send(channel, result, false, false),
           this.bot.send(message.author, userEmbed)
         ]);
       })
@@ -115,30 +126,23 @@ class Support extends ScriptAddon {
       return 'this command must be done in a server';
     }
 
-    let message = input.message;
     let conf = this.getConfig('default');
 
-    if (message.guild.id !== conf.server) {
+    if (input.server.id !== conf.server) {
       return 'this command is invalid on this server';
     }
-    if (!message.channel.name.match(/support-\w+/)) {
+    if (!input.channel.name.match(/support-\w+/)) {
       return 'this command is invalid in this channel';
     }
 
-    let server = this.discord.guilds.get(conf.server);
-
-    if (!server.available) {
-      return 'error communicating with Discord. not sure how this message got through';
-    }
-
-    let id = message.channel.name;
-    let role = message.guild.roles.find('name', id);
+    let id = input.channel.name;
+    let role = input.server.roles.find('name', id);
     if (!role) {
       return 'unable to find role, requesting manual action';
     }
 
     setTimeout(() => {
-      message.channel.delete();
+      input.channel.delete();
       role.delete();
     }, 10000);
 
@@ -146,7 +150,7 @@ class Support extends ScriptAddon {
       .setTitle('All done!')
       .setDescription('this channel will self-destruct in 10 seconds');
 
-    this.bot.send(message.channel, embed);
+    this.bot.send(input.channel, embed);
 
     return '';
   }
