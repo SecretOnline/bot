@@ -626,7 +626,10 @@ class Bot {
       });
 
       result.animations.forEach((animation) => {
-        functions.push(() => {return animation.play(target);});
+        functions.push(() => {
+          animation.play(target);
+          return;
+        });
       });
 
       if (textEmbed) {
