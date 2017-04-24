@@ -5,6 +5,7 @@ const Discord = require('discord.js');
 const Addon = require('./Addon.js');
 const JSONAddon = require('./JSONAddon.js');
 const ScriptAddon = require('./ScriptAddon.js');
+const ServerAddon = require('./ServerAddon.js');
 const Command = require('./Command.js');
 const Input = require('./Input.js');
 const Logger = require('./Logger.js');
@@ -332,6 +333,34 @@ class Bot {
     }
 
     return comm;
+  }
+
+  /**
+   * Gets or creates a ServerAddon for a server
+   *
+   * @param {Discord.Guild} guild Server for this Addon
+   * @returns {ServerAddon}
+   *
+   * @memberOf Bot
+   */
+  getServerAddon(guild) {
+    if (this.addons.has(guild.id)) {
+      let addon = this.addons.get(guild.id);
+      // Make sure it is avtually a ServerAddon
+      if (addon instanceof ServerAddon) {
+        return addon;
+      } else {
+        throw `unable to create addon for ${guild.id}`;
+      }
+    } else {
+      let addon = new ServerAddon(this, guild);
+      this._sneakAddon(addon);
+
+      // Start this addon. It shouldn't matter that it's async
+      this._startAddon(addon);
+
+      return addon;
+    }
   }
 
   /**
@@ -1166,16 +1195,12 @@ class Bot {
       res = Promise.reject(err);
     }
 
-    if (res instanceof Promise) {
-      return res
+    return Promise.resolve(res)
         .catch((err) => {
           this.error(`Failed to init addon ${addon.namespace}`);
           this.error(err);
           this.addons.delete(addon.namespace);
         });
-    } else {
-      return Promise.resolve(res);
-    }
   }
 
   /**
@@ -1499,7 +1524,7 @@ class Bot {
       return;
     }
 
-  // Only do stuff for reactions we actually have
+    // Only do stuff for reactions we actually have
     if (this.reactions.has(message.id)) {
       // Check if user has sent too many reactions
       if (message.channel instanceof Discord.TextChannel){
