@@ -55,7 +55,7 @@ class History extends ScriptAddon {
         if (line.channel !== channel.id) {
           return false;
         }
-        
+
         return true;
       };
     } else {

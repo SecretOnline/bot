@@ -53,7 +53,7 @@ class Music extends ScriptAddon {
     if (!input.message.guild) {
       return 'music is only available on servers';
     }
-    
+
     if (!this.checkEnabled(input.message.guild)) {
       return 'music is already disabled on this server';
     }
@@ -151,7 +151,7 @@ class Music extends ScriptAddon {
       dispatcher.on('end', () => {
         this.advanceQueue(id);
       });
-      
+
       resolve(dispatcher);
     });
   }
@@ -201,7 +201,7 @@ class Music extends ScriptAddon {
             skipUsers: []
           };
           this.queues.set(id, obj);
-          
+
           return voiceChannel.join()
             .then((conn) => {
               obj.connection = conn;
@@ -244,7 +244,7 @@ class Music extends ScriptAddon {
     if (!this.queues.has(id)) {
       throw 'no music is playing right now';
     }
-    
+
     let obj = this.queues.get(id);
     if (obj.skipUsers.includes(input.user.id)) {
       throw 'you have already voted to skip this song';
@@ -270,7 +270,7 @@ class Music extends ScriptAddon {
     if (!this.queues.has(id)) {
       throw 'no music is playing right now';
     }
-    
+
     let obj = this.queues.get(id);
     obj.dispatcher.end();
   }
@@ -280,7 +280,7 @@ class Music extends ScriptAddon {
     if (!this.queues.has(id)) {
       throw 'no music is playing right now';
     }
-    
+
     let obj = this.queues.get(id);
     obj.queue = [];
     obj.dispatcher.end();

@@ -3,12 +3,14 @@ const https = require('https');
 const url = require('url');
 const robots = require('robots');
 
+const package = require('../package.json');
+
 const parsers = new Map();
-const UA = '[BOT] secret_bot/8.x.x - https://secretonline.co/bot/user-agent/';
+const UA = `[BOT] secret_bot/${package.version} - https://secretonline.co/bot/user-agent/`;
 
 /**
  * Requests the content of a URL
- * 
+ *
  * @param {(url.URL|string)} reqObj URL to request
  * @param {string} bypass If string matches, request will bypass robots.txt
  * @returns {Promise<string>} Resolves with site content
@@ -41,7 +43,7 @@ function req(reqObj, bypass) {
 
 /**
  * Checks a site's robots.txt file
- * 
+ *
  * @param {url.URL} reqObj URL to check
  * @returns {Promise} Resolves if bot is allowed, otherwise rejects
  */
@@ -80,7 +82,7 @@ function checkRobots(reqObj) {
 
 /**
  * Actually does the request
- * 
+ *
  * @param {url.URL} reqObj URL to request
  * @returns {Promise<string>} Resolves with site content
  */

@@ -101,7 +101,7 @@ secret_bot allows you to chain commands in one message. For example, `~hundreds 
 At first, the way secret_bot handles chained commands may seem a little strange, but once you understand it it can be extremely useful. It takes the right-most command, processes it, then gives the output to the 2nd-to-right command.
 
 As a different example, `~flip? ~flip oh no`.  
-The `~flip` command (the only command in the `flip` addon) takes text and flips it upside down.  
+The `~flip` command (found in the `default` addon) takes text and flips it upside down.  
 secret_bot takes the result of `~flip oh no` and then feeds it into the previous command: `~flip? ~flip oh no` becomes `~flip? ou ɥo`.  
 The `~flip?` command (part of `flipping`) very simply puts `(╯°□°)╯︵` before whatever it is given.  
 That makes the final output `(╯°□°)╯︵ ou ɥo`.

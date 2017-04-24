@@ -1,6 +1,6 @@
 /**
  * Splits a string by words, except if inside "" or ``
- * 
+ *
  * @param {string} str String to split
  * @returns
  */

@@ -1,6 +1,6 @@
 /**
  * No operation: does nothing
- * 
+ *
  */
 function noop() {}
 

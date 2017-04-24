@@ -4,7 +4,7 @@ const {delay, embedify, promiseChain} = require('../util');
 
 /**
  * A set of frames to be played through editing a message
- * 
+ *
  * @class Animation
  */
 class Animation {
@@ -13,7 +13,7 @@ class Animation {
    * @param {Array<string>} frames Array of frames to be played
    * @param {number} [interval=1000] Interval between frames. Minimun of 500ms
    * @param {string} [color='#C90101'] Colour of embed
-   * 
+   *
    * @memberOf Animation
    */
   constructor(frames, interval = 1000, color = '#C90101') {
@@ -25,9 +25,9 @@ class Animation {
 
   /**
    * Creates a message object from a frame
-   * 
-   * @param {(string|Discord.RichEmbed|Promise)} frame 
-   * 
+   *
+   * @param {(string|Discord.RichEmbed|Promise)} frame
+   *
    * @memberOf Animation
    */
   createMessage(frame) {
@@ -50,10 +50,10 @@ class Animation {
 
   /**
    * Plays the animation in a channel
-   * 
-   * @param {Discord.Channel} channel 
+   *
+   * @param {Discord.Channel} channel
    * @returns Promise Resolves when animation finishes
-   * 
+   *
    * @memberOf Animation
    */
   play(channel) {
@@ -66,7 +66,7 @@ class Animation {
 
     let completeProm = messageProm
       .then(([message]) => {
-        // Fucntions that return the Promises to edit the message 
+        // Fucntions that return the Promises to edit the message
         let editFunctions = this.framePromises
           .slice(1)
           .map((frameProm) => {
@@ -79,7 +79,7 @@ class Animation {
 
         return promiseChain(editFunctions);
       });
-    
+
     // Resolves with promise that resolves when animation finished
     return Promise.resolve(completeProm);
   }

@@ -3,7 +3,7 @@ const Discord = require('discord.js');
 /**
  * Turns a string into a RichEmbed by making it the description
  * Uses the bot's default colour
- * 
+ *
  * @param {any} str
  * @returns
  */

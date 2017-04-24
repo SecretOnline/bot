@@ -19,7 +19,7 @@ class NoMansSky extends ScriptAddon {
       .filter(g => g)
       .filter(g => g.name === 'No Man\'s Sky')
       .length;
-  
+
     if (count) {
       return `yes, ${count} ${count === 1 ? 'person is' : 'people are'} playing right now`;
     } else {
