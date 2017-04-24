@@ -344,6 +344,14 @@ class Bot {
    * @memberOf Bot
    */
   getServerAddon(guild) {
+    if (typeof guild === 'string') {
+      if (this._discord.guilds.has(guild)) {
+        guild = this._discord.guilds.get(guild);
+      } else {
+        throw `${guild} is not a server`;
+      }
+    }
+
     if (this.addons.has(guild.id)) {
       let addon = this.addons.get(guild.id);
       // Make sure it is avtually a ServerAddon
