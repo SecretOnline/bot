@@ -92,14 +92,7 @@ class Command {
    * @memberOf Command
    */
   run(input) {
-    return new Promise((resolve, reject) => {
-      var result = this.f(input);
-      if (result instanceof Promise) {
-        result.then(resolve, reject);
-      } else {
-        resolve(result);
-      }
-    });
+    return Promise.resolve(this.f(input));
   }
 
   /**
