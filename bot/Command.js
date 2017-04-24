@@ -1,5 +1,7 @@
 const Discord = require('discord.js');
 
+const InputOverride = require('./InputOverride');
+
 var perms = {
   DISALLOWED: -1,
   DEFAULT: 0,
@@ -133,30 +135,31 @@ class Command {
    */
   static makeStringFunction(str) {
     return (input) => {
-      return input.process()
-        .then((res) => {
+      return Promise.resolve()
+        .then(() => {
           if (str.match(/{\w+}/)) {
             let server = input.message.channel instanceof Discord.TextChannel ? input.message.guild.toString() : 'private message';
             let channel = input.message.channel instanceof Discord.TextChannel ? input.message.channel.toString() : 'private message';
 
             let replacement = str
-              .replace(/{args}/g, res.text)
+              .replace(/{args}/g, input.text)
               .replace(/{channel}/g, channel)
               .replace(/{server}/g, server)
               .replace(/{user}/g, input.user.toString());
 
-            if (!str.match(/{args}/)) {
-              return `${replacement} ${res.text}`;
-            }
-
             return replacement;
           } else {
-            if (res.text) {
-              return `${str} ${res.text}`;
+            if (input.text) {
+              return `${str} ${input.text}`;
             } else {
               return str;
             }
           }
+        })
+        .then((string) => {
+          return input
+            .from(new InputOverride(string))
+            .process();
         });
     };
   }
