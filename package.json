@@ -1,6 +1,6 @@
 {
   "name": "secret_bot",
-  "version": "8.4.0",
+  "version": "8.4.1",
   "versionName": "the cleaner update",
   "description": "a stupid bot",
   "main": "index.js",
