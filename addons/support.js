@@ -20,7 +20,12 @@ class Support extends ScriptAddon {
 
   init() {
     this.addCommand('support', this.getSupport, Command.PermissionLevels.ADMIN, supportHelp);
-    this.addCommand('support-close', this.closeSupport);
+
+    // Add support-close command to support server only
+    let conf = this.getConfig('default');
+    let supportServerAddon = this.bot.getServerAddon(conf.server);
+    supportServerAddon.addCommand('support-close', this.closeSupport.bind(this));
+    this.log(`added ~support-close to ${conf.server}`);
   }
 
   getSupport(input) {
