@@ -1392,16 +1392,19 @@ class Bot {
       // Catch any errors in
       .catch((err) => {
         if (err) {
-          this.editCache.set(message.id, message); // Value stored in map may change
-          setTimeout(() => {
-            this.editCache.delete(message.id);
-          }, 5*60*1000);
-
           if (typeof err === 'string') {
             let embed = this.embedify(err)
               .setFooter('you can edit your message (once) if you made a mistake');
 
-            this.send(message.author, embed, true);
+            this
+              .send(message.author, embed, true)
+              .then((m) => {
+                // Store the sent message, so it can be removed if an edit is made
+                this.editCache.set(message.id, m);
+                setTimeout(() => {
+                  this.editCache.delete(message.id);
+                }, 5*60*1000);
+              });
           } else if (err instanceof Error) {
             this.error(err);
           }
@@ -1470,6 +1473,7 @@ class Bot {
       return;
     }
 
+    this.editCache.get(oldMessage.id).delete();
     this.editCache.delete(oldMessage.id);
 
 
