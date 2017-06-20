@@ -181,17 +181,17 @@ class MarkovChain {
    * @memberOf MarkovChain
    */
   dump() {
-    let list = {};
+    let outMap = new Map();
 
     for (let [word, nexts] of this.pairs) {
-      let obj = {};
+      let wordMap = new Map();
       for (let [next, indicies] of nexts) {
-        obj[next] = indicies.length;
+        wordMap.set(next, indicies.length);
       }
-      list[word] = obj;
+      outMap.set(word, wordMap);
     }
 
-    return list;
+    return outMap;
   }
 
   /**
