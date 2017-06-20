@@ -179,7 +179,7 @@ class ConversationAddon extends ScriptAddon {
           // Items in a Map are iterated in insertion order
           // So have to create a map with pre-sorted values
           // This sorts based on the value of the map, which is a number
-          let nMap = new Map([...options.entries()].sort((a,b)=>a[1]-b[1]));
+          let nMap = new Map([...options.entries()].sort((a,b)=>b[1]-a[1]));
 
           let words = [];
           let percentages = [];
