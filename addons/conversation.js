@@ -1,7 +1,10 @@
+const Discord = require('discord.js');
+
 const ScriptAddon = require('../bot/ScriptAddon.js');
 const Command = require('../bot/Command.js');
 const Input = require('../bot/Input.js');
 const Logger = require('../bot/Logger.js');
+const Result = require('../bot/Result.js');
 const {Override} = require('../bot/Input');
 
 const cleverbot = require('cleverbot.io');
@@ -32,6 +35,7 @@ class ConversationAddon extends ScriptAddon {
     this.addCommand('gunter', this.startGunter);
 
     this.addCommand('clear-gunter', this.clearGunter, Command.PermissionLevels.OVERLORD);
+    this.addCommand('inspect-markov', this.inspectMarkov, Command.PermissionLevels.OVERLORD);
   }
 
   doMarkov(input) {
@@ -146,6 +150,82 @@ class ConversationAddon extends ScriptAddon {
     }
 
     return 'it\'s time to gunter again!';
+  }
+
+  inspectMarkov(input) {
+    return input.process()
+      .then((result) => {
+        if (!this.channelData.has(input.channel.id)) {
+          throw 'Markov has not been used in this channel';
+        }
+
+        let text = result.text;
+        // Remove the text from the Result
+        result.add('');
+
+        let markov = this.channelData.get(input.channel.id);
+        let data = markov.dump();
+
+        if (text) {
+          if (!data.has(text)) {
+            return embedify(`no options for the token ${text}`, embedColor);
+          }
+
+          let options = data.get(text);
+          let totalSize = Array.from(options.values()).reduce((total, curr) => {
+            return total += curr;
+          }, 0);
+
+          // Items in a Map are iterated in insertion order
+          // So have to create a map with pre-sorted values
+          // This sorts based on the value of the map, which is a number
+          let nMap = new Map([...options.entries()].sort((a,b)=>a[1]-b[1]));
+
+          let words = [];
+          let percentages = [];
+          for (let [word, count] of nMap) {
+            words.push(word);
+            // Round to 2dp using scaling
+            percentages.push(Math.round((count / totalSize) * 100));
+          }
+
+          let embed = new Discord.RichEmbed()
+            .setColor(embedColor);
+
+          while (words.length) {
+            let wordSection = words.splice(0, 50);
+            let percentSection = percentages.splice(0, 50);
+
+            embed.addField('Tokens', wordSection.join('\n'), true);
+            embed.addField('Chance', percentSection.map(p=>`${p}%`).join('\n'), true);
+          }
+
+          return embed;
+        } else {
+          let words = [];
+          for (let [word] of data) {
+            words.push(word);
+          }
+
+          let list = words
+            .sort()
+            .map(item => `\`${item}\``)
+            .join(', ');
+
+          let embed = new Discord.RichEmbed()
+            .setColor(embedColor);
+
+          let parts = list.match(/(?:(.{1,1000})(?:, |$))/g);
+          parts.forEach((item, index) => {
+            embed.addField(
+              `**Tokens${index?' (cont.)':''}**`,
+              item
+            );
+          });
+
+          return embed;
+        }
+      });
   }
 
   onMessage(message) {
