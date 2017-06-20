@@ -2,9 +2,9 @@ const Discord = require('discord.js');
 
 /**
  * Turns a string into a RichEmbed by making it the description
- * Uses the bot's default colour
  *
- * @param {any} str
+ * @param {string} str String to embed
+ * @param {string} [color] Color to set the embed to
  * @returns
  */
 function embedify(str, color) {
