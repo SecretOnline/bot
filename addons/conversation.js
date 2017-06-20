@@ -5,7 +5,9 @@ const Logger = require('../bot/Logger.js');
 const {Override} = require('../bot/Input');
 
 const cleverbot = require('cleverbot.io');
-const {MarkovChain, Cooldown, delay} = require('../util');
+const {MarkovChain, Cooldown, delay, embedify} = require('../util');
+
+const embedColor = '#FAD188';
 
 class ConversationAddon extends ScriptAddon {
   constructor(bot) {
@@ -198,7 +200,9 @@ class ConversationAddon extends ScriptAddon {
                 return message.channel.sendMessage(`${message.author.toString()} ${text}`, {disableEveryone: true});
               }
 
-              return this.bot.send(message.channel, text);
+              let embed = embedify(text, embedColor);
+
+              return this.bot.send(message.channel, embed);
             }
           })
           // Catch sending errors
