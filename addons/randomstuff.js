@@ -44,6 +44,8 @@ class RandomStuff extends ScriptAddon {
     this.addCommand('foaas', this.foaas, this.foaasList);
     this.addCommand('httpcat', this.httpcat);
     this.addCommand('randomdonger', this.randomDonger);
+    this.addCommand('inspirobot', this.inspirobot);
+
   }
 
   loadUselessWeb() {
@@ -400,6 +402,13 @@ class RandomStuff extends ScriptAddon {
 
         res.add(new Animation(dongers, this.dongersDelay, this.dongersColor));
         return res;
+      });
+  }
+
+  inspirobot(input) {
+    return input.process()
+      .then((res) => {
+        return request('http://inspirobot.me/api?generate=true');
       });
   }
 
