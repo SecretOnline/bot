@@ -4,7 +4,14 @@
     "experimentalDecorators": true,
     "sourceMap": true,
     "rootDir": "./src",
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "typeRoots": [
+      "node_modules/@types",
+      "node_modules/disord.js/typings"
+    ],
+    "lib": [
+      "es6"
+    ]
   },
   "include": [
     "src/**/*"

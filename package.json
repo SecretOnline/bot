@@ -1,7 +1,7 @@
 {
   "name": "secret_bot",
-  "version": "8.5.0",
-  "versionName": "the cleaner update",
+  "version": "9.0.0",
+  "versionName": "the type update",
   "description": "a stupid bot",
   "main": "index.js",
   "scripts": {
@@ -34,6 +34,7 @@
     "ytdl-core": "^0.17.1"
   },
   "devDependencies": {
+    "@types/node": "^8.0.30",
     "tslint": "^5.7.0",
     "typescript": "^2.5.2"
   }
