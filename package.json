@@ -6,8 +6,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "screen -dmS bot node index.js",
-    "restart": "git pull && npm install && screen -S bot -X quit && npm start"
+    "start": "npm run compile && node dist/index.js",
+    "compile": "tsc"
   },
   "repository": {
     "type": "git",

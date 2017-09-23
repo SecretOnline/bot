@@ -2,7 +2,9 @@
   "compilerOptions": {
     "removeComments": false,
     "experimentalDecorators": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "rootDir": "./src",
+    "outDir": "./dist"
   },
   "include": [
     "src/**/*"
