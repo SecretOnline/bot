@@ -13,7 +13,6 @@ interface ConnectionStopFunction {
 }
 
 export default interface Connection extends Thing {
-  version: string,
   start: ConnectionStartFunction
   stop: ConnectionStopFunction
 }
