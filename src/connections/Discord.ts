@@ -13,7 +13,7 @@ import Channel from '../common/Channel';
 import Server from '../common/Server';
 import Message from '../common/Message';
 import User from '../common/User';
-import Sendable from '../common/Sendable';
+import ISendable from '../interfaces/ISendable';
 
 
 export default class DiscordJs extends Connection {

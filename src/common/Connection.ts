@@ -2,8 +2,8 @@ import { EventEmitter } from 'events';
 
 import Thing from '../interfaces/Thing';
 import ITargetable from '../interfaces/ITargetable';
-import Sendable from './Sendable';
 import IConnectionEvents from '../interfaces/IConnectionEvents';
+import ISendable from '../interfaces/ISendable';
 import Message from './Message';
 
 export interface ConnectionConfig {
@@ -17,7 +17,5 @@ export default abstract class Connection extends EventEmitter implements Thing, 
   abstract start(config: ConnectionConfig): Promise<boolean>;
   abstract stop(): Promise<void>;
 
-  abstract on(event: 'message', listener: (msg: Message) => void): this;
-
-  abstract send(target: ITargetable, msg: Sendable): Promise<Message>;
+  abstract send(target: ITargetable, msg: ISendable): Promise<Message>;
 }
