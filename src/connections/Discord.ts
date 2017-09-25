@@ -17,93 +17,154 @@ import Sendable from '../common/Sendable';
 
 
 export default class DiscordJs extends Connection {
+  readonly name = 'Discord';
+  readonly id = 'djs';
 
+  private client: Client = new Client();
+
+  private userMap = new Map<string, DiscordUser>();
+  private channelMap = new Map<string, DiscordChannel>();
+  private serverMap = new Map<string, DiscordServer>();
+
+  constructor() {
+    super();
+
+    this.client.on('message', (msg) => {
+
+    });
+  }
+
+  start(conf: ConnectionConfig) {
+    return this.client
+      .login(conf.token)
+      .then(() => true);
+  }
+
+  stop() {
+    return this.client.destroy();
+  }
+
+  send(target: ITargetable, msg: ISendable) {
+    if (target instanceof DiscordChannel || target instanceof DiscordUser) {
+      // TODO: Better sending
+      target.raw.send(msg.text, null)
+        .then((msg) => {
+          if (Array.isArray(msg)) {
+            if (msg.length === 0) {
+              throw 'no received message';
+            }
+            return msg[0];
+          } else {
+            return msg;
+          }
+        })
+        .then((msg) => this.djsToBotMessage(msg));
+    } else {
+      return Promise.reject('can not send message to non-discord target');
+    }
+  }
+
+  djsToBotMessage(message: DjsMessage) {
+    let channel = null;
+
+    // Get or create channel/server objects for this message
+    // Only applicable if this is a guild message
+    if (message.channel instanceof TextChannel) {
+      if (!this.serverMap.has(message.guild.id)) {
+        this.serverMap.set(message.guild.id, new DiscordServer(this, message.guild));
+      }
+      let server = this.serverMap.get(message.guild.id);
+
+      if (!this.channelMap.has(message.channel.id)) {
+        this.channelMap.set(message.channel.id, new DiscordChannel(this, server, message.channel));
+      }
+      channel = this.channelMap.get(message.channel.id);
+    }
+
+    // Get or create user object
+    if (!this.userMap.has(message.author.id)) {
+      this.userMap.set(message.author.id, new DiscordUser(this, message.author));
+    }
+    let user = this.userMap.get(message.author.id);
+
+    // Create new DiscordMessage
+    return new DiscordMessage(this, user, channel, message);
+  }
 }
 
 export class DiscordChannel extends Channel {
-  private channel: TextChannel;
-
-  readonly connection;
-  readonly id;
-  readonly name;
-  readonly server;
-  readonly raw;
+  readonly connection: DiscordJs;
+  readonly id: string;
+  readonly name: string;
+  readonly server: DiscordServer;
+  readonly raw: TextChannel;
 
   constructor(connection: DiscordJs, server: DiscordServer, channel: TextChannel) {
     super();
 
-    this.channel = channel;
+    this.raw = channel;
 
     this.connection = connection;
-    this.id = this.channel.id;
-    this.name = this.channel.name;
+    this.id = this.raw.id;
+    this.name = this.raw.name;
     this.server = server;
-    this.raw = this.channel;
   }
 }
 
 export class DiscordServer extends Server {
-  private server: Guild;
-
-  readonly connection;
-  readonly id;
-  readonly name;
-  readonly raw;
+  readonly connection: DiscordJs;
+  readonly id: string;
+  readonly name: string;
+  readonly raw: Guild;
 
   constructor(connection: DiscordJs, server: Guild) {
     super();
 
-    this.server = server;
+    this.raw = server;
 
     this.connection = connection;
-    this.id = this.server.id;
-    this.name = this.server.name;
-    this.raw = this.server;
+    this.id = this.raw.id;
+    this.name = this.raw.name;
   }
 }
 
 export class DiscordUser extends User {
-  private user: DjsUser;
-
-  readonly name;
-  readonly id;
-  readonly connection;
-  readonly raw;
+  readonly name: string;
+  readonly id: string;
+  readonly connection: DiscordJs;
+  readonly raw: DjsUser;
 
   constructor(connection: DiscordJs, user: DjsUser) {
     super();
 
-    this.user = user;
+    this.raw = user;
 
     this.connection = connection;
-    this.id = this.user.id;
-    this.name = this.user.username;
-    this.raw = this.user;
+    this.id = this.raw.id;
+    this.name = this.raw.username;
   }
 }
 
 export class DiscordMessage extends Message {
-  private message: DjsMessage;
-
-  readonly text;
-  readonly id;
-  readonly connection;
-  readonly user;
-  readonly channel;
-  readonly server;
-  readonly raw;
+  readonly text: string;
+  readonly id: string;
+  readonly connection: DiscordJs;
+  readonly user: DiscordUser;
+  readonly channel?: DiscordChannel;
+  readonly server: DiscordServer;
+  readonly raw: DjsMessage;
 
   constructor(connection: DiscordJs, user: DiscordUser, channel: DiscordChannel, message: DjsMessage) {
     super();
 
-    this.message = message;
+    this.raw = message;
 
     this.connection = connection;
-    this.text = this.message.content;
-    this.id = this.message.id;
+    this.text = this.raw.content;
+    this.id = this.raw.id;
     this.user = user;
     this.channel = channel;
     this.server = this.channel ? this.channel.server : null;
-    this.raw = this.message;
+    this.raw = this.raw;
   }
 }

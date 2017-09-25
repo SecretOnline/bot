@@ -3,13 +3,14 @@ import { EventEmitter } from 'events';
 import Thing from '../interfaces/Thing';
 import ITargetable from '../interfaces/ITargetable';
 import Sendable from './Sendable';
+import IConnectionEvents from '../interfaces/IConnectionEvents';
 import Message from './Message';
 
 export interface ConnectionConfig {
   [x: string]: any,
 }
 
-export default abstract class Connection extends EventEmitter implements Thing {
+export default abstract class Connection extends EventEmitter implements Thing, IConnectionEvents {
   readonly abstract name: string;
   readonly abstract id: string;
 
