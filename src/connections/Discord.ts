@@ -15,10 +15,23 @@ import Message from '../common/Message';
 import User from '../common/User';
 import ISendable from '../interfaces/ISendable';
 
+/**
+ * Configuration for the Discord connection
+ *
+ * @interface DiscordConfig
+ * @extends {ConnectionConfig}
+ */
 interface DiscordConfig extends ConnectionConfig {
   token: string,
 }
 
+/**
+ * A connection to Discord
+ *
+ * @export
+ * @class DiscordJs
+ * @extends {Connection}
+ */
 export default class DiscordJs extends Connection {
   readonly name = 'Discord';
   readonly id = 'djs';
@@ -29,6 +42,10 @@ export default class DiscordJs extends Connection {
   private channelMap = new Map<string, DiscordChannel>();
   private serverMap = new Map<string, DiscordServer>();
 
+  /**
+   * Creates an instance of DiscordJs.
+   * @memberof DiscordJs
+   */
   constructor() {
     super();
 
@@ -37,16 +54,37 @@ export default class DiscordJs extends Connection {
     });
   }
 
+  /**
+   * Starts the Discord connection
+   *
+   * @param {DiscordConfig} conf Configuration
+   * @returns {Promise<boolean>}
+   * @memberof DiscordJs
+   */
   start(conf: DiscordConfig) {
     return this.client
       .login(conf.token)
       .then(() => true);
   }
 
+  /**
+   * Stops the Discord connection
+   *
+   * @returns {Promise<void>}
+   * @memberof DiscordJs
+   */
   stop() {
     return this.client.destroy();
   }
 
+  /**
+   * Sends a message to the target
+   *
+   * @param {ITargetable} target Target to send to
+   * @param {ISendable} msg Message to send
+   * @returns {Promise<Message>}
+   * @memberof DiscordJs
+   */
   send(target: ITargetable, msg: ISendable) {
     if (target instanceof DiscordChannel || target instanceof DiscordUser) {
       // TODO: Better sending
@@ -67,6 +105,13 @@ export default class DiscordJs extends Connection {
     }
   }
 
+  /**
+   * Converts a Discord message to a Bot-ready one
+   *
+   * @param {DjsMessage} message Discord message to convert
+   * @returns {Message}
+   * @memberof DiscordJs
+   */
   djsToBotMessage(message: DjsMessage) {
     let channel = null;
 
@@ -95,25 +140,80 @@ export default class DiscordJs extends Connection {
   }
 }
 
+/**
+ * A Discord channel
+ *
+ * @export
+ * @class DiscordChannel
+ * @extends {Channel}
+ */
 export class DiscordChannel extends Channel {
+  /**
+   * Creates an instance of DiscordChannel.
+   * @param {DiscordJs} connection Discord connection
+   * @param {DiscordServer} server Discord server
+   * @param {TextChannel} channel discord.js TextChannel
+   * @memberof DiscordChannel
+   */
   constructor(connection: DiscordJs, server: DiscordServer, channel: TextChannel) {
     super(channel.name, channel.id, server, connection, channel);
   }
 }
 
+/**
+ * A Discord server
+ *
+ * @export
+ * @class DiscordServer
+ * @extends {Server}
+ */
 export class DiscordServer extends Server {
+  /**
+   * Creates an instance of DiscordServer.
+   * @param {DiscordJs} connection Discord connection
+   * @param {Guild} server discord.js Guild
+   * @memberof DiscordServer
+   */
   constructor(connection: DiscordJs, server: Guild) {
     super(server.name, server.id, connection, server);
   }
 }
 
+/**
+ * A Discord user
+ *
+ * @export
+ * @class DiscordUser
+ * @extends {User}
+ */
 export class DiscordUser extends User {
+  /**
+   * Creates an instance of DiscordUser.
+   * @param {DiscordJs} connection Discord connection
+   * @param {DjsUser} user discord.js User
+   * @memberof DiscordUser
+   */
   constructor(connection: DiscordJs, user: DjsUser) {
     super(user.username, user.id, connection, user);
   }
 }
 
+/**
+ * A Discord message
+ *
+ * @export
+ * @class DiscordMessage
+ * @extends {Message}
+ */
 export class DiscordMessage extends Message {
+  /**
+   * Creates an instance of DiscordMessage.
+   * @param {DiscordJs} connection Discord connection
+   * @param {DiscordUser} user Discord user
+   * @param {DiscordChannel} channel Discord channel
+   * @param {DjsMessage} message discord.js Message
+   * @memberof DiscordMessage
+   */
   constructor(connection: DiscordJs, user: DiscordUser, channel: DiscordChannel, message: DjsMessage) {
     super(message.content, message.id, channel, user, connection, message);
   }

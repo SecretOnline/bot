@@ -3,12 +3,54 @@ import ITargetable from '../interfaces/ITargetable';
 import ISendable from '../interfaces/ISendable';
 import Connection from './Connection';
 
+/**
+ * Base class for a User
+ *
+ * @abstract
+ * @class User
+ * @export
+ * @implements {Thing}
+ * @implements {ITargetable}
+ */
 export default abstract class User implements Thing, ITargetable {
+  /**
+   * Name of the user
+   *
+   * @type {string}
+   * @memberof User
+   */
   readonly name: string;
+
+  /**
+   * ID of the user
+   *
+   * @type {string}
+   * @memberof User
+   */
   readonly id: string;
+
+  /**
+   * Connection the user uses
+   *
+   * @type {Connection}
+   * @memberof User
+   */
   readonly connection: Connection;
+
+  /**
+   * @type {*}
+   * @memberof User
+   */
   readonly raw: any;
 
+  /**
+   * Creates an instance of User.
+   * @param {string} name Name of the user
+   * @param {string} id ID of the user
+   * @param {Connection} connection Connection the user uses
+   * @param {*} raw
+   * @memberof User
+   */
   constructor(name: string, id: string, connection: Connection, raw: any) {
     this.name = name;
     this.id = id;
@@ -16,6 +58,13 @@ export default abstract class User implements Thing, ITargetable {
     this.raw = raw;
   }
 
+  /**
+   * Sends a message to the user
+   *
+   * @param {ISendable} msg Message to send
+   * @returns {Promise<Message>}
+   * @memberof User
+   */
   send(msg: ISendable) {
     return this.connection.send(this, msg);
   }
