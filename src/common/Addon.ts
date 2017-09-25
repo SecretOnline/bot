@@ -5,10 +5,10 @@ export interface AddonConfig {
 }
 
 export default abstract class Addon implements Thing {
-  readonly name: string;
-  readonly id: string;
-  readonly version: string;
-  readonly description: string;
+  readonly abstract name: string;
+  readonly abstract id: string;
+  readonly abstract version: string;
+  readonly abstract description: string;
 
   abstract start(config: AddonConfig): Promise<boolean>;
   abstract stop(): Promise<boolean>

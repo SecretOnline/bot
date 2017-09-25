@@ -5,11 +5,11 @@ import Server from './Server';
 import Sendable from './Sendable';
 
 export default abstract class Channel implements Thing, ITargetable {
-  readonly name: string;
-  readonly id: string;
-  readonly connection: Connection
-  readonly server: Server
-  readonly raw: any
+  readonly abstract name: string;
+  readonly abstract id: string;
+  readonly abstract server: Server;
+  readonly abstract connection: Connection = this.server.connection;
+  readonly abstract raw: any;
 
   send(msg: Sendable) {
     return this.connection.send(this, msg);

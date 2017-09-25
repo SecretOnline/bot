@@ -10,8 +10,8 @@ export interface ConnectionConfig {
 }
 
 export default abstract class Connection extends EventEmitter implements Thing {
-  readonly name: string;
-  readonly id: string;
+  readonly abstract name: string;
+  readonly abstract id: string;
 
   abstract start(config: ConnectionConfig): Promise<boolean>;
   abstract stop(): Promise<void>;

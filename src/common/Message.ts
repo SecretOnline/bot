@@ -5,11 +5,13 @@ import Channel from './Channel';
 import User from './User';
 
 export default abstract class Message implements Thing {
-  readonly name: string;
-  readonly id: string;
-  readonly connection: Connection
-  readonly server: Server
-  readonly channel: Channel
-  readonly user: User
-  readonly raw: any
+  readonly abstract text: string;
+  readonly name: string = this.text;
+
+  readonly abstract id: string;
+  readonly abstract channel?: Channel;
+  readonly abstract server: Server = this.channel ? this.channel.server : null;
+  readonly abstract connection: Connection;
+  readonly abstract user: User;
+  readonly abstract raw: any;
 }
