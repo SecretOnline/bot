@@ -15,6 +15,9 @@ import Message from '../common/Message';
 import User from '../common/User';
 import ISendable from '../interfaces/ISendable';
 
+interface DiscordConfig extends ConnectionConfig {
+  token: string,
+}
 
 export default class DiscordJs extends Connection {
   readonly name = 'Discord';
@@ -30,11 +33,11 @@ export default class DiscordJs extends Connection {
     super();
 
     this.client.on('message', (msg) => {
-
+      this.emit('message', this.djsToBotMessage(msg));
     });
   }
 
-  start(conf: ConnectionConfig) {
+  start(conf: DiscordConfig) {
     return this.client
       .login(conf.token)
       .then(() => true);
@@ -93,78 +96,25 @@ export default class DiscordJs extends Connection {
 }
 
 export class DiscordChannel extends Channel {
-  readonly connection: DiscordJs;
-  readonly id: string;
-  readonly name: string;
-  readonly server: DiscordServer;
-  readonly raw: TextChannel;
-
   constructor(connection: DiscordJs, server: DiscordServer, channel: TextChannel) {
-    super();
-
-    this.raw = channel;
-
-    this.connection = connection;
-    this.id = this.raw.id;
-    this.name = this.raw.name;
-    this.server = server;
+    super(channel.name, channel.id, server, connection, channel);
   }
 }
 
 export class DiscordServer extends Server {
-  readonly connection: DiscordJs;
-  readonly id: string;
-  readonly name: string;
-  readonly raw: Guild;
-
   constructor(connection: DiscordJs, server: Guild) {
-    super();
-
-    this.raw = server;
-
-    this.connection = connection;
-    this.id = this.raw.id;
-    this.name = this.raw.name;
+    super(server.name, server.id, connection, server);
   }
 }
 
 export class DiscordUser extends User {
-  readonly name: string;
-  readonly id: string;
-  readonly connection: DiscordJs;
-  readonly raw: DjsUser;
-
   constructor(connection: DiscordJs, user: DjsUser) {
-    super();
-
-    this.raw = user;
-
-    this.connection = connection;
-    this.id = this.raw.id;
-    this.name = this.raw.username;
+    super(user.username, user.id, connection, user);
   }
 }
 
 export class DiscordMessage extends Message {
-  readonly text: string;
-  readonly id: string;
-  readonly connection: DiscordJs;
-  readonly user: DiscordUser;
-  readonly channel?: DiscordChannel;
-  readonly server: DiscordServer;
-  readonly raw: DjsMessage;
-
   constructor(connection: DiscordJs, user: DiscordUser, channel: DiscordChannel, message: DjsMessage) {
-    super();
-
-    this.raw = message;
-
-    this.connection = connection;
-    this.text = this.raw.content;
-    this.id = this.raw.id;
-    this.user = user;
-    this.channel = channel;
-    this.server = this.channel ? this.channel.server : null;
-    this.raw = this.raw;
+    super(message.content, message.id, channel, user, connection, message);
   }
 }

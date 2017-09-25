@@ -1,10 +1,6 @@
 import Message from '../common/Message';
-import Sendable from '../common/Sendable';
-
-interface SendFunction {
-  (msg: Sendable): Promise<Message>,
-}
+import ISendable from './ISendable';
 
 export default interface ITargetable {
-  send: (msg: Sendable) => Promise<Message>,
+  send: (msg: ISendable) => Promise<Message>,
 }
