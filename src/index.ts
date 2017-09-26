@@ -1,14 +1,14 @@
 import Message from './common/Message';
-import DiscordJs from './connections/Discord';
+import Bot from './bot/Bot';
 
 var conf = require('../bot.conf.json');
 
 console.log('hello world');
 
-let a = new DiscordJs();
+let bot = new Bot();
 
-a.on('message', (msg: Message) => {
-  console.log(`${msg.user.name}: ${msg.text}`);
-});
-
-a.start(conf.connections.djs);
+bot
+  .start(conf)
+  .then(() => {
+    console.log('bot is running');
+  });
