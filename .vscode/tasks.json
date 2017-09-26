@@ -6,7 +6,9 @@
     {
       "type": "npm",
       "script": "compile",
-      "problemMatcher": []
+      "problemMatcher": [
+        "$tsc"
+      ]
     }
   ]
 }

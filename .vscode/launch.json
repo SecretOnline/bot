@@ -9,7 +9,7 @@
       "outFiles": [
           "${workspaceRoot}/dist/**/*.js"
       ],
-      "preLaunchTask": "compile",
+      "preLaunchTask": "npm: compile",
       "sourceMaps": true
     }
   ]
