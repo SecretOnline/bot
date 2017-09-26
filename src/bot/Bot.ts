@@ -16,6 +16,24 @@ export default class Bot {
 
   async start(config: BotConfig) {
     this.config = config;
+
+    let connectionFiles = await this.listDirectory(joinPath(
+      '.',
+      this.config.paths.connections
+    ));
+    let connections = await this.createConnections(
+      connectionFiles
+        .map(p => joinPath('../..', this.config.paths.connections, p))
+    );
+    return await this.initConnections(connections);
+  }
+
+  getConfig(obj: Connection) {
+    if (obj instanceof Connection) {
+      return this.config.connections[obj.id];
+    }
+
+    return null;
   }
 
   private listDirectory(path: string): Promise<string[]> {
@@ -70,5 +88,24 @@ export default class Bot {
       .filter((a: Connection) => a);
 
     return connections;
+  }
+
+  private initConnections(connections: Connection[]) {
+    return Promise.all(
+      connections
+        .map((conn) => {
+          return conn
+            .start(this.getConfig(conn))
+            .then((result) => {
+              // Add message listener for connection
+              conn.on('message', (m) => { console.log(`${m.user.name}: ${m.text}`); })
+              return result;
+            }, (err): boolean => {
+              // this.error(`unable to start connection ${conn.name}`);
+              // this.error(err);
+              return false;
+            })
+        })
+    )
   }
 }
