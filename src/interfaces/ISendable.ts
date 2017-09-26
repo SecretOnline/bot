@@ -6,4 +6,5 @@
  */
 export default interface ISendable {
   text: string,
+  private: boolean,
 }
