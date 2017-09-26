@@ -13,6 +13,15 @@
         "kind": "build",
         "isDefault": true
       }
+    },
+    {
+      "type": "npm",
+      "script": "watch",
+      "isBackground": true,
+      "problemMatcher": [
+        "$tsc"
+      ],
+      "group": "build"
     }
   ]
 }
