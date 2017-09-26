@@ -4,15 +4,19 @@ import { join as joinPath } from 'path';
 import IObjectMap from '../interfaces/IObjectMap';
 
 import Connection, { IConnectionConfig } from '../common/Connection';
+import Addon, { IAddonConfig } from '../common/Addon';
+import JSONAddon from '../common/JSONAddon'
 
 interface BotConfig {
   connections: IObjectMap<IConnectionConfig>,
+  addons: IObjectMap<IAddonConfig>,
   paths: IObjectMap<string>,
 }
 
 export default class Bot {
   private config: BotConfig;
   private connections = new Map<string, Connection>();
+  private addons = new Map<string, Addon>();
 
   async start(config: BotConfig) {
     this.config = config;
@@ -28,9 +32,11 @@ export default class Bot {
     return await this.initConnections(connections);
   }
 
-  getConfig(obj: Connection) {
+  getConfig(obj: Connection|Addon) {
     if (obj instanceof Connection) {
       return this.config.connections[obj.id];
+    } else if (obj instanceof Addon) {
+      return this.config.addons[obj.id];
     }
 
     return null;
@@ -102,6 +108,69 @@ export default class Bot {
               return result;
             }, (err): boolean => {
               // this.error(`unable to start connection ${conn.name}`);
+              // this.error(err);
+              return false;
+            })
+        })
+    )
+  }
+
+  private createAddons(files: string[]) {
+    let addons: Addon[] = files
+      .map(file => {
+        if (file.match(/\.js$/)) {
+          let addonClass;
+
+          try {
+            addonClass = require(file).default;
+          } catch (err) {
+            // this.error(`unable to find addon ${file}`);
+            // this.error(err);
+            return null;
+          }
+
+          try {
+            let addon: Addon = new addonClass(this);
+
+            if (this.addons.has(addon.id)) {
+              // this.error(`addon ${addon.id} has already been created`);
+              return null;
+            }
+
+            this.addons.set(addon.id, addon);
+
+            return addon;
+          } catch (err) {
+            // this.error(`unable to create addon ${file}`);
+            // this.error(err);
+            return null;
+          }
+
+        } else if (file.match(/\.json$/)) {
+          let addonData: IObjectMap<string> = require(file);
+
+          return new JSONAddon(this, file, addonData);
+        } else {
+          return null;
+        }
+      })
+      .filter((a: Addon) => a);
+
+    return addons;
+  }
+
+  private initAddons(addons: Addon[]) {
+    return Promise.all(
+      addons
+        .map((addon) => {
+          return addon
+            .start(this.getConfig(addon))
+            .then((result) => {
+              // ???
+              // Does anything need to be done? Addons don't really need handlers attached
+              return result;
+            }, (err): boolean => {
+              // this.error(`unable to start addonection ${addon.name}`);
               // this.error(err);
               return false;
             })

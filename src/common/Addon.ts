@@ -1,4 +1,5 @@
 import Thing from '../interfaces/Thing';
+import IObjectMap from '../interfaces/IObjectMap';
 import Bot from '../bot/Bot';
 
 /**
@@ -7,9 +8,7 @@ import Bot from '../bot/Bot';
  * @export
  * @interface IAddonConfig
  */
-export interface IAddonConfig {
-  [x: string]: any,
-}
+export interface IAddonConfig extends IObjectMap<any> {}
 
 /**
  * Base class for an addon

@@ -17,11 +17,11 @@ export default class JSONAddon extends Addon {
     this.filename = filename;
     this.commands = commands;
 
-    this.addonName = this.filename.match(/(.*)\.json$/i)[1];
+    this.addonName = this.filename.match(/(?:.*\/)?(.*)\.json$/i)[1];
   }
 
   get id() {
-    return this.filename;
+    return this.addonName;
   }
 
   get name() {
