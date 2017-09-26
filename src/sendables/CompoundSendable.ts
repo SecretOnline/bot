@@ -25,4 +25,16 @@ export default class CompoundSendable extends BasicSendable {
   public get private() {
     return this.isPrivate;
   }
+
+  public get extras() {
+    return this.sendables.slice();
+  }
+
+  public from(...sendables: ISendable[]) {
+    return new CompoundSendable(
+      this.basicSendable,
+      this.sendables.concat(sendables),
+      this.isPrivate
+    );
+  }
 }
