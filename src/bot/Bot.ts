@@ -31,4 +31,44 @@ export default class Bot {
       });
     });
   }
+
+  private createConnections(files: string[]) {
+    let connections: Connection[] = files
+      .map(file => {
+        if (file.match(/\.js$/)) {
+          let connClass;
+
+          try {
+            connClass = require(file).default;
+          } catch (err) {
+            // this.error(`unable to find connection ${file}`);
+            // this.error(err);
+            return null;
+          }
+
+          try {
+            let conn: Connection = new connClass();
+
+            if (this.connections.has(conn.id)) {
+              // this.error(`connection ${conn.id} has alrady been created`);
+              return null;
+            }
+
+            this.connections.set(conn.id, conn);
+
+            return conn;
+          } catch (err) {
+            // this.error(`unable to create connection ${file}`);
+            // this.error(err);
+            return null;
+          }
+
+        } else {
+          return null;
+        }
+      })
+      .filter((a: Connection) => a);
+
+    return connections;
+  }
 }
