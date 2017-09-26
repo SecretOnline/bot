@@ -1,17 +1,18 @@
 import ISendable from '../interfaces/ISendable';
 
 /**
- * A simple sendable item
+ * Base class for a sendable
  *
+ * @abstract
  * @export
- * @class BasicSendable
+ * @class BaseSendable
  */
-export default class BasicSendable implements ISendable {
+export default abstract class BaseSendable implements ISendable {
   /**
    * Text content of the sendable
    *
    * @type {string}
-   * @memberof BasicSendable
+   * @memberof BaseSendable
    */
   public readonly text: string;
 
@@ -22,10 +23,10 @@ export default class BasicSendable implements ISendable {
   }
 
   /**
-   * Creates an instance of BasicSendable.
+   * Creates an instance of BaseSendable.
    * @param {string} text Text to send
-   * @param {boolean} isPrivate Whether message should be sent to user instead
-   * @memberof BasicSendable
+   * @param {boolean} isPrivate Whether message must be sent to user
+   * @memberof BaseSendable
    */
   constructor(text: string, isPrivate: boolean = false) {
     this.text = text;

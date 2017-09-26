@@ -1,25 +1,20 @@
 import ISendable from '../interfaces/ISendable';
-import BasicSendable from './BasicSendable';
+import BaseSendable from './BaseSendable';
+import TextSendable from './TextSendable';
 
 /**
- * A simple sendable item
+ * A group of sendable items
  *
  * @export
  * @class CompoundSendable
  */
-export default class CompoundSendable extends BasicSendable {
+export default class CompoundSendable extends BaseSendable {
   private sendables: ISendable[] = [];
-  private basicSendable: BasicSendable = null;
 
-  constructor(text: BasicSendable, extras: ISendable[] = [], isPrivate: boolean = false) {
-    super('', isPrivate);
+  constructor(text: string = '', extras: ISendable[] = [], isPrivate: boolean = false) {
+    super(text, isPrivate);
 
     this.sendables = extras;
-    this.basicSendable = text;
-  }
-
-  public get text() {
-    return this.basicSendable ? this.basicSendable.text : '';
   }
 
   public get private() {
@@ -31,10 +26,31 @@ export default class CompoundSendable extends BasicSendable {
   }
 
   public from(...sendables: ISendable[]) {
+    let text = this.text;
+    let isPrivate = this.private;
+    let newSendables = [];
+
+    // Add sendables to
+    sendables.forEach((sendable) => {
+      isPrivate = sendable.private;
+
+      if (sendable instanceof CompoundSendable) {
+        // Merge CompoundSendables
+        text = sendable.text;
+        newSendables = newSendables.concat(sendable.extras);
+      } else if (sendable instanceof TextSendable) {
+        // Just set the text for a TextSendable
+        text = sendable.text;
+      } else {
+        // Anything else is an extra for the new CompoundSendable
+        newSendables.push(sendable);
+      }
+    });
+
     return new CompoundSendable(
-      this.basicSendable,
-      this.sendables.concat(sendables),
-      this.isPrivate
+      text,
+      newSendables,
+      isPrivate
     );
   }
 }
