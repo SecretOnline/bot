@@ -4,9 +4,9 @@ import Thing from '../interfaces/Thing';
  * Base interface for addon configuration
  *
  * @export
- * @interface AddonConfig
+ * @interface IAddonConfig
  */
-export interface AddonConfig {
+export interface IAddonConfig {
   [x: string]: any,
 }
 
@@ -63,7 +63,7 @@ export default abstract class Addon implements Thing {
    * @returns {Promise<boolean>}
    * @memberof Addon
    */
-  abstract start(config: AddonConfig): Promise<boolean>;
+  abstract start(config: IAddonConfig): Promise<boolean>;
 
   /**
    * Stops the addon

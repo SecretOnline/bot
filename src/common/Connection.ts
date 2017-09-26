@@ -11,9 +11,9 @@ import Message from './Message';
  * Base interface for connection configuration
  *
  * @export
- * @interface ConnectionConfig
+ * @interface IConnectionConfig
  */
-export interface ConnectionConfig extends IObjectMap<any> {}
+export interface IConnectionConfig extends IObjectMap<any> {}
 
 /**
  * Base class for a connection
@@ -52,7 +52,7 @@ export default abstract class Connection extends EventEmitter implements Thing, 
    * @returns {Promise<boolean>}
    * @memberof Connection
    */
-  abstract start(config: ConnectionConfig): Promise<boolean>;
+  abstract start(config: IConnectionConfig): Promise<boolean>;
 
   /**
    * Stops the connection

@@ -3,10 +3,10 @@ import { join as joinPath } from 'path';
 
 import IObjectMap from '../interfaces/IObjectMap';
 
-import Connection, { ConnectionConfig } from '../common/Connection';
+import Connection, { IConnectionConfig } from '../common/Connection';
 
 interface BotConfig {
-  connections: IObjectMap<ConnectionConfig>,
+  connections: IObjectMap<IConnectionConfig>,
   paths: IObjectMap<string>,
 }
 

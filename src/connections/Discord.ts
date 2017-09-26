@@ -8,7 +8,7 @@ import {
 
 import ITargetable from '../interfaces/ITargetable';
 
-import Connection, { ConnectionConfig } from '../common/Connection';
+import Connection, { IConnectionConfig } from '../common/Connection';
 import Channel from '../common/Channel';
 import Server from '../common/Server';
 import Message from '../common/Message';
@@ -21,7 +21,7 @@ import ISendable from '../interfaces/ISendable';
  * @interface DiscordConfig
  * @extends {ConnectionConfig}
  */
-interface DiscordConfig extends ConnectionConfig {
+interface DiscordConfig extends IConnectionConfig {
   token: string,
 }
 
