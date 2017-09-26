@@ -5,6 +5,7 @@ import Thing from '../interfaces/Thing';
 import ITargetable from '../interfaces/ITargetable';
 import IConnectionEvents from '../interfaces/IConnectionEvents';
 import ISendable from '../interfaces/ISendable';
+import Bot from '../bot/Bot';
 import Message from './Message';
 
 /**
@@ -27,6 +28,14 @@ export interface IConnectionConfig extends IObjectMap<any> {}
  */
 export default abstract class Connection extends EventEmitter implements Thing, IConnectionEvents {
   /**
+   * Bot that created the Connection
+   *
+   * @type {Bot}
+   * @memberof Connection
+   */
+  readonly bot: Bot;
+
+  /**
    * Name of the Connection
    *
    * @abstract
@@ -43,6 +52,17 @@ export default abstract class Connection extends EventEmitter implements Thing, 
    * @memberof Connection
    */
   readonly abstract id: string;
+
+  /**
+   * Creates an instance of Connection.
+   * @param {Bot} bot Bot that created the Connection
+   * @memberof Connection
+   */
+  constructor(bot: Bot) {
+    super();
+
+    this.bot = bot;
+  }
 
   /**
    * Starts the connection

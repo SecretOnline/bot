@@ -14,6 +14,7 @@ import Server from '../common/Server';
 import Message from '../common/Message';
 import User from '../common/User';
 import ISendable from '../interfaces/ISendable';
+import Bot from '../bot/Bot';
 
 /**
  * Configuration for the Discord connection
@@ -46,8 +47,8 @@ export default class DiscordJs extends Connection {
    * Creates an instance of DiscordJs.
    * @memberof DiscordJs
    */
-  constructor() {
-    super();
+  constructor(bot: Bot) {
+    super(bot);
 
     this.client.on('message', (msg) => {
       this.emit('message', this.djsToBotMessage(msg));

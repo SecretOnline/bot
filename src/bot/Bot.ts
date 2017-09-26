@@ -65,7 +65,7 @@ export default class Bot {
           }
 
           try {
-            let conn: Connection = new connClass();
+            let conn: Connection = new connClass(this);
 
             if (this.connections.has(conn.id)) {
               // this.error(`connection ${conn.id} has alrady been created`);
