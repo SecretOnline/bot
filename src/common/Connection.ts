@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
 
+import ObjectMap from '../types/ObjectMap';
 import Thing from '../interfaces/Thing';
 import ITargetable from '../interfaces/ITargetable';
 import IConnectionEvents from '../interfaces/IConnectionEvents';
@@ -12,9 +13,7 @@ import Message from './Message';
  * @export
  * @interface ConnectionConfig
  */
-export interface ConnectionConfig {
-  [x: string]: any,
-}
+export interface ConnectionConfig extends ObjectMap<any> {}
 
 /**
  * Base class for a connection
