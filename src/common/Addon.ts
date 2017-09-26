@@ -1,4 +1,5 @@
 import Thing from '../interfaces/Thing';
+import Bot from '../bot/Bot';
 
 /**
  * Base interface for addon configuration
@@ -19,6 +20,14 @@ export interface IAddonConfig {
  * @implements {Thing}
  */
 export default abstract class Addon implements Thing {
+  /**
+   * Bot that created the Addon
+   *
+   * @type {Bot}
+   * @memberof Addon
+   */
+  readonly bot: Bot;
+
   /**
    * Name of the addon
    *
@@ -54,6 +63,15 @@ export default abstract class Addon implements Thing {
    * @memberof Addon
    */
   readonly abstract description: string;
+
+  /**
+   * Creates an instance of Addon.
+   * @param {Bot} bot Bot that created the Addon
+   * @memberof Addon
+   */
+  constructor(bot: Bot) {
+    this.bot = bot;
+  }
 
   /**
    * Starts the addon
