@@ -1,13 +1,13 @@
 import { readdir } from 'fs';
 import { join as joinPath } from 'path';
 
-import ObjectMap from '../types/ObjectMap';
+import IObjectMap from '../interfaces/IObjectMap';
 
 import Connection, { ConnectionConfig } from '../common/Connection';
 
 interface BotConfig {
-  connections: ObjectMap<ConnectionConfig>,
-  paths: ObjectMap<string>,
+  connections: IObjectMap<ConnectionConfig>,
+  paths: IObjectMap<string>,
 }
 
 export default class Bot {
