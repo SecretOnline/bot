@@ -1,0 +1,22 @@
+{
+  "rip": "rip in peace,",
+  "hundreds": "hundreds, if not thousands, of",
+  "ones": "one, if not two,",
+  "sorry": "not sorry enough :(",
+  "realbest": "the real {args}, the best {args}",
+  "fakeworst": "the fake {args}, the worst {args}",
+  "tm": "{args}™",
+  "r": "https://reddit.com/r/{args}",
+  "urn": "{args} is now in an urn",
+  "burn": "{args} is now on fire",
+  "extinguish": "{args} is no longer on fire",
+  "freeze": "{args} is now frozen",
+  "melt": "{args} is no longer frozen",
+  "thaw": "{args} is no longer frozen",
+  "projects": "https://secretonline.github.io/",
+  "islove": "{args} is love, {args} is life",
+  "me": "{user}",
+  "who": "{user}",
+  "inception": "http://inception.davepedu.com/inception.mp3",
+  "vote": "{user} voted to {args}"
+}
