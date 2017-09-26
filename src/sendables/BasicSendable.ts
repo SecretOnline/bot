@@ -13,9 +13,9 @@ export default class BasicSendable implements ISendable {
    * @type {string}
    * @memberof BasicSendable
    */
-  public text: string;
+  public readonly text: string;
 
-  private isPrivate: boolean;
+  protected isPrivate: boolean;
 
   public get private() {
     return this.isPrivate;
