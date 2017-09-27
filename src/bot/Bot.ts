@@ -49,8 +49,8 @@ export default class Bot {
 
   getAddonConfig(addon: Addon, context?: Server) {
     if (context) {
-      // TODO: get server-specific addon config
-      return null;
+      const serverconf = this.getServerConfig(context);
+      return serverconf['addon-conf'][addon.id];
     }
 
     return this.config.addons[addon.id];
