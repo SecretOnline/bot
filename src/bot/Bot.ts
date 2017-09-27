@@ -5,12 +5,12 @@ import IObjectMap from '../interfaces/IObjectMap';
 
 import Connection, { IConnectionConfig } from '../common/Connection';
 import Addon, { IAddonConfig } from '../common/Addon';
-import JSONAddon from '../common/JSONAddon'
+import JSONAddon from '../common/JSONAddon';
 
 interface BotConfig {
-  connections: IObjectMap<IConnectionConfig>,
-  addons: IObjectMap<IAddonConfig>,
-  paths: IObjectMap<string>,
+  connections: IObjectMap<IConnectionConfig>;
+  addons: IObjectMap<IAddonConfig>;
+  paths: IObjectMap<string>;
 }
 
 export default class Bot {
@@ -21,13 +21,13 @@ export default class Bot {
   async start(config: BotConfig) {
     this.config = config;
 
-    let connectionFiles = await this.listDirectory(joinPath(
+    const connectionFiles = await this.listDirectory(joinPath(
       '.',
-      this.config.paths.connections
+      this.config.paths.connections,
     ));
-    let connections = await this.createConnections(
+    const connections = await this.createConnections(
       connectionFiles
-        .map(p => joinPath('../..', this.config.paths.connections, p))
+        .map(p => joinPath('../..', this.config.paths.connections, p)),
     );
     return await this.initConnections(connections);
   }
@@ -57,8 +57,8 @@ export default class Bot {
   }
 
   private createConnections(files: string[]) {
-    let connections: Connection[] = files
-      .map(file => {
+    const connections: Connection[] = files
+      .map((file) => {
         if (file.match(/\.js$/)) {
           let connClass;
 
@@ -71,7 +71,7 @@ export default class Bot {
           }
 
           try {
-            let conn: Connection = new connClass(this);
+            const conn: Connection = new connClass(this);
 
             if (this.connections.has(conn.id)) {
               // this.error(`connection ${conn.id} has alrady been created`);
@@ -102,22 +102,25 @@ export default class Bot {
         .map((conn) => {
           return conn
             .start(this.getConfig(conn))
-            .then((result) => {
-              // Add message listener for connection
-              conn.on('message', (m) => { console.log(`${m.user.name}: ${m.text}`); })
-              return result;
-            }, (err): boolean => {
-              // this.error(`unable to start connection ${conn.name}`);
-              // this.error(err);
-              return false;
-            })
-        })
-    )
+            .then(
+              (result) => {
+                // Add message listener for connection
+                conn.on('message', (m) => { console.log(`${m.user.name}: ${m.text}`); });
+                return result;
+              },
+              (err): boolean => {
+                // this.error(`unable to start connection ${conn.name}`);
+                // this.error(err);
+                return false;
+              },
+          );
+        }),
+    );
   }
 
   private createAddons(files: string[]) {
-    let addons: Addon[] = files
-      .map(file => {
+    const addons: Addon[] = files
+      .map((file) => {
         if (file.match(/\.js$/)) {
           let addonClass;
 
@@ -130,7 +133,7 @@ export default class Bot {
           }
 
           try {
-            let addon: Addon = new addonClass(this);
+            const addon: Addon = new addonClass(this);
 
             if (this.addons.has(addon.id)) {
               // this.error(`addon ${addon.id} has already been created`);
@@ -147,7 +150,7 @@ export default class Bot {
           }
 
         } else if (file.match(/\.json$/)) {
-          let addonData: IObjectMap<string> = require(file);
+          const addonData: IObjectMap<string> = require(file);
 
           return new JSONAddon(this, file, addonData);
         } else {
@@ -169,12 +172,12 @@ export default class Bot {
               // ???
               // Does anything need to be done? Addons don't really need handlers attached
               return result;
-            }, (err): boolean => {
+            },    (err): boolean => {
               // this.error(`unable to start addonection ${addon.name}`);
               // this.error(err);
               return false;
-            })
-        })
-    )
+            });
+        }),
+    );
   }
 }

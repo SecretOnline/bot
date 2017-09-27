@@ -89,5 +89,5 @@ export default abstract class Addon implements Thing {
    * @returns {Promise<boolean>}
    * @memberof Addon
    */
-  abstract stop(): Promise<boolean>
+  abstract stop(): Promise<boolean>;
 }

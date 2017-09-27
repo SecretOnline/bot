@@ -23,7 +23,7 @@ import Bot from '../bot/Bot';
  * @extends {ConnectionConfig}
  */
 interface DiscordConfig extends IConnectionConfig {
-  token: string,
+  token: string;
 }
 
 /**
@@ -100,7 +100,7 @@ export default class DiscordJs extends Connection {
             return msg;
           }
         })
-        .then((msg) => this.djsToBotMessage(msg));
+        .then(msg => this.djsToBotMessage(msg));
     } else {
       return Promise.reject('can not send message to non-discord target');
     }
@@ -122,7 +122,7 @@ export default class DiscordJs extends Connection {
       if (!this.serverMap.has(message.guild.id)) {
         this.serverMap.set(message.guild.id, new DiscordServer(this, message.guild));
       }
-      let server = this.serverMap.get(message.guild.id);
+      const server = this.serverMap.get(message.guild.id);
 
       if (!this.channelMap.has(message.channel.id)) {
         this.channelMap.set(message.channel.id, new DiscordChannel(this, server, message.channel));
@@ -134,7 +134,7 @@ export default class DiscordJs extends Connection {
     if (!this.userMap.has(message.author.id)) {
       this.userMap.set(message.author.id, new DiscordUser(this, message.author));
     }
-    let user = this.userMap.get(message.author.id);
+    const user = this.userMap.get(message.author.id);
 
     // Create new DiscordMessage
     return new DiscordMessage(this, user, channel, message);
@@ -215,7 +215,12 @@ export class DiscordMessage extends Message {
    * @param {DjsMessage} message discord.js Message
    * @memberof DiscordMessage
    */
-  constructor(connection: DiscordJs, user: DiscordUser, channel: DiscordChannel, message: DjsMessage) {
+  constructor(
+    connection: DiscordJs,
+    user: DiscordUser,
+    channel: DiscordChannel,
+    message: DjsMessage,
+  ) {
     super(message.content, message.id, channel, user, connection, message);
   }
 }

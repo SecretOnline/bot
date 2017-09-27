@@ -86,7 +86,14 @@ export default abstract class Message implements Thing {
    * @param {*} raw
    * @memberof Message
    */
-  constructor(text: string, id: string, channel: Channel, user: User, connection: Connection, raw: any) {
+  constructor(
+    text: string,
+    id: string,
+    channel: Channel,
+    user: User,
+    connection: Connection,
+    raw: any,
+  ) {
     this.name = text;
     this.text = text;
     this.id = id;

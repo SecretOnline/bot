@@ -8,5 +8,5 @@ import ISendable from './ISendable';
  * @export
  */
 export default interface ITargetable {
-  send: (msg: ISendable) => Promise<Message>,
+  send: (msg: ISendable) => Promise<Message>;
 }

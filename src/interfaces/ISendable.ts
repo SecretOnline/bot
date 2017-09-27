@@ -5,6 +5,6 @@
  * @export
  */
 export default interface ISendable {
-  text: string,
-  private: boolean,
+  text: string;
+  private: boolean;
 }

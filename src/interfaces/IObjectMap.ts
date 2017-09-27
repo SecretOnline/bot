@@ -6,5 +6,5 @@
  * @template T
  */
 export default interface IObjectMap<T> {
-  [x: string]: T,
+  [x: string]: T;
 }
