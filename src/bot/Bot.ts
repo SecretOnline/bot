@@ -12,6 +12,8 @@ import Server, { IServerConfig } from '../common/Server';
 import JSONAddon from '../common/JSONAddon';
 import Message from '../common/Message';
 
+import { regexEscape } from '../util';
+
 interface BotConfig {
   connections: IObjectMap<IConnectionConfig>;
   addons: IObjectMap<IAddonConfig>;
@@ -98,10 +100,19 @@ export default class Bot {
 
     console.log(`${msg.user.name}: ${msg.text}`);
 
+    // Send message to all addons that want it
+
     // Safeguard against strikethrough triggering commands
     if (serverConfig.prefix === '~' && msg.text.match('^~~')) {
       return;
     }
+
+    // Messages should start with a command
+    if (!msg.text.match(new RegExp(`^${regexEscape(serverConfig.prefix)}`))) {
+      return;
+    }
+
+    // Process it!
   }
 
   private listDirectory(path: string): Promise<string[]> {

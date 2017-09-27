@@ -45,3 +45,14 @@ export function quoteSplit(str: string) {
 
   return arr;
 }
+
+/**
+ * Escapes special characters in regex
+ *
+ * @export
+ * @param {string} str String to escape
+ * @returns
+ */
+export function regexEscape(str: string) {
+  return str.replace(/[-[\]{}()*+?.,\\/^$|#\s]/g, '\\$&');
+}
