@@ -42,6 +42,42 @@ export default class Bot {
     return null;
   }
 
+  private onMessage(msg: Message) {
+    const connConf = this.getConnectionConfig(msg.connection);
+    const server = msg.server;
+
+    let serverConfig: IServerConfig;
+    if (server) {
+      // Check connection's server filter
+      if (connConf) {
+        if (connConf.filter) {
+          const filter = connConf.filter;
+
+          // If server ID not in whitelist, stop
+          if (filter.whitelist) {
+            if (!(filter.whitelist.indexOf(server.id) > -1)) {
+              return;
+            }
+          }
+
+          // If server ID in blacklist, stop
+          if (filter.blacklist) {
+            if (filter.blacklist.indexOf(server.id) > -1) {
+              return;
+            }
+          }
+        }
+      }
+
+      // Server is allowed, get config
+      serverConfig = this.getServerConfig(server);
+    } else {
+      serverConfig = this.config.defaults.server;
+    }
+
+    console.log(`${msg.user.name}: ${msg.text}`);
+  }
+
   private listDirectory(path: string): Promise<string[]> {
     return new Promise((resolve, reject) => {
       readdir(path, (err, data) => {
@@ -105,7 +141,7 @@ export default class Bot {
             .then(
               (result) => {
                 // Add message listener for connection
-                conn.on('message', (m) => { console.log(`${m.user.name}: ${m.text}`); });
+                conn.on('message', m => this.onMessage(m));
                 return result;
               },
               (err): boolean => {

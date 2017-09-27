@@ -5,6 +5,7 @@ import Thing from '../interfaces/Thing';
 import ITargetable from '../interfaces/ITargetable';
 import IConnectionEvents from '../interfaces/IConnectionEvents';
 import ISendable from '../interfaces/ISendable';
+import IIdFilter from '../interfaces/IIdFilter';
 import Bot from '../bot/Bot';
 import Message from './Message';
 import User from './User';
@@ -17,7 +18,9 @@ import { CommandPermission } from './Command';
  * @export
  * @interface IConnectionConfig
  */
-export interface IConnectionConfig extends IObjectMap<any> {}
+export interface IConnectionConfig extends IObjectMap<any> {
+  filter?: IIdFilter;
+}
 
 /**
  * Base class for a connection
