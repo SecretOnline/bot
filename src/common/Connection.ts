@@ -7,6 +7,9 @@ import IConnectionEvents from '../interfaces/IConnectionEvents';
 import ISendable from '../interfaces/ISendable';
 import Bot from '../bot/Bot';
 import Message from './Message';
+import User from './User';
+import Channel from './Channel';
+import { CommandPermission } from './Command';
 
 /**
  * Base interface for connection configuration
@@ -93,4 +96,15 @@ export default abstract class Connection extends EventEmitter implements Thing, 
    * @memberof Connection
    */
   abstract send(target: ITargetable, msg: ISendable): Promise<Message>;
+
+  /**
+   * Gets the permission level for a user
+   *
+   * @abstract
+   * @param {User} user
+   * @param {Channel} context
+   * @returns {CommandPermission}
+   * @memberof Connection
+   */
+  abstract getPermissionLevel(user: User, context: Channel): CommandPermission;
 }

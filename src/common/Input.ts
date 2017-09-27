@@ -36,6 +36,14 @@ export default class Input {
     return this.message.channel;
   }
 
+  get connection() {
+    return this.message.connection;
+  }
+
+  getPermissionLevel() {
+    return this.connection.getPermissionLevel(this.user, this.channel);
+  }
+
   from(sendable: ISendable) {
     return new Input(this.message, sendable.text);
   }

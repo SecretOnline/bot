@@ -3,14 +3,18 @@ import ISendable from '../interfaces/ISendable';
 import Addon from './Addon';
 import Input from './Input';
 
-type CommandPermission = 'DEFAULT' | 'TRUSTED' | 'ADMIN' | 'OVERLORD' | 'SUPERUSER' | 'DISALLOWED';
+export type CommandPermission =
+  'DEFAULT' | 'TRUSTED' | 'ADMIN' |
+  'OVERLORD' | 'SUPERUSER' | 'DISALLOWED';
 
 export interface CommandProps {
   permission: CommandPermission;
   help: string;
 }
 
-export function valueOfPermission(perm: CommandPermission): number {
+type CommandFunction = (input: Input) => Promise<ISendable>;
+
+function permValue(perm: CommandPermission): number {
   switch (perm) {
     case 'DEFAULT':
       return 1;
@@ -27,8 +31,6 @@ export function valueOfPermission(perm: CommandPermission): number {
       return -1;
   }
 }
-
-type CommandFunction = (input: Input) => Promise<ISendable>;
 
 const defaultOptions: CommandProps = {
   permission: 'DEFAULT',
@@ -67,6 +69,10 @@ export default class Command implements Thing {
   }
 
   run(input: Input) {
+    if (permValue(this.permission) > permValue(input.getPermissionLevel())) {
+      return Promise.reject('you do not have the required permission to use this command');
+    }
+
     return this.fn(input);
   }
 }
