@@ -37,6 +37,8 @@ export default class DiscordJs extends Connection {
   readonly name = 'Discord';
   readonly id = 'djs';
 
+  conf: DiscordConfig;
+
   private client: Client = new Client();
 
   private userMap = new Map<string, DiscordUser>();
@@ -62,10 +64,12 @@ export default class DiscordJs extends Connection {
    * @returns {Promise<boolean>}
    * @memberof DiscordJs
    */
-  start(conf: DiscordConfig) {
-    return this.client
-      .login(conf.token)
-      .then(() => true);
+  async start(conf: DiscordConfig) {
+    await super.start(conf);
+
+    await this.client.login(conf.token);
+
+    return true;
   }
 
   /**
@@ -104,6 +108,40 @@ export default class DiscordJs extends Connection {
     } else {
       return Promise.reject('can not send message to non-discord target');
     }
+  }
+
+    /**
+   * Gets the permission level for a user
+   *
+   * @param {User} user User to get permission of
+   * @param {Channel} context Channel context of the user
+   * @returns {CommandPermission}
+   * @memberof DiscordJs
+   */
+  getPermissionLevel(user: DiscordUser, context: DiscordChannel) {
+    if (!context) {
+      return 'DEFAULT';
+    }
+
+    const channel = context.raw;
+
+    // DM channels always have default perms, even for overlords
+    if (!(context instanceof TextChannel)) {
+      return 'DEFAULT';
+    }
+
+    if (this.conf.overlords) {
+      if (this.conf.overlords.includes(user.id)) {
+        return 'OVERLORD';
+      }
+    }
+
+    const perms = channel.permissionsFor(user.raw);
+    if (perms && perms.hasPermission('MANAGE_GUILD')) {
+      return 'ADMIN';
+    }
+
+    return 'DEFAULT';
   }
 
   /**
@@ -149,6 +187,8 @@ export default class DiscordJs extends Connection {
  * @extends {Channel}
  */
 export class DiscordChannel extends Channel {
+  raw: TextChannel;
+
   /**
    * Creates an instance of DiscordChannel.
    * @param {DiscordJs} connection Discord connection
@@ -169,6 +209,8 @@ export class DiscordChannel extends Channel {
  * @extends {Server}
  */
 export class DiscordServer extends Server {
+  raw: Guild;
+
   /**
    * Creates an instance of DiscordServer.
    * @param {DiscordJs} connection Discord connection
@@ -188,6 +230,8 @@ export class DiscordServer extends Server {
  * @extends {User}
  */
 export class DiscordUser extends User {
+  raw: DjsUser;
+
   /**
    * Creates an instance of DiscordUser.
    * @param {DiscordJs} connection Discord connection
@@ -207,6 +251,8 @@ export class DiscordUser extends User {
  * @extends {Message}
  */
 export class DiscordMessage extends Message {
+  raw: DjsMessage;
+
   /**
    * Creates an instance of DiscordMessage.
    * @param {DiscordJs} connection Discord connection

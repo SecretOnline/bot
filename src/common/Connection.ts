@@ -57,6 +57,15 @@ export default abstract class Connection extends EventEmitter implements Thing, 
   readonly abstract id: string;
 
   /**
+   * Configuration for this connection
+   *
+   * @private
+   * @type {IObjectMap<any>}
+   * @memberof Connection
+   */
+  abstract conf: IObjectMap<any>;
+
+  /**
    * Creates an instance of Connection.
    * @param {Bot} bot Bot that created the Connection
    * @memberof Connection
@@ -70,21 +79,25 @@ export default abstract class Connection extends EventEmitter implements Thing, 
   /**
    * Starts the connection
    *
-   * @abstract
    * @param {ConnectionConfig} config Configutation for the connection
    * @returns {Promise<boolean>}
    * @memberof Connection
    */
-  abstract start(config: IConnectionConfig): Promise<boolean>;
+  start(config: IConnectionConfig): Promise<boolean> {
+    this.conf = config;
+
+    return Promise.resolve(true);
+  }
 
   /**
    * Stops the connection
    *
-   * @abstract
    * @returns {Promise<void>}
    * @memberof Connection
    */
-  abstract stop(): Promise<void>;
+  stop(): Promise<void> {
+    return Promise.resolve();
+  }
 
   /**
    * Sends a message to the target
@@ -101,8 +114,8 @@ export default abstract class Connection extends EventEmitter implements Thing, 
    * Gets the permission level for a user
    *
    * @abstract
-   * @param {User} user
-   * @param {Channel} context
+   * @param {User} user User to get permission of
+   * @param {Channel} context Channel context of the user
    * @returns {CommandPermission}
    * @memberof Connection
    */
