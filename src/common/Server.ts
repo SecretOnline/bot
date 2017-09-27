@@ -1,5 +1,14 @@
 import Thing from '../interfaces/Thing';
 import Connection from './Connection';
+import { IAddonConfig } from './Addon';
+import IObjectMap from '../interfaces/IObjectMap';
+
+export interface IServerConfig extends IObjectMap<any> {
+  name: string;
+  prefix: string;
+  addons: string[];
+  'addon-conf': IAddonConfig;
+}
 
 /**
  * Base class for a server
