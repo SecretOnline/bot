@@ -36,9 +36,9 @@ const defaultOptions: CommandProps = {
 };
 
 export default class Command implements Thing {
-  private addon: Addon;
-  private fn: CommandFunction;
-  private options: CommandProps;
+  private readonly addon: Addon;
+  private readonly fn: CommandFunction;
+  private readonly options: CommandProps;
 
   name: string;
 
@@ -64,5 +64,9 @@ export default class Command implements Thing {
 
   get help() {
     return this.options.help;
+  }
+
+  run(input: Input) {
+    return this.fn(input);
   }
 }
