@@ -18,6 +18,12 @@ import Input from '../common/Input';
 import TextSendable from '../sendables/TextSendable';
 import CompoundSendable from '../sendables/CompoundSendable';
 
+import {
+  CommandNotFoundError,
+  CommandNotEnabledError,
+  CommandMultipleAddonsError,
+} from '../errors/CommandError';
+
 import { regexEscape } from '../util';
 
 /**
@@ -143,37 +149,31 @@ export default class Bot {
     } else {
       serverConf = this.config.defaults.server;
     }
+    const prefix = serverConf.prefix;
 
     // Check if this is a command
-    const match = trigger.match(new RegExp(`^${regexEscape(serverConf.prefix)}(.+)`));
+    const match = trigger.match(new RegExp(`^${regexEscape(prefix)}(.+)`));
     if (!match) {
       return null;
     }
+    const name = match[1];
 
-    const commandArr = this.commands.get(match[1]);
+    const commandArr = this.commands.get(name);
     if (!commandArr) {
-      // TODO: throw error not string
-      throw `\`${serverConf.prefix}${match[1]}\` is not a valid command`;
+      throw new CommandNotFoundError(prefix, name);
     }
 
     const allowedAddons = this.getAllowedAddons(message.server);
     const allowedCommands = commandArr.filter(c => allowedAddons.indexOf(c.addon.id) > -1);
 
     if (allowedCommands.length === 0) {
-      // TODO: throw error not string
-      throw `\`${serverConf.prefix}${match[1]}\` is not a valid command`;
+      // TODO: Check user permission. If admin, show "can enable"
+      throw new CommandNotFoundError(prefix, name);
     } else if (allowedCommands.length === 1) {
       return allowedCommands[0];
     } else {
-      const allowedGroups = allowedCommands
-        .map(c => `\`${c.addon.id}\``)
-        .join(' ');
-
-      // TODO: throw error not string
-      // tslint:disable-next-line max-line-length
-      throw `\`${serverConf.prefix}${match[1]}\` is added by multiple addons (${allowedGroups}). use \`${serverConf.prefix}<group>.${match[1]}\` instead`;
+      throw new CommandMultipleAddonsError(prefix, name, allowedAddons);
     }
-
   }
 
   getConnectionConfig(conn: Connection) {
