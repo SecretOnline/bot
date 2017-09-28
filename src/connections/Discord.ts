@@ -16,6 +16,11 @@ import User from '../common/User';
 import ISendable from '../interfaces/ISendable';
 import Bot from '../bot/Bot';
 
+import {
+  MessageNotSentError,
+  InvalidTargetError,
+} from '../errors/ConnectionError';
+
 /**
  * Configuration for the Discord connection
  *
@@ -93,11 +98,11 @@ export default class DiscordJs extends Connection {
   send(target: ITargetable, msg: ISendable) {
     if (target instanceof DiscordChannel || target instanceof DiscordUser) {
       // TODO: Better sending
-      target.raw.send(msg.text, null)
+      return target.raw.send(msg.text, null)
         .then((msg) => {
           if (Array.isArray(msg)) {
             if (msg.length === 0) {
-              throw 'no received message';
+              throw new MessageNotSentError();
             }
             return msg[0];
           } else {
@@ -106,7 +111,7 @@ export default class DiscordJs extends Connection {
         })
         .then(msg => this.djsToBotMessage(msg));
     } else {
-      return Promise.reject('can not send message to non-discord target');
+      return Promise.reject(new InvalidTargetError(target));
     }
   }
 
