@@ -82,7 +82,26 @@ export default class Bot {
       connectionFiles
         .map(p => joinPath('../..', this.config.paths.connections, p)),
     );
-    return await this.initConnections(connections);
+    const connectionProm = this.initConnections(connections)
+      .then(() => console.log(`loaded ${this.connections.size} connections`));
+
+    const addonFiles = await this.listDirectory(joinPath(
+      '.',
+      this.config.paths.addons,
+    ));
+    const addons = await this.createAddons(
+      addonFiles
+        .map(p => joinPath('../..', this.config.paths.addons, p)),
+    );
+    // Finish loading connections before initializaing addons
+    const addonProm = connectionProm
+      .then(() => this.initAddons(addons))
+      .then(() => console.log(`loaded ${this.addons.size} addons`));
+
+    return await Promise.all([
+      connectionProm,
+      addonProm,
+    ]);
   }
 
   addCommand(command: Command) {
