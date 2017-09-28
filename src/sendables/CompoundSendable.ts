@@ -1,6 +1,7 @@
 import ISendable from '../interfaces/ISendable';
 import BaseSendable from './BaseSendable';
 import TextSendable from './TextSendable';
+import ErrorSendable from './ErrorSendable';
 
 /**
  * A group of sendable items
@@ -30,6 +31,8 @@ export default class CompoundSendable extends BaseSendable {
     let isPrivate = this.private;
     let newSendables = [];
 
+    let error: ErrorSendable;
+
     // Add sendables to
     sendables.forEach((sendable) => {
       isPrivate = sendable.private;
@@ -41,11 +44,17 @@ export default class CompoundSendable extends BaseSendable {
       } else if (sendable instanceof TextSendable) {
         // Just set the text for a TextSendable
         text = sendable.text;
+      } else if (sendable instanceof ErrorSendable) {
+        error = sendable;
       } else {
         // Anything else is an extra for the new CompoundSendable
         newSendables.push(sendable);
       }
     });
+
+    if (error) {
+      return error;
+    }
 
     return new CompoundSendable(
       text,

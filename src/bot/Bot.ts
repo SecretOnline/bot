@@ -219,7 +219,7 @@ export default class Bot {
     return this.serverConfigs.get(server.id);
   }
 
-  async process(input: Input) {
+  async process(input: Input): Promise<ISendable> {
     let quickReturn = true;
     let output = '';
 
@@ -246,12 +246,17 @@ export default class Bot {
         // Process text for next command
         const result = await this.process(input.from(new TextSendable(newStr)));
 
+        if (result instanceof ErrorSendable) {
+          return result;
+        }
+
         // Run this command
         const newInput = input.from(result);
         const sendable = await command.run(newInput);
 
-        if (output && (sendable instanceof CompoundSendable)) {
-          return sendable.from(new TextSendable(newStr));
+        if (result instanceof CompoundSendable) {
+          // Keep extras from pre-processing, but force text value
+          return result.from(sendable, new TextSendable(sendable.text));
         }
 
         return sendable;
