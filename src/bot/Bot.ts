@@ -17,6 +17,7 @@ import Input from '../common/Input';
 
 import TextSendable from '../sendables/TextSendable';
 import CompoundSendable from '../sendables/CompoundSendable';
+import ErrorSendable from '../sendables/ErrorSendable';
 
 import {
   CommandNotFoundError,
@@ -225,7 +226,13 @@ export default class Bot {
     const words = input.args;
 
     for (let i = 0; i < words.length; i += 1) {
-      const command = this.getCommand(words[i], input.message);
+      let command: Command;
+
+      try {
+        command = this.getCommand(words[i], input.message);
+      } catch (error) {
+        return new ErrorSendable(error);
+      }
 
       if (command) {
         // Stop the immediate resolving
