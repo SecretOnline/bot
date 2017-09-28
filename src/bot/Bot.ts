@@ -211,9 +211,11 @@ export default class Bot {
           newStr = words.splice(i + 1).join(' ');
         }
 
-        // Make new command object and run it
-        const newInput = input.from(new TextSendable(newStr));
+        // Process text for next command
+        const result = await this.process(input.from(new TextSendable(newStr)));
 
+        // Run this command
+        const newInput = input.from(result);
         const sendable = await command.run(newInput);
 
         if (output && (sendable instanceof CompoundSendable)) {
@@ -228,9 +230,7 @@ export default class Bot {
     }
 
     // No commands found, just return
-    if (output) {
-      return new TextSendable(output);
-    }
+    return new TextSendable(output);
   }
 
   private onMessage(msg: Message) {
