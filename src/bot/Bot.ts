@@ -20,11 +20,46 @@ import CompoundSendable from '../sendables/CompoundSendable';
 
 import { regexEscape } from '../util';
 
+/**
+ * Configuration structure for the bot
+ *
+ * @interface BotConfig
+ */
 interface BotConfig {
+  /**
+   * Configuration for the bot's connections
+   *
+   * @type {IObjectMap<IConnectionConfig>}
+   * @memberof BotConfig
+   */
   connections: IObjectMap<IConnectionConfig>;
+  /**
+   * Server-agnostic configuration for addons
+   *
+   * @type {IObjectMap<IAddonConfig>}
+   * @memberof BotConfig
+   */
   addons: IObjectMap<IAddonConfig>;
+  /**
+   * Paths used by the bot
+   *
+   * @type {IObjectMap<string>}
+   * @memberof BotConfig
+   */
   paths: IObjectMap<string>;
+  /**
+   * Addon IDs that are always active
+   *
+   * @type {string[]}
+   * @memberof BotConfig
+   */
+  always: string[];
   defaults: {
+    /**
+     * Default server configuration
+     *
+     * @type {IServerConfig}
+     */
     server: IServerConfig;
   };
 }
@@ -78,6 +113,50 @@ export default class Bot {
     }
   }
 
+  getCommand(trigger: string, message: Message): Command {
+    if (trigger === '') {
+      return null;
+    }
+
+    let serverConf: IServerConfig;
+    if (message.server) {
+      serverConf = this.getServerConfig(message.server);
+    } else {
+      serverConf = this.config.defaults.server;
+    }
+
+    // Check if this is a command
+    const match = trigger.match(new RegExp(`^${regexEscape(serverConf.prefix)}(.+)`));
+    if (!match) {
+      return null;
+    }
+
+    const commandArr = this.commands.get(match[1]);
+    if (!commandArr) {
+      // TODO: throw error not string
+      throw `\`${serverConf.prefix}${match[1]}\` is not a valid command`;
+    }
+
+    const allowedAddons = this.getAllowedAddons(message.server);
+    const allowedCommands = commandArr.filter(c => allowedAddons.indexOf(c.addon.id) > -1);
+
+    if (allowedCommands.length === 0) {
+      // TODO: throw error not string
+      throw `\`${serverConf.prefix}${match[1]}\` is not a valid command`;
+    } else if (allowedCommands.length === 1) {
+      return allowedCommands[0];
+    } else {
+      const allowedGroups = allowedCommands
+        .map(c => `\`${c.addon.id}\``)
+        .join(' ');
+
+      // TODO: throw error not string
+      // tslint:disable-next-line max-line-length
+      throw `\`${serverConf.prefix}${match[1]}\` is added by multiple addons (${allowedGroups}). use \`${serverConf.prefix}<group>.${match[1]}\` instead`;
+    }
+
+  }
+
   getConnectionConfig(conn: Connection) {
     return this.config.connections[conn.id];
   }
@@ -89,6 +168,20 @@ export default class Bot {
     }
 
     return this.config.addons[addon.id];
+  }
+
+  getAllowedAddons(server: Server) {
+    let res: string[] = this.config.always.slice();
+
+    if (server) {
+      const serverConf = this.getServerConfig(server);
+
+      res = res.concat(serverConf.addons);
+    } else {
+      res = res.concat(this.config.defaults.server.addons);
+    }
+
+    return res;
   }
 
   getServerConfig(server: Server) {

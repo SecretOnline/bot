@@ -38,11 +38,11 @@ const defaultOptions: CommandProps = {
 };
 
 export default class Command implements Thing {
-  private readonly addon: Addon;
   private readonly fn: CommandFunction;
   private readonly options: CommandProps;
 
-  name: string;
+  readonly addon: Addon;
+  readonly name: string;
 
   constructor(
     name: string,
