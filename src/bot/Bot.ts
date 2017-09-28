@@ -383,6 +383,8 @@ export default class Bot {
   private createAddons(files: string[]) {
     const addons: Addon[] = files
       .map((file) => {
+        let addon: Addon;
+
         if (file.match(/\.js$/)) {
           let addonClass;
 
@@ -395,16 +397,7 @@ export default class Bot {
           }
 
           try {
-            const addon: Addon = new addonClass(this);
-
-            if (this.addons.has(addon.id)) {
-              // this.error(`addon ${addon.id} has already been created`);
-              return null;
-            }
-
-            this.addons.set(addon.id, addon);
-
-            return addon;
+            addon = new addonClass(this);
           } catch (err) {
             // this.error(`unable to create addon ${file}`);
             // this.error(err);
@@ -414,10 +407,19 @@ export default class Bot {
         } else if (file.match(/\.json$/)) {
           const addonData: IObjectMap<string> = require(file);
 
-          return new JSONAddon(this, file, addonData);
+          addon = new JSONAddon(this, file, addonData);
         } else {
           return null;
         }
+
+        if (this.addons.has(addon.id)) {
+          // this.error(`addon ${addon.id} has already been created`);
+          return null;
+        }
+
+        this.addons.set(addon.id, addon);
+
+        return addon;
       })
       .filter((a: Addon) => a);
 
