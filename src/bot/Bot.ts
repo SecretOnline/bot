@@ -252,7 +252,7 @@ export default class Bot {
     return new TextSendable(output);
   }
 
-  private onMessage(msg: Message) {
+  private async onMessage(msg: Message) {
     const connConf = this.getConnectionConfig(msg.connection);
     const server = msg.server;
 
@@ -302,6 +302,10 @@ export default class Bot {
     }
 
     // Process it!
+    const result = await this.process(new Input(msg));
+
+    // TODO: Reply with result
+    console.log(result);
   }
 
   private listDirectory(path: string): Promise<string[]> {
