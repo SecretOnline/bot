@@ -10,6 +10,7 @@ import Connection, { IConnectionConfig } from '../common/Connection';
 import Addon, { IAddonConfig } from '../common/Addon';
 import Server, { IServerConfig } from '../common/Server';
 import JSONAddon from '../common/JSONAddon';
+import Command from '../common/Command';
 import Message from '../common/Message';
 
 import { regexEscape } from '../util';
@@ -28,6 +29,7 @@ export default class Bot {
   private connections = new Map<string, Connection>();
   private addons = new Map<string, Addon>();
   private serverConfigs = new Map<string, IServerConfig>();
+  private commands = new Map<string, Command[]>();
 
   async start(config: BotConfig) {
     this.config = config;
@@ -41,6 +43,34 @@ export default class Bot {
         .map(p => joinPath('../..', this.config.paths.connections, p)),
     );
     return await this.initConnections(connections);
+  }
+
+  addCommand(command: Command) {
+    if (!this.commands.has(command.name)) {
+      this.commands.set(command.name, []);
+    }
+
+    const commArr = this.commands.get(command.name);
+
+    if (commArr.find(c => c.id === command.id)) {
+      return false;
+    }
+
+    commArr.push(command);
+    return true;
+  }
+
+  removeCommand(command: Command) {
+    if (!this.commands.has(command.name)) {
+      return true;
+    }
+
+    const commArr = this.commands.get(command.name);
+
+    const index = commArr.findIndex(c => c.id === command.id);
+    if (index !== undefined) {
+      commArr.splice(index, 1);
+    }
   }
 
   getConnectionConfig(conn: Connection) {
