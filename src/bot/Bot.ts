@@ -5,6 +5,7 @@ import {
 import { join as joinPath } from 'path';
 
 import IObjectMap from '../interfaces/IObjectMap';
+import ISendable from '../interfaces/ISendable';
 
 import Connection, { IConnectionConfig } from '../common/Connection';
 import Addon, { IAddonConfig } from '../common/Addon';
@@ -12,6 +13,10 @@ import Server, { IServerConfig } from '../common/Server';
 import JSONAddon from '../common/JSONAddon';
 import Command from '../common/Command';
 import Message from '../common/Message';
+import Input from '../common/Input';
+
+import TextSendable from '../sendables/TextSendable';
+import CompoundSendable from '../sendables/CompoundSendable';
 
 import { regexEscape } from '../util';
 
@@ -95,6 +100,46 @@ export default class Bot {
     return this.serverConfigs.get(server.id);
   }
 
+  async process(input: Input) {
+    let quickReturn = true;
+    let output = '';
+
+    const words = input.args;
+
+    for (let i = 0; i < words.length; i += 1) {
+      const command = this.getCommand(words[i], input.message);
+
+      if (command) {
+        // Stop the immediate resolving
+        quickReturn = false;
+
+        let newStr = '';
+        if (words.length !== 1) {
+          newStr = words.splice(i + 1).join(' ');
+        }
+
+        // Make new command object and run it
+        const newInput = input.from(new TextSendable(newStr));
+
+        const sendable = await command.run(newInput);
+
+        if (output && (sendable instanceof CompoundSendable)) {
+          return sendable.from(new TextSendable(newStr));
+        }
+
+        return sendable;
+      } else {
+        // Append word to output, and go to next word
+        output = `${output ? `${output} ` : ''}${words[i]}`;
+      }
+    }
+
+    // No commands found, just return
+    if (output) {
+      return new TextSendable(output);
+    }
+  }
+
   private onMessage(msg: Message) {
     const connConf = this.getConnectionConfig(msg.connection);
     const server = msg.server;
@@ -131,6 +176,8 @@ export default class Bot {
     console.log(`${msg.user.name}: ${msg.text}`);
 
     // Send message to all addons that want it
+
+    // TODO: Filter out bots
 
     // Safeguard against strikethrough triggering commands
     if (serverConfig.prefix === '~' && msg.text.match('^~~')) {

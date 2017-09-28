@@ -50,7 +50,7 @@ export default class CompoundSendable extends BaseSendable {
     return new CompoundSendable(
       text,
       newSendables,
-      isPrivate
+      isPrivate,
     );
   }
 }
