@@ -7,10 +7,6 @@ import TextSendable from '../sendables/TextSendable';
 
 import { mapObject } from '../util';
 
-interface IJsonAddonConfig extends IAddonConfig {
-  commands: IObjectMap<string>;
-}
-
 export default class JSONAddon extends Addon {
   private filename: string;
   private addonName: string;
@@ -18,10 +14,11 @@ export default class JSONAddon extends Addon {
 
   version: string = '0.0.0';
 
-  constructor(bot: Bot, filename: string) {
+  constructor(bot: Bot, filename: string, commands: IObjectMap<string>) {
     super(bot);
 
     this.filename = filename;
+    this.cmdObj = commands;
 
     this.addonName = this.filename.match(/(?:.*\/)?(.*)\.json$/i)[1];
   }
@@ -38,13 +35,9 @@ export default class JSONAddon extends Addon {
     return `A series of call-response commands: ${this.addonName}`;
   }
 
-  start(conf: IJsonAddonConfig) {
-    mapObject(conf, (name, command) => {
-      const cmd = new Command(
-        name,
-        JSONAddon.makeStringFunction(this.bot, command),
-        this,
-      );
+  start(conf: IAddonConfig) {
+    mapObject(this.cmdObj, (name, command) => {
+      const cmd = this.makeCommand(name, command);
 
       const added = this.bot.addCommand(cmd);
       if (!added) {
@@ -57,6 +50,14 @@ export default class JSONAddon extends Addon {
 
   stop() {
     return Promise.resolve(true);
+  }
+
+  makeCommand(name: string, command: string) {
+    return new Command(
+      name,
+      JSONAddon.makeStringFunction(this.bot, command),
+      this,
+    );
   }
 
   static makeStringFunction(bot: Bot, str: string) {
