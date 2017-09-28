@@ -11,7 +11,7 @@ import Connection, { IConnectionConfig } from '../common/Connection';
 import Addon, { IAddonConfig } from '../common/Addon';
 import Server, { IServerConfig } from '../common/Server';
 import JSONAddon from '../common/JSONAddon';
-import Command from '../common/Command';
+import Command, { hasPermission } from '../common/Command';
 import Message from '../common/Message';
 import Input from '../common/Input';
 
@@ -167,7 +167,13 @@ export default class Bot {
     const allowedCommands = commandArr.filter(c => allowedAddons.indexOf(c.addon.id) > -1);
 
     if (allowedCommands.length === 0) {
-      // TODO: Check user permission. If admin, show "can enable"
+
+      if (hasPermission(message.user, 'ADMIN', message.channel)) {
+        const addonNameMap = commandArr.map(c => c.addon.id);
+
+        throw new CommandNotEnabledError(prefix, name, addonNameMap);
+      }
+
       throw new CommandNotFoundError(prefix, name);
     } else if (allowedCommands.length === 1) {
       return allowedCommands[0];

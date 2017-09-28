@@ -2,6 +2,10 @@ import Thing from '../interfaces/Thing';
 import ISendable from '../interfaces/ISendable';
 import Addon from './Addon';
 import Input from './Input';
+import User from './User';
+import Channel from './Channel';
+
+import PermissionError from '../errors/PermissionError';
 
 export type CommandPermission =
   'DEFAULT' | 'TRUSTED' | 'ADMIN' |
@@ -30,6 +34,28 @@ function permValue(perm: CommandPermission): number {
     default:
       return -1;
   }
+}
+
+export function hasPermission(
+  obj: CommandPermission | User | Command | Input,
+  permission: CommandPermission,
+  context?: Channel,
+) {
+  let perm: CommandPermission;
+
+  if (obj instanceof Command) {
+    perm = obj.permission;
+  } else if (obj instanceof User) {
+    if (context) {
+      perm = obj.connection.getPermissionLevel(obj, context);
+    } else {
+      perm = 'DEFAULT';
+    }
+  } else if (obj instanceof Input) {
+    perm = obj.getPermissionLevel();
+  }
+
+  return permValue(perm) >= permValue(permission);
 }
 
 const defaultOptions: CommandProps = {
@@ -69,8 +95,8 @@ export default class Command implements Thing {
   }
 
   run(input: Input) {
-    if (permValue(this.permission) > permValue(input.getPermissionLevel())) {
-      return Promise.reject('you do not have the required permission to use this command');
+    if (!hasPermission(input, this.permission)) {
+      return Promise.reject(new PermissionError(this.permission));
     }
 
     return this.fn(input);
