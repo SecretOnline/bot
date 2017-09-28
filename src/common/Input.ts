@@ -17,11 +17,11 @@ export default class Input {
   }
 
   get args() {
-    if (this.argsArray) {
-      return this.argsArray.slice();
-    } else {
+    if (!this.argsArray) {
       this.argsArray = quoteSplit(this.text);
     }
+
+    return this.argsArray.slice();
   }
 
   get user() {
