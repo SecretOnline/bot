@@ -276,6 +276,7 @@ export default class Bot {
   private async onMessage(msg: Message) {
     const connConf = this.getConnectionConfig(msg.connection);
     const server = msg.server;
+    const channel = msg.channel;
 
     let serverConfig: IServerConfig;
     if (server) {
@@ -302,6 +303,27 @@ export default class Bot {
 
       // Server is allowed, get config
       serverConfig = this.getServerConfig(server);
+
+      // Check server's channel filter
+      if (serverConfig) {
+        if (serverConfig.filter) {
+          const filter = serverConfig.filter;
+
+          // If channel ID not in whitelist, stop
+          if (filter.whitelist) {
+            if (!(filter.whitelist.indexOf(channel.id) > -1)) {
+              return;
+            }
+          }
+
+          // If channel ID in blacklist, stop
+          if (filter.blacklist) {
+            if (filter.blacklist.indexOf(channel.id) > -1) {
+              return;
+            }
+          }
+        }
+      }
     } else {
       serverConfig = this.config.defaults.server;
     }
