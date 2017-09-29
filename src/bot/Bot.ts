@@ -325,8 +325,19 @@ export default class Bot {
     // Process it!
     const result = await this.process(new Input(msg));
 
-    // TODO: Reply with result
+    // Reply with result
     console.log(result);
+
+    let target;
+    if (result instanceof ErrorSendable) {
+      target = msg.user;
+    } else  {
+      target = msg.channel;
+    }
+
+    const replyMsg = await msg.connection.send(target, result);
+    // Message sent. Anything else?
+    // Message editing will need to be added soon
   }
 
   private listDirectory(path: string): Promise<string[]> {
