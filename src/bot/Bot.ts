@@ -4,6 +4,8 @@ import {
 } from 'fs';
 import { join as joinPath } from 'path';
 
+import Logger from './Logger';
+
 import IObjectMap from '../interfaces/IObjectMap';
 import ISendable from '../interfaces/ISendable';
 import IIdFilter from '../interfaces/IIdFilter';
@@ -100,8 +102,14 @@ export default class Bot {
   private serverConfigs = new Map<string, IServerConfig>();
   private commands = new Map<string, Command[]>();
 
+  private logger: Logger;
+
   async start(config: BotConfig) {
     this.config = config;
+
+    this.logger = new Logger(this, this.config.paths.logs);
+    await this.logger.start();
+    this.log('logger started', this);
 
     const serverConfFiles = await this.listDirectory(joinPath(
       '.',
@@ -111,7 +119,7 @@ export default class Bot {
       serverConfFiles
         .map(p => joinPath('../..', this.config.paths.conf, p)),
     );
-    console.log(`loaded ${serverConfs.length} servers`);
+    this.log(`loaded ${serverConfs.length} servers`, this);
 
     const connectionFiles = await this.listDirectory(joinPath(
       '.',
@@ -122,7 +130,7 @@ export default class Bot {
         .map(p => joinPath('../..', this.config.paths.connections, p)),
     );
     const connectionProm = this.initConnections(connections)
-      .then(() => console.log(`loaded ${this.connections.size} connections`));
+      .then(() => this.log(`loaded ${this.connections.size} connections`, this));
 
     const addonFiles = await this.listDirectory(joinPath(
       '.',
@@ -135,7 +143,7 @@ export default class Bot {
     // Finish loading connections before initializaing addons
     const addonProm = connectionProm
       .then(() => this.initAddons(addons))
-      .then(() => console.log(`loaded ${this.addons.size} addons`));
+      .then(() => this.log(`loaded ${this.addons.size} addons`, this));
 
     return await Promise.all([
       connectionProm,
@@ -290,6 +298,10 @@ export default class Bot {
     } else {
       return this.config.defaults.color;
     }
+  }
+
+  log(message, location) {
+    return this.logger.log(message, location);
   }
 
   async process(input: Input): Promise<ISendable> {

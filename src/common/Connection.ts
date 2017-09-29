@@ -100,6 +100,16 @@ export default abstract class Connection extends EventEmitter implements Thing, 
   }
 
   /**
+   * Logs a message
+   *
+   * @param {any} message
+   * @memberof Connection
+   */
+  log(message) {
+    return this.bot.log(message, this);
+  }
+
+  /**
    * Sends a message to the target
    *
    * @abstract

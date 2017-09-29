@@ -123,6 +123,10 @@ export default class DiscordJs extends Connection {
     super(bot);
 
     this.client.on('message', (msg) => {
+      if (msg.author.id === this.client.user.id) {
+        return;
+      }
+
       this.emit('message', this.djsToBotMessage(msg));
     });
   }

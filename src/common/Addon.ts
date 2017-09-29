@@ -111,4 +111,14 @@ export default abstract class Addon implements Thing {
   removeCommand(command: Command) {
     this.bot.removeCommand(command);
   }
+
+  /**
+   * Logs a message
+   *
+   * @param {any} message
+   * @memberof Addon
+   */
+  log(message) {
+    return this.bot.log(message, this);
+  }
 }
