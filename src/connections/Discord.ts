@@ -4,6 +4,7 @@ import {
   Guild,
   User as DjsUser,
   Message as DjsMessage,
+  RichEmbed,
 } from 'discord.js';
 
 import ITargetable from '../interfaces/ITargetable';
@@ -14,7 +15,12 @@ import Server from '../common/Server';
 import Message from '../common/Message';
 import User from '../common/User';
 import ISendable from '../interfaces/ISendable';
+import IColorMap from '../interfaces/IColorMap';
 import Bot from '../bot/Bot';
+
+import TextSendable from '../sendables/TextSendable';
+import CompoundSendable from '../sendables/CompoundSendable';
+import ErrorSendable from '../sendables/ErrorSendable';
 
 import {
   MessageNotSentError,
@@ -29,6 +35,65 @@ import {
  */
 interface DiscordConfig extends IConnectionConfig {
   token: string;
+}
+
+/**
+ * Turns a string into a RichEmbed by making it the description
+ *
+ * @param {string} str String to embed
+ * @param {string} [color] Color to set the embed to
+ * @returns
+ */
+function embedify(sendable: ISendable, colorMap: IColorMap): (RichEmbed | RichEmbed[]) {
+  const embed = new RichEmbed()
+    .setColor(colorMap.normal);
+
+  if (sendable instanceof TextSendable) {
+    // See if message is a link
+    // Basic url matching regex
+    const urlRegex = /(https?:\/\/(?:\w+\.?)+\/?\S*\.(?:jpe?g|png|gif(?!v)))/g;
+    const match = sendable.text.match(urlRegex);
+    if (match) {
+      // Use last image in message
+      const last = match[match.length - 1];
+      embed.setImage(last);
+
+      // If the message more than just that link, put entire message in description
+      if (sendable.text !== last) {
+        // If only message, remove the link
+        if (match.length === 1) {
+          embed.setDescription(sendable.text.replace(match[0], ''));
+        } else {
+          embed.setDescription(sendable.text);
+        }
+      }
+    } else {
+      embed.setDescription(sendable.text);
+    }
+  } else if (sendable instanceof ErrorSendable) {
+    embed
+      .setColor(colorMap.error)
+      .setDescription(sendable.error.message)
+      .setTitle(sendable.error.name);
+  } else if (sendable instanceof CompoundSendable) {
+    // As there are potentially multiple sendables, must return an array
+    return [
+      new TextSendable(sendable.text),
+      ...sendable.extras,
+    ]
+      .map((s): RichEmbed => {
+        const e = embedify(s, colorMap);
+        // Throw away any internal CompundSendables
+        // They shouldn't be in there anyway
+        if (Array.isArray(e)) {
+          return null;
+        }
+        return e;
+      })
+      .filter(e => e);
+  }
+
+  return embed;
 }
 
 /**
@@ -95,23 +160,42 @@ export default class DiscordJs extends Connection {
    * @returns {Promise<Message>}
    * @memberof DiscordJs
    */
-  send(target: ITargetable, msg: ISendable) {
+  async send(target: ITargetable, msg: ISendable) {
     if (target instanceof DiscordChannel || target instanceof DiscordUser) {
-      // TODO: Better sending
-      return target.raw.send(msg.text, null)
-        .then((msg) => {
-          if (Array.isArray(msg)) {
-            if (msg.length === 0) {
-              throw new MessageNotSentError();
-            }
-            return msg[0];
-          } else {
-            return msg;
+      let embeds = embedify(msg, this.bot.getColorMap(target));
+      if (!Array.isArray(embeds)) {
+        embeds = [embeds];
+      }
+
+      const fns = embeds
+        .map(embed => () => target.raw.send('', { embed }));
+
+      let sentMessage: DjsMessage | DjsMessage[];
+      for (let i = 0; i < fns.length; i += 1) {
+        try {
+          const res = await fns[i]();
+          if (!sentMessage) {
+            sentMessage = res;
           }
-        })
-        .then(msg => this.djsToBotMessage(msg));
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      if (!sentMessage) {
+        console.error('wasn\'t able to send message');
+      }
+
+      if (Array.isArray(sentMessage)) {
+        if (sentMessage.length === 0) {
+          throw new MessageNotSentError();
+        }
+        sentMessage = sentMessage[0];
+      }
+
+      return this.djsToBotMessage(sentMessage);
     } else {
-      return Promise.reject(new InvalidTargetError(target));
+      throw new InvalidTargetError(target);
     }
   }
 
