@@ -62,7 +62,7 @@ export default abstract class User implements Thing, ITargetable {
    */
   constructor(name: string, id: string, connection: Connection, isBot = false, raw: any) {
     this.name = name;
-    this.id = id;
+    this.id = `${connection.id}@${id}`;
     this.connection = connection;
     this.isBot = isBot;
     this.raw = raw;
