@@ -164,6 +164,12 @@ export default class Bot {
     if (index !== undefined) {
       commArr.splice(index, 1);
     }
+
+    if (commArr.length === 0) {
+      this.commands.delete(command.name);
+    }
+
+    return true;
   }
 
   getCommand(trigger: string, message: Message): Command {
