@@ -36,6 +36,7 @@ import {
   AddonAlreadyExistError,
   AddonNotServerError,
 } from '../errors/AddonError';
+import WrapperError from '../errors/WrapperError';
 
 import { regexEscape } from '../util';
 
@@ -414,7 +415,7 @@ export default class Bot {
       serverConfig = this.config.defaults.server;
     }
 
-    console.log(`${msg.user.name}: ${msg.text}`);
+    this.log(msg, msg.channel);
 
     // Send message to all addons that want it
 
@@ -440,9 +441,11 @@ export default class Bot {
     let target;
     if (result instanceof ErrorSendable) {
       target = msg.user;
-    } else  {
+    } else {
       target = msg.channel;
     }
+
+    console.log(`< ${result.text}`);
 
     const replyMsg = await msg.connection.send(target, result);
     // Message sent. Anything else?
@@ -636,7 +639,7 @@ export default class Bot {
       JSON.stringify(conf, null, 2),
       (err) => {
         if (err) {
-          console.error(`unable to write ${server.id}.conf.json`);
+          this.log(new WrapperError(err), this);
           return;
         }
       });

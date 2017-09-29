@@ -40,17 +40,18 @@ export default class JSONAddon extends Addon {
     return `A series of call-response commands: ${this.addonName}`;
   }
 
-  start(conf: IAddonConfig) {
+  async start(conf: IAddonConfig) {
     mapObject(this.cmdObj, (name, command) => {
       const cmd = this.makeCommand(name, command);
 
-      const added = this.addCommand(cmd);
-      if (!added) {
-        console.log(`unable to add custom command: ${name}`);
+      try {
+        this.addCommand(cmd);
+      } catch (err) {
+        this.log(err);
       }
     });
 
-    return Promise.resolve(true);
+    return true;
   }
 
   stop() {

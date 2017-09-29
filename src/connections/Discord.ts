@@ -26,6 +26,7 @@ import {
   MessageNotSentError,
   InvalidTargetError,
 } from '../errors/ConnectionError';
+import WrapperError from '../errors/WrapperError';
 
 /**
  * Configuration for the Discord connection
@@ -182,12 +183,12 @@ export default class DiscordJs extends Connection {
             sentMessage = res;
           }
         } catch (error) {
-          console.error(error);
+          this.log(new WrapperError(error));
         }
       }
 
       if (!sentMessage) {
-        console.error('wasn\'t able to send message');
+        this.log('wasn\'t able to send message');
       }
 
       if (Array.isArray(sentMessage)) {
