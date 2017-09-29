@@ -25,3 +25,11 @@ export class CommandMultipleAddonsError extends BotError {
     super(`\`${prefix}${name}\` is added by multiple addons (${addons.map(a => `\`${a}\``).join()}). use \`${prefix}<group>.${name}\` instead`);
   }
 }
+
+export class CommandDuplicateError extends BotError {
+  readonly name = 'CommandDuplicate';
+
+  constructor(prefix: string, name: string) {
+    super(`\`${prefix}${name}\` can not be added`);
+  }
+}

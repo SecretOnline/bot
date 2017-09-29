@@ -99,7 +99,7 @@ export default abstract class Addon implements Thing {
    * @memberof Addon
    */
   addCommand(command: Command) {
-    this.bot.addCommand(command);
+    return this.bot.addCommand(command);
   }
 
   /**
@@ -109,7 +109,7 @@ export default abstract class Addon implements Thing {
    * @memberof Addon
    */
   removeCommand(command: Command) {
-    this.bot.removeCommand(command);
+    return this.bot.removeCommand(command);
   }
 
   /**

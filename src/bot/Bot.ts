@@ -30,6 +30,7 @@ import {
   CommandNotFoundError,
   CommandNotEnabledError,
   CommandMultipleAddonsError,
+  CommandDuplicateError,
 } from '../errors/CommandError';
 import {
   AddonAlreadyExistError,
@@ -159,7 +160,7 @@ export default class Bot {
     const commArr = this.commands.get(command.name);
 
     if (commArr.find(c => c.id === command.id)) {
-      return false;
+      throw new CommandDuplicateError('', command.name);
     }
 
     commArr.push(command);
