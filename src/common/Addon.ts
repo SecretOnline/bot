@@ -1,3 +1,4 @@
+import Command from './Command';
 import Thing from '../interfaces/Thing';
 import IObjectMap from '../interfaces/IObjectMap';
 import Bot from '../bot/Bot';
@@ -90,4 +91,24 @@ export default abstract class Addon implements Thing {
    * @memberof Addon
    */
   abstract stop(): Promise<boolean>;
+
+  /**
+   * Add a command to the bot
+   *
+   * @param {Command} command Command to add
+   * @memberof Addon
+   */
+  addCommand(command: Command) {
+    this.bot.addCommand(command);
+  }
+
+  /**
+   * Remove a command from the bot
+   *
+   * @param {Command} command Command to remove
+   * @memberof Addon
+   */
+  removeCommand(command: Command) {
+    this.bot.removeCommand(command);
+  }
 }

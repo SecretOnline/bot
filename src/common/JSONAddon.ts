@@ -39,7 +39,7 @@ export default class JSONAddon extends Addon {
     mapObject(this.cmdObj, (name, command) => {
       const cmd = this.makeCommand(name, command);
 
-      const added = this.bot.addCommand(cmd);
+      const added = this.addCommand(cmd);
       if (!added) {
         console.log(`unable to add custom command: ${name}`);
       }
