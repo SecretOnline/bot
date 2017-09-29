@@ -35,7 +35,9 @@ export default class CompoundSendable extends BaseSendable {
 
     // Add sendables to
     sendables.forEach((sendable) => {
-      isPrivate = sendable.private;
+      if (sendable.private) {
+        isPrivate = sendable.private;
+      }
 
       if (sendable instanceof CompoundSendable) {
         // Merge CompoundSendables
