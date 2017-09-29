@@ -254,9 +254,12 @@ export default class Bot {
         const newInput = input.from(result);
         const sendable = await command.run(newInput);
 
-        if (result instanceof CompoundSendable) {
+        if (!(result instanceof TextSendable)) {
           // Keep extras from pre-processing, but force text value
-          return result.from(sendable, new TextSendable(sendable.text));
+          if (sendable instanceof CompoundSendable) {
+            return sendable.from(result);
+          }
+          return new CompoundSendable(sendable.text, [sendable, result], sendable.private);
         }
 
         return sendable;
