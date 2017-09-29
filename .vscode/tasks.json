@@ -19,7 +19,7 @@
       "script": "watch",
       "isBackground": true,
       "problemMatcher": [
-        "$tsc"
+        "$tsc-watch"
       ],
       "group": "build"
     }
