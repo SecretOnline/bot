@@ -7,10 +7,13 @@ import { join as joinPath } from 'path';
 import IObjectMap from '../interfaces/IObjectMap';
 import ISendable from '../interfaces/ISendable';
 import IIdFilter from '../interfaces/IIdFilter';
+import IColorMap from '../interfaces/IColorMap';
+import ITargetable from '../interfaces/ITargetable';
 
 import Connection, { IConnectionConfig } from '../common/Connection';
 import Addon, { IAddonConfig } from '../common/Addon';
 import Server, { IServerConfig } from '../common/Server';
+import Channel from '../common/Channel';
 import JSONAddon from '../common/JSONAddon';
 import Command, { hasPermission } from '../common/Command';
 import Message from '../common/Message';
@@ -76,6 +79,12 @@ interface BotConfig {
      * @type {IServerConfig}
      */
     server: IServerConfig;
+    /**
+     * Default colour settings
+     *
+     * @type {IColorMap}
+     */
+    color: IColorMap;
   };
 }
 
@@ -97,7 +106,7 @@ export default class Bot {
       serverConfFiles
         .map(p => joinPath('../..', this.config.paths.conf, p)),
     );
-    console.log(`loaded ${serverConfs} servers`);
+    console.log(`loaded ${serverConfs.length} servers`);
 
     const connectionFiles = await this.listDirectory(joinPath(
       '.',
@@ -235,6 +244,20 @@ export default class Bot {
     }
 
     return this.serverConfigs.get(server.id);
+  }
+
+  getColorMap(target: ITargetable | Server) {
+    if (target instanceof Server) {
+      const serverConf = this.getServerConfig(target);
+
+      return serverConf.color || this.config.defaults.color;
+    } else if (target instanceof Channel) {
+      const serverConf = this.getServerConfig(target.server);
+
+      return serverConf.color || this.config.defaults.color;
+    } else {
+      return this.config.defaults.color;
+    }
   }
 
   async process(input: Input): Promise<ISendable> {

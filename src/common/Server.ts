@@ -3,12 +3,14 @@ import Connection from './Connection';
 import { IAddonConfig } from './Addon';
 import IObjectMap from '../interfaces/IObjectMap';
 import IIdFilter from '../interfaces/IIdFilter';
+import IColorMap from '../interfaces/IColorMap';
 
 export interface IServerConfig extends IObjectMap<any> {
   name: string;
   prefix: string;
   addons: string[];
   'addon-conf': IAddonConfig;
+  color?: IColorMap;
   filter?: IIdFilter;
 }
 
