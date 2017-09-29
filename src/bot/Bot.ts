@@ -317,7 +317,12 @@ export default class Bot {
         }
 
         // Process text for next command
-        const result = await this.process(input.from(new TextSendable(newStr)));
+        let result: ISendable;
+        if (command.usesRaw) {
+          result = new TextSendable(newStr);
+        } else {
+          result = await this.process(input.from(new TextSendable(newStr)));
+        }
 
         if (result instanceof ErrorSendable) {
           return result;

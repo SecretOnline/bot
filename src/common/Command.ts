@@ -12,8 +12,9 @@ export type CommandPermission =
   'OVERLORD' | 'SUPERUSER' | 'DISALLOWED';
 
 export interface CommandProps {
-  permission: CommandPermission;
-  help: string;
+  permission?: CommandPermission;
+  help?: string;
+  useRaw?: boolean;
 }
 
 type CommandFunction = (input: Input) => Promise<ISendable>;
@@ -61,6 +62,7 @@ export function hasPermission(
 const defaultOptions: CommandProps = {
   permission: 'DEFAULT',
   help: 'no help for this command is available',
+  useRaw: false,
 };
 
 export default class Command implements Thing {
@@ -74,12 +76,15 @@ export default class Command implements Thing {
     name: string,
     funct: CommandFunction,
     addon: Addon,
-    options: CommandProps = defaultOptions,
+    options: CommandProps = {},
   ) {
     this.addon = addon;
     this.fn = funct;
     this.name = name;
-    this.options = options;
+    this.options = {
+      ...defaultOptions,
+      ...options,
+    };
   }
 
   get id() {
@@ -92,6 +97,10 @@ export default class Command implements Thing {
 
   get help() {
     return this.options.help;
+  }
+
+  get usesRaw() {
+    return this.options.useRaw;
   }
 
   run(input: Input) {
