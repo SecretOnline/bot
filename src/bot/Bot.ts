@@ -6,6 +6,7 @@ import { join as joinPath } from 'path';
 
 import IObjectMap from '../interfaces/IObjectMap';
 import ISendable from '../interfaces/ISendable';
+import IIdFilter from '../interfaces/IIdFilter';
 
 import Connection, { IConnectionConfig } from '../common/Connection';
 import Addon, { IAddonConfig } from '../common/Addon';
@@ -61,6 +62,13 @@ interface BotConfig {
    * @memberof BotConfig
    */
   always: string[];
+  /**
+   * Filter for servers
+   *
+   * @type {IIdFilter}
+   * @memberof BotConfig
+   */
+  filter: IIdFilter;
   defaults: {
     /**
      * Default server configuration
@@ -80,6 +88,16 @@ export default class Bot {
 
   async start(config: BotConfig) {
     this.config = config;
+
+    const serverConfFiles = await this.listDirectory(joinPath(
+      '.',
+      this.config.paths.conf,
+    ));
+    const serverConfs = this.createServerConfigs(
+      serverConfFiles
+        .map(p => joinPath('../..', this.config.paths.conf, p)),
+    );
+    console.log(`loaded ${serverConfs} servers`);
 
     const connectionFiles = await this.listDirectory(joinPath(
       '.',
@@ -274,29 +292,26 @@ export default class Bot {
   }
 
   private async onMessage(msg: Message) {
-    const connConf = this.getConnectionConfig(msg.connection);
     const server = msg.server;
     const channel = msg.channel;
 
     let serverConfig: IServerConfig;
     if (server) {
       // Check connection's server filter
-      if (connConf) {
-        if (connConf.filter) {
-          const filter = connConf.filter;
+      if (this.config.filter) {
+        const filter = this.config.filter;
 
-          // If server ID not in whitelist, stop
-          if (filter.whitelist) {
-            if (!(filter.whitelist.indexOf(server.id) > -1)) {
-              return;
-            }
+        // If server ID not in whitelist, stop
+        if (filter.whitelist) {
+          if (!(filter.whitelist.indexOf(server.id) > -1)) {
+            return;
           }
+        }
 
-          // If server ID in blacklist, stop
-          if (filter.blacklist) {
-            if (filter.blacklist.indexOf(server.id) > -1) {
-              return;
-            }
+        // If server ID in blacklist, stop
+        if (filter.blacklist) {
+          if (filter.blacklist.indexOf(server.id) > -1) {
+            return;
           }
         }
       }
@@ -305,22 +320,20 @@ export default class Bot {
       serverConfig = this.getServerConfig(server);
 
       // Check server's channel filter
-      if (serverConfig) {
-        if (serverConfig.filter) {
-          const filter = serverConfig.filter;
+      if (serverConfig.filter) {
+        const filter = serverConfig.filter;
 
-          // If channel ID not in whitelist, stop
-          if (filter.whitelist) {
-            if (!(filter.whitelist.indexOf(channel.id) > -1)) {
-              return;
-            }
+        // If channel ID not in whitelist, stop
+        if (filter.whitelist) {
+          if (!(filter.whitelist.indexOf(channel.id) > -1)) {
+            return;
           }
+        }
 
-          // If channel ID in blacklist, stop
-          if (filter.blacklist) {
-            if (filter.blacklist.indexOf(channel.id) > -1) {
-              return;
-            }
+        // If channel ID in blacklist, stop
+        if (filter.blacklist) {
+          if (filter.blacklist.indexOf(channel.id) > -1) {
+            return;
           }
         }
       }
@@ -501,6 +514,33 @@ export default class Bot {
             });
         }),
     );
+  }
+
+  private createServerConfigs(files: string[]) {
+    const configs: IServerConfig[] = files
+      .map((file) => {
+        let conf: IServerConfig;
+
+        if (file.match(/\.json$/)) {
+          conf = require(file);
+        } else {
+          return null;
+        }
+
+        const serverId = file.match(/^(?:.*[\\/])([^\\/]*).conf.json$/)[1];
+
+        if (this.serverConfigs.has(serverId)) {
+          // this.error(`config for ${serverId} has already been created`);
+          return null;
+        }
+
+        this.serverConfigs.set(serverId, conf);
+
+        return conf;
+      })
+      .filter(c => c);
+
+    return configs;
   }
 
   private newServerConfig(server: Server): IServerConfig {

@@ -61,7 +61,7 @@ export default abstract class Server implements Thing {
    */
   constructor(name: string, id: string, connection: Connection, raw: any) {
     this.name = name;
-    this.id = id;
+    this.id = `${connection.id}-${id}`;
     this.connection = connection;
     this.raw = raw;
   }
