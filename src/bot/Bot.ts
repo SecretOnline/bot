@@ -15,6 +15,7 @@ import Addon, { IAddonConfig } from '../common/Addon';
 import Server, { IServerConfig } from '../common/Server';
 import Channel from '../common/Channel';
 import JSONAddon from '../common/JSONAddon';
+import ServerAddon from '../common/ServerAddon';
 import Command, { hasPermission } from '../common/Command';
 import Message from '../common/Message';
 import Input from '../common/Input';
@@ -28,6 +29,10 @@ import {
   CommandNotEnabledError,
   CommandMultipleAddonsError,
 } from '../errors/CommandError';
+import {
+  AddonAlreadyExistError,
+  AddonNotServerError,
+} from '../errors/AddonError';
 
 import { regexEscape } from '../util';
 
@@ -250,6 +255,27 @@ export default class Bot {
     }
 
     return this.serverConfigs.get(server.id);
+  }
+
+  getServerAddon(server: Server) {
+    if (this.addons.has(server.id)) {
+      const addon = this.addons.get(server.id);
+      // Make sure it is avtually a ServerAddon
+      if (addon instanceof ServerAddon) {
+        return addon;
+      } else {
+        throw new AddonNotServerError(addon.id);
+      }
+    } else {
+      const addon = new ServerAddon(this, server);
+
+      this.addons.set(addon.id, addon);
+
+      // Start this addon. It shouldn't matter that it's async
+      this.initAddons([addon]);
+
+      return addon;
+    }
   }
 
   getColorMap(target: ITargetable | Server) {
