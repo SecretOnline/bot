@@ -38,6 +38,14 @@ export default abstract class User implements Thing, ITargetable {
   readonly connection: Connection;
 
   /**
+   * Whether the user is a bot
+   *
+   * @type {boolean}
+   * @memberof User
+   */
+  readonly isBot: boolean;
+
+  /**
    * @type {*}
    * @memberof User
    */
@@ -48,13 +56,15 @@ export default abstract class User implements Thing, ITargetable {
    * @param {string} name Name of the user
    * @param {string} id ID of the user
    * @param {Connection} connection Connection the user uses
+   * @param {boolean} [isBot=false] Whether user is a bot
    * @param {*} raw
    * @memberof User
    */
-  constructor(name: string, id: string, connection: Connection, raw: any) {
+  constructor(name: string, id: string, connection: Connection, isBot = false, raw: any) {
     this.name = name;
     this.id = id;
     this.connection = connection;
+    this.isBot = isBot;
     this.raw = raw;
   }
 

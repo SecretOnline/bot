@@ -345,7 +345,10 @@ export default class Bot {
 
     // Send message to all addons that want it
 
-    // TODO: Filter out bots
+    // Filter out bots
+    if (msg.user.isBot) {
+      return;
+    }
 
     // Safeguard against strikethrough triggering commands
     if (serverConfig.prefix === '~' && msg.text.match('^~~')) {
@@ -361,8 +364,6 @@ export default class Bot {
     const result = await this.process(new Input(msg));
 
     // Reply with result
-    console.log(result);
-
     let target;
     if (result instanceof ErrorSendable) {
       target = msg.user;

@@ -244,7 +244,7 @@ export class DiscordUser extends User {
    * @memberof DiscordUser
    */
   constructor(connection: DiscordJs, user: DjsUser) {
-    super(user.username, user.id, connection, user);
+    super(user.username, user.id, connection, user.bot, user);
   }
 }
 
