@@ -708,7 +708,7 @@ export default class Bot {
       writeFile(
         joinPath(
           this.config.paths.conf,
-          `${server.connection.id}-${server.id}.conf.json`,
+          `${server.id}.conf.json`,
         ),
         JSON.stringify(conf, null, 2),
         (err) => {

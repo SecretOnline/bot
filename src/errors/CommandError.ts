@@ -33,3 +33,11 @@ export class CommandDuplicateError extends BotError {
     super(`\`${prefix}${name}\` can not be added`);
   }
 }
+
+export class CommandRequiresServerError extends BotError {
+  readonly name = 'CommandRequiresServer';
+
+  constructor() {
+    super('command can not be run in a private channel');
+  }
+}

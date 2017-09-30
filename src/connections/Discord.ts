@@ -22,6 +22,7 @@ import TextSendable from '../sendables/TextSendable';
 import CompoundSendable from '../sendables/CompoundSendable';
 import ErrorSendable from '../sendables/ErrorSendable';
 import AnimationSendable from '../sendables/AnimationSendable';
+import InfoSendable from '../sendables/InfoSendable';
 
 import {
   MessageNotSentError,
@@ -82,6 +83,22 @@ function embedify(sendable: ISendable, colorMap: IColorMap) {
       .setColor(colorMap.error)
       .setDescription(sendable.error.message)
       .setTitle(sendable.error.name);
+  } else if (sendable instanceof InfoSendable) {
+    if (sendable.description) {
+      embed.setDescription(sendable.description);
+    }
+    if (sendable.title) {
+      embed.setTitle(sendable.title);
+    }
+    if (sendable.url) {
+      embed.setURL(sendable.url);
+    }
+    if (sendable.thumbUrl) {
+      embed.setThumbnail(sendable.thumbUrl);
+    }
+    if (sendable.color) {
+      embed.setColor(sendable.color);
+    }
   } else {
     embed.setDescription(sendable.text);
   }
@@ -255,7 +272,7 @@ export default class DiscordJs extends Connection {
     }
 
     const perms = channel.permissionsFor(user.raw);
-    if (perms && perms.hasPermission('MANAGE_GUILD')) {
+    if (perms && perms.has('MANAGE_GUILD')) {
       return 'ADMIN';
     }
 
