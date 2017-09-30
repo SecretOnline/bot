@@ -69,4 +69,35 @@ export default abstract class Server implements Thing {
     this.connection = connection;
     this.raw = raw;
   }
+
+  /**
+   * Gets the configuration for the server
+   *
+   * @returns
+   * @memberof Server
+   */
+  getConfig() {
+    return this.connection.bot.getServerConfig(this);
+  }
+
+  /**
+   * Sets the configuration for the server
+   *
+   * @param {IServerConfig} conf
+   * @returns
+   * @memberof Server
+   */
+  setConfig(conf: IServerConfig) {
+    return this.connection.bot.setServerConfig(this, conf);
+  }
+
+  /**
+   * Gets the ServerAddon for this server
+   *
+   * @returns
+   * @memberof Server
+   */
+  getAddon() {
+    return this.connection.bot.getServerAddon(this);
+  }
 }

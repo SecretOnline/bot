@@ -1,4 +1,6 @@
 import Command from './Command';
+import Server from './Server';
+import User from './User';
 import Thing from '../interfaces/Thing';
 import IObjectMap from '../interfaces/IObjectMap';
 import Bot from '../bot/Bot';
@@ -110,6 +112,29 @@ export default abstract class Addon implements Thing {
    */
   removeCommand(command: Command) {
     return this.bot.removeCommand(command);
+  }
+
+  /**
+   * Gets the configuration for the addon in the given context
+   *
+   * @param {(Server | User)} [context]
+   * @returns
+   * @memberof Addon
+   */
+  getConfig(context?: Server | User) {
+    return this.bot.getAddonConfig(this, context);
+  }
+
+  /**
+   * Sets the configuration for the addon in the given context
+   *
+   * @param {Server} context
+   * @param {IAddonConfig} conf
+   * @returns
+   * @memberof Addon
+   */
+  setConfig(context: Server, conf: IAddonConfig) {
+    return this.bot.setAddonConfig(this, context, conf);
   }
 
   /**

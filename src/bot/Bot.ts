@@ -270,6 +270,12 @@ export default class Bot {
     return map;
   }
 
+  setAddonConfig(addon: Addon, server: Server, conf: IAddonConfig) {
+    const serverConf = this.getServerConfig(server);
+    server['addon-conf'][addon.id] = conf;
+    return this.setServerConfig(server, serverConf);
+  }
+
   getAllowedAddons(server: Server) {
     let res: string[] = this.config.always.slice();
 

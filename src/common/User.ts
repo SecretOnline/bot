@@ -87,4 +87,25 @@ export default abstract class User implements Thing, ITargetable {
   send(msg: ISendable) {
     return this.connection.send(this, msg);
   }
+
+  /**
+   * Gets the configuration for the user
+   *
+   * @returns
+   * @memberof User
+   */
+  getConfig() {
+    return this.connection.bot.getUserConfig(this);
+  }
+
+  /**
+   * Sets the configuration for the user
+   *
+   * @param {IUserConfig} conf
+   * @returns
+   * @memberof User
+   */
+  setConfig(conf: IUserConfig) {
+    return this.connection.bot.setUserConfig(this, conf);
+  }
 }
