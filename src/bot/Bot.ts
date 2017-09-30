@@ -15,6 +15,7 @@ import ITargetable from '../interfaces/ITargetable';
 import Connection, { IConnectionConfig } from '../common/Connection';
 import Addon, { IAddonConfig } from '../common/Addon';
 import Server, { IServerConfig } from '../common/Server';
+import User, { IUserConfig } from '../common/User';
 import Channel from '../common/Channel';
 import JSONAddon from '../common/JSONAddon';
 import ServerAddon from '../common/ServerAddon';
@@ -89,6 +90,12 @@ interface BotConfig {
      */
     server: IServerConfig;
     /**
+     * Default user configuration
+     *
+     * @type {IUserConfig}
+     */
+    user: IUserConfig;
+    /**
      * Default colour settings
      *
      * @type {IColorMap}
@@ -102,6 +109,7 @@ export default class Bot {
   private connections = new Map<string, Connection>();
   private addons = new Map<string, Addon>();
   private serverConfigs = new Map<string, IServerConfig>();
+  private userConfigs = new Map<string, IUserConfig>();
   private commands = new Map<string, Command[]>();
 
   private logger: Logger;
@@ -235,8 +243,11 @@ export default class Bot {
     return this.config.connections[conn.id];
   }
 
-  getAddonConfig(addon: Addon, context?: Server | string) {
-    if (context) {
+  getAddonConfig(addon: Addon, context?: User | Server | string) {
+    if (context instanceof User) {
+      const userconf = this.getUserConfig(context);
+      return userconf['addon-conf'][addon.id];
+    } else if (context instanceof Server || typeof context === 'string') {
       const serverconf = this.getServerConfig(context);
       return serverconf['addon-conf'][addon.id];
     }
@@ -299,6 +310,27 @@ export default class Bot {
   setServerConfig(server: Server, conf: IServerConfig) {
     this.serverConfigs.set(server.id, this.newServerConfig(server));
     return this.writeServerConfig(server);
+  }
+
+  getUserConfig(user: User) {
+    if (!this.userConfigs.has(user.id)) {
+      if (typeof user === 'string') {
+        return null;
+      }
+
+      try {
+        this.setUserConfig(user, this.newUserConfig(user));
+      } catch (err) {
+        this.log(err, this);
+      }
+    }
+
+    return this.userConfigs.get(user.id);
+  }
+
+  setUserConfig(user: User, conf: IUserConfig) {
+    this.userConfigs.set(user.id, this.newUserConfig(user));
+    return this.writeUserConfig(user);
   }
 
   getServerAddon(server: Server) {
@@ -671,6 +703,34 @@ export default class Bot {
         joinPath(
           this.config.paths.conf,
           `${server.connection.id}-${server.id}.conf.json`,
+        ),
+        JSON.stringify(conf, null, 2),
+        (err) => {
+          if (err) {
+            reject(new WrapperError(err));
+            return;
+          }
+
+          resolve();
+        });
+    });
+  }
+
+  private newUserConfig(user: User): IUserConfig {
+    return {
+      name: user.name,
+      'addon-conf': {},
+    };
+  }
+
+  private writeUserConfig(user: User): Promise<void> {
+    const conf = this.getUserConfig(user);
+
+    return new Promise((resolve, reject) => {
+      writeFile(
+        joinPath(
+          this.config.paths.userconf,
+          `${user.connection.id}-${user.id}.conf.json`,
         ),
         JSON.stringify(conf, null, 2),
         (err) => {

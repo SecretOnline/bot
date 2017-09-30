@@ -1,7 +1,16 @@
 import Thing from '../interfaces/Thing';
 import ITargetable from '../interfaces/ITargetable';
 import ISendable from '../interfaces/ISendable';
+import IObjectMap from '../interfaces/IObjectMap';
+import { IAddonConfig } from './Addon';
 import Connection from './Connection';
+
+export interface IUserConfig extends IObjectMap<any> {
+  name: string;
+  'addon-conf': {
+    [x: string]: IAddonConfig;
+  };
+}
 
 /**
  * Base class for a User
