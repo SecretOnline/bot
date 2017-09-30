@@ -244,7 +244,7 @@ export default class DiscordJs extends Connection {
     const channel = context.raw;
 
     // DM channels always have default perms, even for overlords
-    if (!(context instanceof TextChannel)) {
+    if (!(channel instanceof TextChannel)) {
       return 'DEFAULT';
     }
 
