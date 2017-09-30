@@ -56,3 +56,38 @@ export function quoteSplit(str: string) {
 export function regexEscape(str: string) {
   return str.replace(/[-[\]{}()*+?.,\\/^$|#\s]/g, '\\$&');
 }
+
+/**
+ * Returns a promise that resolves with no content after
+ * the given number of milliseconds have passed
+ *
+ * @param {number} ms Number of milliseconds to delay by
+ * @returns {Promise<void>}
+ */
+export function delay(ms: number): Promise<void> {
+  return new Promise((resolve, reject) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+export function promiseChain<T>(functions: ((prev?: T) => Promise<T>)[], initial?: T) {
+  if (functions.length === 0) {
+    return Promise.resolve(initial);
+  }
+  return functions.reduce(
+    (prom, nextFunc) => {
+      return prom
+        .then((res) => {
+          return nextFunc(res);
+        });
+    },
+    Promise.resolve(initial),
+  );
+}
+
+export function arrayRandom<T>(arr: T[]) {
+  if (arr.length) {
+    const index = Math.floor(Math.random() * arr.length);
+    return arr[index];
+  }
+}

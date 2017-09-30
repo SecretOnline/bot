@@ -63,7 +63,7 @@ export default abstract class Channel implements Thing, ITargetable {
    */
   constructor(name: string, id: string, server: Server, connection: Connection, raw: any) {
     this.name = name;
-    this.id = `${connection.id}$${server.id}#${id}`;
+    this.id = `${server.id}#${id}`;
     this.server = server;
     this.connection = connection;
     this.raw = raw;

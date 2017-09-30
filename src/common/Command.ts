@@ -79,7 +79,7 @@ export default class Command implements Thing {
     options: CommandProps = {},
   ) {
     this.addon = addon;
-    this.fn = funct;
+    this.fn = funct.bind(this.addon);
     this.name = name;
     this.options = {
       ...defaultOptions,

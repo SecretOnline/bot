@@ -4,6 +4,7 @@ import User from './User';
 import Thing from '../interfaces/Thing';
 import IObjectMap from '../interfaces/IObjectMap';
 import Bot from '../bot/Bot';
+import { AddonNotImplementedError } from '../errors/AddonError';
 
 /**
  * Base interface for addon configuration
@@ -83,7 +84,9 @@ export default abstract class Addon implements Thing {
    * @returns {Promise<boolean>}
    * @memberof Addon
    */
-  abstract start(config: IAddonConfig): Promise<boolean>;
+  async start(config: IAddonConfig): Promise<boolean> {
+    throw new AddonNotImplementedError();
+  }
 
   /**
    * Stops the addon
@@ -92,7 +95,9 @@ export default abstract class Addon implements Thing {
    * @returns {Promise<boolean>}
    * @memberof Addon
    */
-  abstract stop(): Promise<boolean>;
+  async stop() {
+    return true;
+  }
 
   /**
    * Add a command to the bot

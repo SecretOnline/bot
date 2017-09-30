@@ -21,12 +21,18 @@ import Bot from '../bot/Bot';
 import TextSendable from '../sendables/TextSendable';
 import CompoundSendable from '../sendables/CompoundSendable';
 import ErrorSendable from '../sendables/ErrorSendable';
+import AnimationSendable from '../sendables/AnimationSendable';
 
 import {
   MessageNotSentError,
   InvalidTargetError,
 } from '../errors/ConnectionError';
 import WrapperError from '../errors/WrapperError';
+
+import {
+  promiseChain,
+  delay,
+} from '../util';
 
 /**
  * Configuration for the Discord connection
@@ -45,7 +51,7 @@ interface DiscordConfig extends IConnectionConfig {
  * @param {string} [color] Color to set the embed to
  * @returns
  */
-function embedify(sendable: ISendable, colorMap: IColorMap): (RichEmbed | RichEmbed[]) {
+function embedify(sendable: ISendable, colorMap: IColorMap) {
   const embed = new RichEmbed()
     .setColor(colorMap.normal);
 
@@ -76,25 +82,25 @@ function embedify(sendable: ISendable, colorMap: IColorMap): (RichEmbed | RichEm
       .setColor(colorMap.error)
       .setDescription(sendable.error.message)
       .setTitle(sendable.error.name);
-  } else if (sendable instanceof CompoundSendable) {
-    // As there are potentially multiple sendables, must return an array
-    return [
-      new TextSendable(sendable.text),
-      ...sendable.extras,
-    ]
-      .map((s): RichEmbed => {
-        const e = embedify(s, colorMap);
-        // Throw away any internal CompundSendables
-        // They shouldn't be in there anyway
-        if (Array.isArray(e)) {
-          return null;
-        }
-        return e;
-      })
-      .filter(e => e);
+  } else {
+    embed.setDescription(sendable.text);
   }
 
   return embed;
+}
+
+function playAnimation(msg: DjsMessage, anim: AnimationSendable, colorMap: IColorMap) {
+  const editFns = anim.frames.map((frame) => {
+    return () => {
+      const embed = embedify(frame, colorMap);
+      return Promise.all([
+        msg.edit('', { embed }),
+        delay(anim.delay),
+      ]);
+    };
+  });
+
+  return promiseChain(editFns);
 }
 
 /**
@@ -167,7 +173,16 @@ export default class DiscordJs extends Connection {
    */
   async send(target: ITargetable, msg: ISendable) {
     if (target instanceof DiscordChannel || target instanceof DiscordUser) {
-      let embeds = embedify(msg, this.bot.getColorMap(target));
+      let sendables = [msg];
+      if (msg instanceof CompoundSendable) {
+        sendables = [
+          ...msg.extras,
+          new TextSendable(msg.text),
+        ];
+      }
+
+      const colorMap = this.bot.getColorMap(target);
+      let embeds = sendables.map(s => embedify(s, colorMap));
       if (!Array.isArray(embeds)) {
         embeds = [embeds];
       }
@@ -175,10 +190,19 @@ export default class DiscordJs extends Connection {
       const fns = embeds
         .map(embed => () => target.raw.send('', { embed }));
 
-      let sentMessage: DjsMessage | DjsMessage[];
+      let sentMessage: DjsMessage;
       for (let i = 0; i < fns.length; i += 1) {
         try {
-          const res = await fns[i]();
+          let res = await fns[i]();
+          if (Array.isArray(res)) {
+            res = res[0];
+          }
+
+          const s = sendables[i];
+          if (s instanceof AnimationSendable) {
+            playAnimation(res, s, colorMap);
+          }
+
           if (!sentMessage) {
             sentMessage = res;
           }
@@ -204,7 +228,7 @@ export default class DiscordJs extends Connection {
     }
   }
 
-    /**
+  /**
    * Gets the permission level for a user
    *
    * @param {User} user User to get permission of
