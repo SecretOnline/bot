@@ -286,11 +286,19 @@ export default class Bot {
         return null;
       }
 
-      this.serverConfigs.set(id, this.newServerConfig(server));
-      this.writeServerConfig(server);
+      try {
+        this.setServerConfig(server, this.newServerConfig(server));
+      } catch (err) {
+        this.log(err, this);
+      }
     }
 
     return this.serverConfigs.get(id);
+  }
+
+  setServerConfig(server: Server, conf: IServerConfig) {
+    this.serverConfigs.set(server.id, this.newServerConfig(server));
+    return this.writeServerConfig(server);
   }
 
   getServerAddon(server: Server) {
@@ -655,19 +663,24 @@ export default class Bot {
     };
   }
 
-  private writeServerConfig(server: Server) {
+  private writeServerConfig(server: Server): Promise<void> {
     const conf = this.getServerConfig(server);
-    writeFile(
-      joinPath(
-        this.config.paths.conf,
-        `${server.connection.id}-${server.id}.conf.json`,
-      ),
-      JSON.stringify(conf, null, 2),
-      (err) => {
-        if (err) {
-          this.log(new WrapperError(err), this);
-          return;
-        }
-      });
+
+    return new Promise((resolve, reject) => {
+      writeFile(
+        joinPath(
+          this.config.paths.conf,
+          `${server.connection.id}-${server.id}.conf.json`,
+        ),
+        JSON.stringify(conf, null, 2),
+        (err) => {
+          if (err) {
+            reject(new WrapperError(err));
+            return;
+          }
+
+          resolve();
+        });
+    });
   }
 }
