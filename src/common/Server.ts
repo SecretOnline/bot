@@ -9,7 +9,9 @@ export interface IServerConfig extends IObjectMap<any> {
   name: string;
   prefix: string;
   addons: string[];
-  'addon-conf': IAddonConfig;
+  'addon-conf': {
+    [x: string]: IAddonConfig;
+  };
   color?: IColorMap;
   filter?: IIdFilter;
 }

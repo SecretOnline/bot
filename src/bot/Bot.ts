@@ -235,13 +235,28 @@ export default class Bot {
     return this.config.connections[conn.id];
   }
 
-  getAddonConfig(addon: Addon, context?: Server) {
+  getAddonConfig(addon: Addon, context?: Server | string) {
     if (context) {
       const serverconf = this.getServerConfig(context);
       return serverconf['addon-conf'][addon.id];
     }
 
     return this.config.addons[addon.id];
+  }
+
+  getAddonConfigAll(addon: Addon) {
+    const map = new Map<string, IAddonConfig>();
+    Array.from(this.serverConfigs.keys())
+      .forEach((id) => {
+        const conf = this.getAddonConfig(addon, id);
+        if (!conf) {
+          return;
+        }
+
+        map.set(id, conf);
+      });
+
+    return map;
   }
 
   getAllowedAddons(server: Server) {
@@ -258,13 +273,24 @@ export default class Bot {
     return res;
   }
 
-  getServerConfig(server: Server) {
-    if (!this.serverConfigs.has(server.id)) {
-      this.serverConfigs.set(server.id, this.newServerConfig(server));
+  getServerConfig(server: Server | string) {
+    let id: string;
+    if (typeof server === 'string') {
+      id = server;
+    } else {
+      id = server.id;
+    }
+
+    if (!this.serverConfigs.has(id)) {
+      if (typeof server === 'string') {
+        return null;
+      }
+
+      this.serverConfigs.set(id, this.newServerConfig(server));
       this.writeServerConfig(server);
     }
 
-    return this.serverConfigs.get(server.id);
+    return this.serverConfigs.get(id);
   }
 
   getServerAddon(server: Server) {
