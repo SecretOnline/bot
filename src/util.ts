@@ -1,5 +1,7 @@
 import IObjectMap from './interfaces/IObjectMap';
 
+export const pkg = require('../package.json');
+
 /**
  * Similar to Array.map, but for Object literals
  *

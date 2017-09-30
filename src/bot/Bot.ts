@@ -213,14 +213,31 @@ export default class Bot {
     if (!match) {
       return null;
     }
-    const name = match[1];
+    let name = match[1];
+
+    let addonName = '';
+    const nameMatch = name.match(/([^.]*)\.([^.]*)/);
+    if (nameMatch) {
+      addonName = nameMatch[1];
+      name = match[2];
+    }
+
+    if (addonName === 'this') {
+      if (message.server) {
+        addonName = message.server.id;
+      }
+    }
 
     const commandArr = this.commands.get(name);
     if (!commandArr) {
       throw new CommandNotFoundError(prefix, name);
     }
 
-    const allowedAddons = this.getAllowedAddons(message.server);
+    let allowedAddons = this.getAllowedAddons(message.server);
+    if (addonName) {
+      allowedAddons = allowedAddons.filter(a => a === addonName);
+    }
+
     const allowedCommands = commandArr.filter(c => allowedAddons.indexOf(c.addon.id) > -1);
 
     if (allowedCommands.length === 0) {
@@ -237,6 +254,30 @@ export default class Bot {
     } else {
       throw new CommandMultipleAddonsError(prefix, name, allowedAddons);
     }
+  }
+
+  getCommandList(input: Input, addon?: Addon | string) {
+    let list: Command[] = [];
+    Array.from(this.commands.values()).forEach((arr) => {
+      list = list.concat(arr);
+    });
+
+    // If addon given, restrict to addon
+    if (addon) {
+      let id: string;
+      if (typeof addon === 'string') {
+        id = addon;
+      } else {
+        id = addon.id;
+      }
+
+      list = list.filter(c => c.addon.id === id);
+    }
+
+    // Filter by permission
+    list = list.filter(c => hasPermission(input, c.permission));
+
+    return list;
   }
 
   getConnectionConfig(conn: Connection) {
@@ -311,6 +352,10 @@ export default class Bot {
     }
 
     return this.serverConfigs.get(id);
+  }
+
+  getServerConfigDefault() {
+    return this.config.defaults.server;
   }
 
   setServerConfig(server: Server, conf: IServerConfig) {
@@ -511,15 +556,22 @@ export default class Bot {
 
     // Reply with result
     let target;
-    if (result instanceof ErrorSendable) {
+    if (result.private || result instanceof ErrorSendable) {
       target = msg.user;
     } else {
       target = msg.channel;
     }
 
+    let replyMsg;
+    try {
+      replyMsg = await msg.connection.send(target, result);
+    } catch (error) {
+      this.log(new WrapperError(error), this);
+      return;
+    }
+
     console.log(`< ${result.text}`);
 
-    const replyMsg = await msg.connection.send(target, result);
     // Message sent. Anything else?
     // Message editing will need to be added soon
   }

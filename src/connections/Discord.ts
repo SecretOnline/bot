@@ -23,6 +23,7 @@ import CompoundSendable from '../sendables/CompoundSendable';
 import ErrorSendable from '../sendables/ErrorSendable';
 import AnimationSendable from '../sendables/AnimationSendable';
 import InfoSendable from '../sendables/InfoSendable';
+import SectionedSendable from '../sendables/SectionedSendable';
 
 import {
   MessageNotSentError,
@@ -99,6 +100,22 @@ function embedify(sendable: ISendable, colorMap: IColorMap) {
     if (sendable.color) {
       embed.setColor(sendable.color);
     }
+  } else if (sendable instanceof SectionedSendable) {
+    if (sendable.description) {
+      embed.setDescription(sendable.description);
+    }
+    if (sendable.title) {
+      embed.setTitle(sendable.title);
+    }
+    if (sendable.color) {
+      embed.setColor(sendable.color);
+    }
+    sendable.sections.forEach((section) => {
+      embed.addField(
+        section.title || '\u200b',
+        section.text || '\u200b',
+        section.inline);
+    });
   } else {
     embed.setDescription(sendable.text);
   }
