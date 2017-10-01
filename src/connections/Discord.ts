@@ -116,6 +116,8 @@ function embedify(sendable: ISendable, colorMap: IColorMap) {
         section.text || '\u200b',
         section.inline);
     });
+  } else if (sendable instanceof AnimationSendable) {
+    embed.setDescription(sendable.frames[0]);
   } else {
     embed.setDescription(sendable.text);
   }
