@@ -16,3 +16,19 @@ export class InvalidTargetError extends BotError {
     super('message target is not owned by connection');
   }
 }
+
+export class InvalidIDError extends BotError {
+  readonly name = 'InvalidID';
+
+  constructor(id: string) {
+    super(`${id} is not owned by this connection`);
+  }
+}
+
+export class UnknownIDError extends BotError {
+  readonly name = 'UnknownID';
+
+  constructor(id: string) {
+    super(`${id} can not be found`);
+  }
+}

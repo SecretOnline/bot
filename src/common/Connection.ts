@@ -9,6 +9,7 @@ import Bot from '../bot/Bot';
 import Message from './Message';
 import User from './User';
 import Channel from './Channel';
+import Server from './Server';
 import { CommandPermission } from './Command';
 
 /**
@@ -130,4 +131,34 @@ export default abstract class Connection extends EventEmitter implements Thing, 
    * @memberof Connection
    */
   abstract getPermissionLevel(user: User, context: Channel): CommandPermission;
+
+  /**
+   * Gets the server with the given ID
+   *
+   * @abstract
+   * @param {string} id ID of server to get
+   * @returns {Server}
+   * @memberof Connection
+   */
+  abstract getServerFromId(id: string): Server;
+
+  /**
+   * Gets the channel with the given ID
+   *
+   * @abstract
+   * @param {string} id ID of the channel to get
+   * @returns {Channel}
+   * @memberof Connection
+   */
+  abstract getChannelFromId(id: string): Channel;
+
+  /**
+   * Gets the user with the given ID
+   *
+   * @abstract
+   * @param {string} id ID of the user to get
+   * @returns {User}
+   * @memberof Connection
+   */
+  abstract getUserFromId(id: string): User;
 }

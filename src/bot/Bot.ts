@@ -216,10 +216,10 @@ export default class Bot {
     let name = match[1];
 
     let addonName = '';
-    const nameMatch = name.match(/([^.]*)\.([^.]*)/);
+    const nameMatch = name.match(/([^.]+)\.([^.]+)/);
     if (nameMatch) {
       addonName = nameMatch[1];
-      name = match[2];
+      name = nameMatch[2];
     }
 
     if (addonName === 'this') {
@@ -234,6 +234,9 @@ export default class Bot {
     }
 
     let allowedAddons = this.getAllowedAddons(message.server);
+    if (message.server) {
+      allowedAddons.push(message.server.id);
+    }
     if (addonName) {
       allowedAddons = allowedAddons.filter(a => a === addonName);
     }
@@ -252,7 +255,12 @@ export default class Bot {
     } else if (allowedCommands.length === 1) {
       return allowedCommands[0];
     } else {
-      throw new CommandMultipleAddonsError(prefix, name, allowedAddons);
+      let commAddons = allowedCommands.map(c => c.addon.id);
+      if (message.server) {
+        commAddons = commAddons.map(a => a === message.server.id ? 'this' : a);
+      }
+
+      throw new CommandMultipleAddonsError(prefix, name, commAddons);
     }
   }
 
@@ -313,7 +321,7 @@ export default class Bot {
 
   setAddonConfig(addon: Addon, server: Server, conf: IAddonConfig) {
     const serverConf = this.getServerConfig(server);
-    server['addon-conf'][addon.id] = conf;
+    serverConf['addon-conf'][addon.id] = conf;
     return this.setServerConfig(server, serverConf);
   }
 
@@ -359,7 +367,7 @@ export default class Bot {
   }
 
   setServerConfig(server: Server, conf: IServerConfig) {
-    this.serverConfigs.set(server.id, this.newServerConfig(server));
+    this.serverConfigs.set(server.id, conf);
     return this.writeServerConfig(server);
   }
 
@@ -419,6 +427,66 @@ export default class Bot {
     }
   }
 
+  /**
+   * Gets the server with the given ID
+   *
+   * @param {string} id ID of the server to get
+   * @returns
+   * @memberof Bot
+   */
+  getServerFromId(id: string) {
+    const match = id.match(/^(.+)\$.+$/);
+    if (!match) {
+      throw new WrapperError(new Error(`${id} is not a valid ID`));
+    }
+    const connId = match[1];
+
+    if (this.connections.has(connId)) {
+      return this.connections.get(connId).getServerFromId(id);
+    }
+    throw new WrapperError(new Error(`${connId} is not a known connection`));
+  }
+
+  /**
+   * Gets the channel with the given ID
+   *
+   * @param {string} id ID of the channel to get
+   * @returns
+   * @memberof Bot
+   */
+  getChannelFromId(id: string) {
+    const match = id.match(/^(.+)\$.+$/);
+    if (!match) {
+      throw new WrapperError(new Error(`${id} is not a valid ID`));
+    }
+    const connId = match[1];
+
+    if (this.connections.has(connId)) {
+      return this.connections.get(connId).getChannelFromId(id);
+    }
+    throw new WrapperError(new Error(`${connId} is not a known connection`));
+  }
+
+  /**
+   * Gets the user with the given ID
+   *
+   * @param {string} id ID of the user to get
+   * @returns
+   * @memberof Bot
+   */
+  getUserFromId(id: string) {
+    const match = id.match(/^(.+)\$.+$/);
+    if (!match) {
+      throw new WrapperError(new Error(`${id} is not a valid ID`));
+    }
+    const connId = match[1];
+
+    if (this.connections.has(connId)) {
+      return this.connections.get(connId).getUserFromId(id);
+    }
+    throw new WrapperError(new Error(`${connId} is not a known connection`));
+  }
+
   log(message, location) {
     return this.logger.log(message, location);
   }
@@ -461,7 +529,12 @@ export default class Bot {
 
         // Run this command
         const newInput = input.from(result);
-        const sendable = await command.run(newInput);
+        let sendable;
+        try {
+          sendable = await command.run(newInput);
+        } catch (err) {
+          sendable = new ErrorSendable(err);
+        }
 
         if (!(result instanceof TextSendable)) {
           // Keep extras from pre-processing, but force text value

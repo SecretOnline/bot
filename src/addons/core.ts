@@ -155,7 +155,7 @@ export default class Core extends Addon {
       serverConf.addons = input.args;
     }
 
-    input.server.setConfig(serverConf);
+    await input.server.setConfig(serverConf);
     return new TextSendable(`enabled ${input.args.map(a => `\`${a}\``).join(', ')} on this server`);
   }
 
@@ -172,7 +172,7 @@ export default class Core extends Addon {
     const args = input.args;
     serverConf.addons = serverConf.addons.filter(a => !args.includes(a));
 
-    input.server.setConfig(serverConf);
+    await input.server.setConfig(serverConf);
 
     // tslint:disable-next-line max-line-length
     return new TextSendable(`disabled ${input.args.map(a => `\`${a}\``).join(', ')} on this server`);

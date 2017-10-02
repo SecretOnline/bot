@@ -28,6 +28,8 @@ import SectionedSendable from '../sendables/SectionedSendable';
 import {
   MessageNotSentError,
   InvalidTargetError,
+  InvalidIDError,
+  UnknownIDError,
 } from '../errors/ConnectionError';
 import WrapperError from '../errors/WrapperError';
 
@@ -170,7 +172,7 @@ export default class DiscordJs extends Connection {
         return;
       }
 
-      this.emit('message', this.djsToBotMessage(msg));
+      this.emit('message', this.createMessage(msg));
     });
   }
 
@@ -258,7 +260,7 @@ export default class DiscordJs extends Connection {
         sentMessage = sentMessage[0];
       }
 
-      return this.djsToBotMessage(sentMessage);
+      return this.createMessage(sentMessage);
     } else {
       throw new InvalidTargetError(target);
     }
@@ -299,37 +301,151 @@ export default class DiscordJs extends Connection {
   }
 
   /**
+   * Gets the server with the given ID
+   *
+   * @abstract
+   * @param {string} id ID of server to get
+   * @returns {Server}
+   * @memberof DiscordJs
+   */
+  getServerFromId(id: string) {
+    // Ensure this is a server
+    const match = id.match(new RegExp(`${this.id}\\$(\\d+)$`));
+    if (!match) {
+      throw new InvalidIDError(id);
+    }
+    const serverId = match[1];
+
+    // If server exists in connection, return it
+    if (this.serverMap.has(serverId)) {
+      return this.serverMap.get(serverId);
+    }
+
+    // If server is in client, create a Server and return it
+    if (this.client.guilds.has(serverId)) {
+      const server = this.createServer(this.client.guilds.get(serverId));
+      this.serverMap.set(server.id, server);
+      return server;
+    }
+
+    // Unable to create server
+    throw new UnknownIDError(id);
+  }
+
+  /**
+   * Gets the channel with the given ID
+   *
+   * @abstract
+   * @param {string} id ID of the channel to get
+   * @returns {Channel}
+   * @memberof DiscordJs
+   */
+  getChannelFromId(id: string) {
+    // Ensure this is a channel
+    const match = id.match(new RegExp(`${this.id}$\\d+#(\\d+)$`));
+    if (!match) {
+      throw new InvalidIDError(id);
+    }
+    const channelId = match[1];
+
+    // If channel exists in connection, return it
+    if (this.channelMap.has(channelId)) {
+      return this.channelMap.get(channelId);
+    }
+
+    // If channel is in client, create a Channel and return it
+    if (this.client.guilds.has(channelId)) {
+      const djsChannel = this.client.channels.get(channelId);
+      // On the off-chance that a bad ID ended up in here somehow, throw when not a text channel
+      if (!(djsChannel instanceof TextChannel)) {
+        throw new UnknownIDError(id);
+      }
+      const channel = this.createChannel(djsChannel);
+      this.channelMap.set(channel.id, channel);
+      return channel;
+    }
+
+    // Unable to create channel
+    throw new UnknownIDError(id);
+  }
+
+  /**
+   * Gets the user with the given ID
+   *
+   * @abstract
+   * @param {string} id ID of the user to get
+   * @returns {User}
+   * @memberof DiscordJs
+   */
+  getUserFromId(id: string) {
+    // Ensure this is a user
+    const match = id.match(new RegExp(`${this.id}@(\\d+)$`));
+    if (!match) {
+      throw new InvalidIDError(id);
+    }
+    const userId = match[1];
+
+    // If user exists in connection, return it
+    if (this.userMap.has(userId)) {
+      return this.userMap.get(userId);
+    }
+
+    // If user is in client, create a user and return it
+    if (this.client.guilds.has(userId)) {
+      const djsUser = this.client.users.get(userId);
+      const user = this.createUser(djsUser);
+      this.userMap.set(user.id, user);
+      return user;
+    }
+
+    // Unable to create user
+    throw new UnknownIDError(id);
+  }
+
+  /**
    * Converts a Discord message to a Bot-ready one
    *
    * @param {DjsMessage} message Discord message to convert
    * @returns {Message}
    * @memberof DiscordJs
    */
-  djsToBotMessage(message: DjsMessage) {
+  createMessage(message: DjsMessage) {
     let channel = null;
 
     // Get or create channel/server objects for this message
     // Only applicable if this is a guild message
     if (message.channel instanceof TextChannel) {
-      if (!this.serverMap.has(message.guild.id)) {
-        this.serverMap.set(message.guild.id, new DiscordServer(this, message.guild));
-      }
-      const server = this.serverMap.get(message.guild.id);
-
       if (!this.channelMap.has(message.channel.id)) {
-        this.channelMap.set(message.channel.id, new DiscordChannel(this, server, message.channel));
+        this.channelMap.set(message.channel.id, this.createChannel(message.channel));
       }
       channel = this.channelMap.get(message.channel.id);
     }
 
     // Get or create user object
     if (!this.userMap.has(message.author.id)) {
-      this.userMap.set(message.author.id, new DiscordUser(this, message.author));
+      this.userMap.set(message.author.id, this.createUser(message.author));
     }
     const user = this.userMap.get(message.author.id);
 
     // Create new DiscordMessage
     return new DiscordMessage(this, user, channel, message);
+  }
+
+  createServer(guild: Guild) {
+    return new DiscordServer(this, guild);
+  }
+
+  createChannel(channel: TextChannel) {
+    if (!this.serverMap.has(channel.guild.id)) {
+      this.serverMap.set(channel.guild.id, this.createServer(channel.guild));
+    }
+    const server = this.serverMap.get(channel.guild.id);
+
+    return new DiscordChannel(this, server, channel);
+  }
+
+  createUser(user: DjsUser) {
+    return new DiscordUser(this, user);
   }
 }
 
