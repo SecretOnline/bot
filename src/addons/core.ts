@@ -61,8 +61,8 @@ export default class Core extends Addon {
     this.addCommand(new Command('change-color', this.changeColor, this, { help: changeColorHelp, permission: 'ADMIN' }));
     this.addCommand(new Command('invite', this.getInviteLink, this, { help: inviteHelp }));
     this.addCommand(new Command('source', this.getSourceInfo, this, { help: sourceHelp }));
-    this.addCommand(new Command('enable-addon', this.addToServer, this, { help: enablerHelp }));
-    this.addCommand(new Command('disable-addon', this.removeFromServer, this, { help: enablerHelp }));
+    this.addCommand(new Command('enable-addon', this.addToServer, this, { help: enablerHelp, permission: 'ADMIN' }));
+    this.addCommand(new Command('disable-addon', this.removeFromServer, this, { help: enablerHelp, permission: 'ADMIN' }));
     // this.addCommand(new Command('enable-channel', this.addToFilter, this, { help: channelFilterHelp }));
     // this.addCommand(new Command('disable-channel', this.removeFromFilter, this, { help: channelFilterHelp }));
     // tslint:enable max-line-length
