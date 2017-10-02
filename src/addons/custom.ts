@@ -40,8 +40,8 @@ export default class Custom extends Addon {
 
   async start() {
     // tslint:disable max-line-length
-    this.addCommand(new Command('add-command', this.addServerCommand, this, { help: commandHelp, permission: 'ADMIN' }));
-    this.addCommand(new Command('remove-command', this.removeServerCommand, this, { help: commandHelp, permission: 'ADMIN' }));
+    this.addCommand(new Command('add-command', this.addServerCommand, this, { help: commandHelp, permission: 'ADMIN', useRaw: true }));
+    this.addCommand(new Command('remove-command', this.removeServerCommand, this, { help: commandHelp, permission: 'ADMIN', useRaw: true }));
     // tslint:enable max-line-length
 
     const confMap = this.bot.getAddonConfigAll(this);
