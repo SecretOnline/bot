@@ -71,7 +71,12 @@ export default class Location extends Addon {
   async getTime(input: Input) {
     const now = Math.floor(Date.now() / 1000); // Floor to nearest second
 
-    const ids = input.args.length ? input.args : [input.user.id];
+    const mentioned = input.connection
+      .resolveMentions(input.message)
+      .users
+      .map(u => u.id);
+
+    const ids = mentioned.length ? mentioned : [input.user.id];
 
     const proms = ids
       .map((id) => {
@@ -87,8 +92,6 @@ export default class Location extends Addon {
               timestamp: now,
             },
           }).replace('%2C', ',');
-
-          console.log(url);
 
           return r2(url).json
             .then(r => ({ r, u: user }));

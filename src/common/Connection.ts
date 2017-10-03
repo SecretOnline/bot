@@ -20,6 +20,12 @@ import { CommandPermission } from './Command';
  */
 export interface IConnectionConfig extends IObjectMap<any> {}
 
+export interface MentionCollection {
+  users: User[];
+  channels: Channel[];
+  servers: Server[];
+}
+
 /**
  * Base class for a connection
  *
@@ -161,4 +167,14 @@ export default abstract class Connection extends EventEmitter implements Thing, 
    * @memberof Connection
    */
   abstract getUserFromId(id: string): User;
+
+  /**
+   * Resolves mentions of objects in the message
+   *
+   * @abstract
+   * @param {Message} message
+   * @returns {MentionCollection}
+   * @memberof Connection
+   */
+  abstract resolveMentions(message: Message): MentionCollection;
 }

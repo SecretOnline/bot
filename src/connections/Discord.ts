@@ -9,7 +9,10 @@ import {
 
 import ITargetable from '../interfaces/ITargetable';
 
-import Connection, { IConnectionConfig } from '../common/Connection';
+import Connection, {
+  IConnectionConfig,
+  MentionCollection,
+} from '../common/Connection';
 import Channel from '../common/Channel';
 import Server from '../common/Server';
 import Message from '../common/Message';
@@ -400,6 +403,40 @@ export default class DiscordJs extends Connection {
 
     // Unable to create user
     throw new UnknownIDError(id);
+  }
+
+  resolveMentions(message: Message): MentionCollection {
+    if (!(message instanceof DiscordMessage)) {
+      return {
+        users: [],
+        channels: [],
+        servers: [],
+      };
+    }
+
+    const users = message.raw.mentions.users
+      .map((user) => {
+        if (!this.userMap.has(user.id)) {
+          this.userMap.set(user.id, this.createUser(user));
+        }
+
+        return this.userMap.get(user.id);
+      });
+
+    const channels = message.raw.mentions.channels
+      .map((channel) => {
+        if (!this.channelMap.has(channel.id)) {
+          this.channelMap.set(channel.id, this.createChannel(channel));
+        }
+
+        return this.channelMap.get(channel.id);
+      });
+
+    return {
+      users,
+      channels,
+      servers: [],
+    };
   }
 
   /**
