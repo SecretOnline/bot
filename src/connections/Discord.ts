@@ -133,9 +133,12 @@ function embedify(sendable: ISendable, colorMap: IColorMap) {
 function playAnimation(msg: DjsMessage, anim: AnimationSendable, colorMap: IColorMap) {
   const editFns = anim.frames.map((frame) => {
     return () => {
-      const embed = embedify(frame, colorMap);
+      const editProm = frame
+        .then(f => embedify(f, colorMap))
+        .then(embed => msg.edit('', { embed }));
+
       return Promise.all([
-        msg.edit('', { embed }),
+        editProm,
         delay(anim.delay),
       ]);
     };
