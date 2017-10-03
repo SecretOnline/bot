@@ -3,6 +3,13 @@ import IObjectMap from './interfaces/IObjectMap';
 export const pkg = require('../package.json');
 
 /**
+ * No-op
+ *
+ * @export
+ */
+export function noop() {}
+
+/**
  * Similar to Array.map, but for Object literals
  *
  * @export
