@@ -138,7 +138,7 @@ export default abstract class Addon implements Thing {
    * @returns
    * @memberof Addon
    */
-  setConfig(context: Server, conf: IAddonConfig) {
+  setConfig(context: Server | User, conf: IAddonConfig) {
     return this.bot.setAddonConfig(this, context, conf);
   }
 

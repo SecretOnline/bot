@@ -131,6 +131,18 @@ export default class Bot {
     );
     this.log(`loaded ${serverConfs.length} servers`, this);
 
+
+
+    const userConfFiles = await this.listDirectory(joinPath(
+      '.',
+      this.config.paths.userconf,
+    ));
+    const userConfs = this.createUserConfigs(
+      userConfFiles
+        .map(p => joinPath('../..', this.config.paths.userconf, p)),
+    );
+    this.log(`loaded ${userConfs.length} users`, this);
+
     const connectionFiles = await this.listDirectory(joinPath(
       '.',
       this.config.paths.connections,
@@ -319,10 +331,16 @@ export default class Bot {
     return map;
   }
 
-  setAddonConfig(addon: Addon, server: Server, conf: IAddonConfig) {
-    const serverConf = this.getServerConfig(server);
-    serverConf['addon-conf'][addon.id] = conf;
-    return this.setServerConfig(server, serverConf);
+  setAddonConfig(addon: Addon, context: Server | User, conf: IAddonConfig) {
+    if (context instanceof Server) {
+      const serverConf = this.getServerConfig(context);
+      serverConf['addon-conf'][addon.id] = conf;
+      return this.setServerConfig(context, serverConf);
+    } else if (context instanceof User) {
+      const userConf = this.getUserConfig(context);
+      userConf['addon-conf'][addon.id] = conf;
+      return this.setUserConfig(context, userConf);
+    }
   }
 
   getAllowedAddons(server: Server) {
@@ -388,7 +406,7 @@ export default class Bot {
   }
 
   setUserConfig(user: User, conf: IUserConfig) {
-    this.userConfigs.set(user.id, this.newUserConfig(user));
+    this.userConfigs.set(user.id, conf);
     return this.writeUserConfig(user);
   }
 
@@ -455,7 +473,7 @@ export default class Bot {
    * @memberof Bot
    */
   getChannelFromId(id: string) {
-    const match = id.match(/^(.+)\$.+$/);
+    const match = id.match(/^(.+)#.+$/);
     if (!match) {
       throw new WrapperError(new Error(`${id} is not a valid ID`));
     }
@@ -475,7 +493,7 @@ export default class Bot {
    * @memberof Bot
    */
   getUserFromId(id: string) {
-    const match = id.match(/^(.+)\$.+$/);
+    const match = id.match(/^(.+)@.+$/);
     if (!match) {
       throw new WrapperError(new Error(`${id} is not a valid ID`));
     }
@@ -847,6 +865,33 @@ export default class Bot {
     });
   }
 
+  private createUserConfigs(files: string[]) {
+    const configs: IUserConfig[] = files
+      .map((file) => {
+        let conf: IUserConfig;
+
+        if (file.match(/\.json$/)) {
+          conf = require(file);
+        } else {
+          return null;
+        }
+
+        const userId = file.match(/^(?:.*[\\/])([^\\/]*).conf.json$/)[1];
+
+        if (this.userConfigs.has(userId)) {
+          // this.error(`config for ${userId} has already been created`);
+          return null;
+        }
+
+        this.userConfigs.set(userId, conf);
+
+        return conf;
+      })
+      .filter(c => c);
+
+    return configs;
+  }
+
   private newUserConfig(user: User): IUserConfig {
     return {
       name: user.name,
@@ -861,7 +906,7 @@ export default class Bot {
       writeFile(
         joinPath(
           this.config.paths.userconf,
-          `${user.connection.id}-${user.id}.conf.json`,
+          `${user.id}.conf.json`,
         ),
         JSON.stringify(conf, null, 2),
         (err) => {
