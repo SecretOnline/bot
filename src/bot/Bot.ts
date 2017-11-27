@@ -300,6 +300,10 @@ export default class Bot {
     return list;
   }
 
+  getConnection(id: string) {
+    return this.connections.get(id);
+  }
+
   getConnectionConfig(conn: Connection) {
     return this.config.connections[conn.id];
   }

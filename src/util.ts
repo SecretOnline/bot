@@ -100,3 +100,21 @@ export function arrayRandom<T>(arr: T[]) {
     return arr[index];
   }
 }
+
+
+/**
+ * Truncates a string
+ *
+ * @export
+ * @param {string} str String to truncate
+ * @param {number} [len=80] Length to truncate to
+ * @param {string} [replace='...'] String to replace end with
+ * @returns
+ */
+export function truncate(str, len = 80, replace = '...') {
+  if (str.length < len) {
+    return str;
+  } else {
+    return `${str.substr(0, len - replace.length)}${replace}`;
+  }
+}
