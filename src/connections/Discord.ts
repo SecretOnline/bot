@@ -105,6 +105,9 @@ function embedify(sendable: ISendable, colorMap: IColorMap) {
     if (sendable.color) {
       embed.setColor(sendable.color);
     }
+    if (sendable.authorName || sendable.authorThumb || sendable.authorUrl) {
+      embed.setAuthor(sendable.authorName, sendable.authorThumb, sendable.authorUrl);
+    }
   } else if (sendable instanceof SectionedSendable) {
     if (sendable.description) {
       embed.setDescription(sendable.description);

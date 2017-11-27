@@ -12,6 +12,9 @@ export default class InfoSendable extends BaseSendable {
   url: string;
   thumbUrl: string;
   color: string;
+  authorName: string;
+  authorUrl: string;
+  authorThumb: string;
 
   constructor(defaultText: string = '', isPrivate: boolean = false) {
     super(defaultText, isPrivate);
@@ -39,6 +42,21 @@ export default class InfoSendable extends BaseSendable {
 
   setColor(color: string) {
     this.color = color;
+    return this;
+  }
+
+  setAuthorName(authorName: string) {
+    this.authorName = authorName;
+    return this;
+  }
+
+  setAuthorUrl(authorUrl: string) {
+    this.authorUrl = authorUrl;
+    return this;
+  }
+
+  setAuthorThumbnail(authorThumb: string) {
+    this.authorThumb = authorThumb;
     return this;
   }
 }
