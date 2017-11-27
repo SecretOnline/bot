@@ -60,11 +60,13 @@ export default class Music extends Addon {
     return !!conf.enabled;
   }
 
-  checkChannel(server: Server) {
-    const conf = this.getConfig(server) || {};
+  checkChannel(channel: Channel) {
+    const conf = this.getConfig(channel.server) || {};
     if (!conf.channel) {
-      // tslint:disable-next-line max-line-length
-      throw new AddonError(this, 'no request channel has been set. use `~set-channel` to use music');
+      return false;
+    }
+    if (conf.channel !== channel.id) {
+      return false;
     }
     return true;
   }
@@ -99,6 +101,22 @@ export default class Music extends Addon {
     conf.enabled = false;
     await this.setConfig(input.server, conf);
     return new TextSendable('disabled music on this server');
+  }
+
+  async setMusicChannel(input: Input) {
+    if (!input.server) {
+      throw new CommandRequiresServerError();
+    }
+
+    if (!this.checkEnabled(input.server)) {
+      throw new AddonError(this, 'music is not allowed on this server');
+    }
+
+    const serverConf = this.getConfig(input.server);
+    serverConf.channel = input.channel.id;
+    await this.setConfig(input.server, serverConf);
+
+    return new TextSendable('set this channel for music requests');
   }
 }
 
