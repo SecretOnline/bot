@@ -46,6 +46,7 @@ export default class Music extends Addon {
     this.addCommand(new Command('disable-music', this.disableMusic, this, { permission: 'ADMIN' }));
     this.addCommand(new Command('set-music-channel', this.setMusicChannel, this, { permission: 'ADMIN' }));
     this.addCommand(new Command('request', this.request, this));
+    this.addCommand(new Command('skip', this.skip, this));
     // tslint:enable max-line-length
 
     // Register handlers
@@ -170,7 +171,7 @@ export default class Music extends Addon {
         url: info.author.channel_url,
         thumb: info.author.avatar,
       },
-      description: info.description,
+      description: truncate(info.description, 240),
       url: info.video_url,
       thumb: info.thumbnail_url,
       getStream: () => ytdl(input.text, { filter: 'audioonly' }),
@@ -187,6 +188,10 @@ export default class Music extends Addon {
       }
     } else {
       musicState = new MusicState(input.channel, vc);
+
+      musicState.on('finish', () => {
+        this.servers.delete(input.server.id);
+      });
     }
 
     // Add to queue
@@ -201,6 +206,49 @@ export default class Music extends Addon {
       .setAuthorName(song.artist.name)
       .setAuthorUrl(song.artist.url)
       .setAuthorThumbnail(song.artist.thumb);
+  }
+
+  async skip(input) {
+    if (!input.server) {
+      throw new CommandRequiresServerError();
+    }
+
+    if (!this.checkEnabled(input.server)) {
+      throw new AddonError(this, 'music is not allowed on this server');
+    }
+
+    // Lots and lots of checks coming up. Why does this have to be so annoying?
+    const serverConf = this.getConfig(input.server);
+
+    // Make sure a valid text channel has been set up already
+    if (!serverConf.channel) {
+      // tslint:disable-next-line:max-line-length
+      throw new AddonError(this, 'no music channel has been set. use `~set-music-channel` to use music');
+    }
+
+    // Get the GuildMember for this user, so we can get thieir voice channel
+    const djsServer = (<DiscordServer>(input.server)).raw;
+    const member = djsServer.members.get(input.user.raw.id);
+    const vc = member.voiceChannel;
+
+    // Make sure the current text channel is the correct one
+    if (!this.checkChannel(input.channel)) {
+      throw new AddonError(this, 'you must skip music in the correct text channel');
+    }
+
+    // Ensure user is actually in voice
+    if (!vc) {
+      throw new AddonError(this, 'you must be in a voice channel to skip songs');
+    }
+
+    if (!this.servers.has(input.server.id)) {
+      throw new AddonError(this, 'no music is currently playing');
+    }
+
+    const state = this.servers.get(input.server.id);
+    state.skip();
+
+    return new TextSendable('skipped to the next song');
   }
 }
 
@@ -265,6 +313,11 @@ class MusicState extends EventEmitter {
   }
 
   next() {
+    if (this.voiceChannel.members.size === 0) {
+      this.leave();
+      return;
+    }
+
     this.currentSong = this.queue.shift();
 
     // tslint:disable-next-line:max-line-length
