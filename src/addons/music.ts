@@ -192,6 +192,8 @@ export default class Music extends Addon {
       musicState.on('finish', () => {
         this.servers.delete(input.server.id);
       });
+
+      this.servers.set(input.server.id, musicState);
     }
 
     // Add to queue
