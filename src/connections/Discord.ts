@@ -172,14 +172,6 @@ export default class DiscordJs extends Connection {
    */
   constructor(bot: Bot) {
     super(bot);
-
-    this.client.on('message', (msg) => {
-      if (msg.author.id === this.client.user.id) {
-        return;
-      }
-
-      this.emit('message', this.createMessage(msg));
-    });
   }
 
   /**
@@ -191,6 +183,14 @@ export default class DiscordJs extends Connection {
    */
   async start(conf: DiscordConfig) {
     await super.start(conf);
+
+    this.client.on('message', (msg) => {
+      if (msg.author.id === this.client.user.id) {
+        return;
+      }
+
+      this.emit('message', this.createMessage(msg));
+    });
 
     await this.client.login(conf.token);
 
