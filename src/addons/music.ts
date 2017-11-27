@@ -1,5 +1,11 @@
 import { Readable } from 'stream';
+import { EventEmitter } from 'events';
 import * as ytdl from 'ytdl-core';
+import {
+  VoiceChannel,
+  VoiceConnection,
+  StreamDispatcher,
+} from 'discord.js';
 
 import Addon, { IAddonConfig } from '../common/Addon';
 import Input from '../common/Input';
@@ -10,6 +16,7 @@ import Server from '../common/Server';
 import Channel from '../common/Channel';
 import Discord from '../connections/Discord';
 import TextSendable from '../sendables/TextSendable';
+import InfoSendable from '../sendables/InfoSendable';
 import AddonError from '../errors/AddonError';
 import { CommandRequiresServerError } from '../errors/CommandError';
 
@@ -73,6 +80,8 @@ export default class Music extends Addon {
 
     const conf = this.getConfig(input.server) || {};
     conf.enabled = true;
+    conf.textChannel = input.channel.id;
+
     await this.setConfig(input.server, conf);
     return new TextSendable('enabled music on this server');
   }
@@ -93,14 +102,33 @@ export default class Music extends Addon {
   }
 }
 
-class MusicState {
-  constructor(channel: Channel) {
+class MusicState extends EventEmitter {
+  private currentSong: Song = null;
+  private textChannel: Channel;
+  private voiceChannel: VoiceChannel;
+  private voiceConnection: VoiceConnection;
+  private dispatcher: StreamDispatcher = null;
 
-  }
-}
-
-class MusicQueue {
   private queue: Song[] = [];
+
+  constructor(textChannel: Channel, voiceChannel: VoiceChannel) {
+    super();
+
+    this.textChannel = textChannel;
+    this.voiceChannel = voiceChannel;
+
+    this.voiceChannel.join()
+      .then((vc) => {
+        this.voiceConnection = vc;
+
+        if (this.queue.length) {
+          this.next();
+        } else {
+          this.onStreamEnd();
+          return;
+        }
+      });
+  }
 
   add(song: Song) {
     this.queue.push(song);
@@ -110,8 +138,46 @@ class MusicQueue {
     return this.queue[0];
   }
 
-  pop() {
-    return this.queue.shift();
+  skip() {
+    if (this.dispatcher) {
+      this.dispatcher.end();
+    }
+  }
+
+  next() {
+    this.currentSong = this.queue.shift();
+
+    // tslint:disable-next-line:max-line-length
+    const info = new InfoSendable(`Now playing: ${this.currentSong.artist.name} - ${this.currentSong.thumb}`)
+      .setTitle(`Now playing: ${this.currentSong.artist.name} - ${this.currentSong.thumb}`)
+      .setDescription(this.currentSong.description)
+      .setUrl(this.currentSong.url);
+
+    if (this.currentSong.thumb) {
+      info.setThumbnail(this.currentSong.thumb);
+    }
+
+    this.textChannel.send(info);
+
+    this.dispatcher = this.voiceConnection
+      .playStream(this.currentSong.getStream());
+  }
+
+  private onStreamEnd() {
+    if (this.queue.length === 0) {
+      this.voiceChannel.leave();
+      this.voiceConnection = null;
+
+      if (this.dispatcher) {
+        this.dispatcher.end();
+      }
+      this.dispatcher = null;
+
+      this.emit('finish');
+      return;
+    }
+
+    this.next();
   }
 }
 
