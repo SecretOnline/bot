@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "removeComments": false,
+    "experimentalDecorators": true,
+    "sourceMap": true,
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "typeRoots": [
+      "node_modules/@types",
+      "node_modules/disord.js/typings",
+      "types"
+    ],
+    "lib": [
+      "es2016"
+    ],
+    "target": "es2016",
+    "module": "commonjs"
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "typings",
+    "dist"
+  ]
+}
