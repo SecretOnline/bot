@@ -40,6 +40,7 @@ import {
 import WrapperError from '../errors/WrapperError';
 
 import { regexEscape } from '../util';
+import { setImmediate } from 'timers';
 
 /**
  * Configuration structure for the bot
@@ -509,6 +510,10 @@ export default class Bot {
     throw new WrapperError(new Error(`${connId} is not a known connection`));
   }
 
+  getLogs(filter, limit = 80) {
+    return this.logger.getLogs(filter, limit);
+  }
+
   log(message, location) {
     return this.logger.log(message, location);
   }
@@ -630,6 +635,17 @@ export default class Bot {
     this.log(msg, msg.channel);
 
     // Send message to all addons that want it
+    // But do it next tick, to avoid blocking the thread
+    setImmediate(() => {
+      const addons = this.getAllowedAddons(server)
+        .map(a => this.addons.get(a))
+        .filter(a => a);
+
+      addons.forEach((a) => {
+        a.onMessage(msg);
+      });
+    });
+
 
     // Filter out bots
     if (msg.user.isBot) {
