@@ -199,7 +199,9 @@ export default class Logger {
 
     if (lines.length === limit) {
       return lines;
-    } else if (lines.length < limit) {
+    }
+
+    if (lines.length < limit) {
       const remaining = limit - lines.length;
 
       try {
@@ -208,9 +210,9 @@ export default class Logger {
       } catch (error) {
         return [];
       }
-    } else {
-      return lines.splice(limit * -1, limit);
     }
+
+    return lines.splice(limit * -1, limit);
   }
 
 

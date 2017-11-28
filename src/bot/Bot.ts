@@ -313,7 +313,9 @@ export default class Bot {
     if (context instanceof User) {
       const userconf = this.getUserConfig(context);
       return userconf['addon-conf'][addon.id];
-    } else if (context instanceof Server || typeof context === 'string') {
+    }
+
+    if (context instanceof Server || typeof context === 'string') {
       const serverconf = this.getServerConfig(context);
       return serverconf['addon-conf'][addon.id];
     }
@@ -341,7 +343,9 @@ export default class Bot {
       const serverConf = this.getServerConfig(context);
       serverConf['addon-conf'][addon.id] = conf;
       return this.setServerConfig(context, serverConf);
-    } else if (context instanceof User) {
+    }
+
+    if (context instanceof User) {
       const userConf = this.getUserConfig(context);
       userConf['addon-conf'][addon.id] = conf;
       return this.setUserConfig(context, userConf);
@@ -421,9 +425,9 @@ export default class Bot {
       // Make sure it is avtually a ServerAddon
       if (addon instanceof ServerAddon) {
         return addon;
-      } else {
-        throw new AddonNotServerError(addon.id);
       }
+
+      throw new AddonNotServerError(addon.id);
     } else {
       const addon = new ServerAddon(this, server);
 
@@ -441,13 +445,15 @@ export default class Bot {
       const serverConf = this.getServerConfig(target);
 
       return serverConf.color || this.config.defaults.color;
-    } else if (target instanceof Channel) {
+    }
+
+    if (target instanceof Channel) {
       const serverConf = this.getServerConfig(target.server);
 
       return serverConf.color || this.config.defaults.color;
-    } else {
-      return this.config.defaults.color;
     }
+
+    return this.config.defaults.color;
   }
 
   /**
@@ -572,10 +578,10 @@ export default class Bot {
         }
 
         return sendable;
-      } else {
-        // Append word to output, and go to next word
-        output = `${output ? `${output} ` : ''}${words[i]}`;
       }
+
+      // Append word to output, and go to next word
+      output = `${output ? `${output} ` : ''}${words[i]}`;
     }
 
     // No commands found, just return

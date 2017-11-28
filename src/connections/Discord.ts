@@ -270,9 +270,9 @@ export default class DiscordJs extends Connection {
       }
 
       return this.createMessage(sentMessage);
-    } else {
-      throw new InvalidTargetError(target);
     }
+
+    throw new InvalidTargetError(target);
   }
 
   /**
