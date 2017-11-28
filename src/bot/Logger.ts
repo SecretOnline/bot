@@ -192,7 +192,8 @@ export default class Logger {
     });
   }
 
-  private async filterLogs(filter: (l: LogLine) => boolean, limit: number, id: number) {
+  // tslint:disable-next-line:max-line-length
+  private async filterLogs(filter: (l: LogLine) => boolean, limit: number, id: number): Promise<LogLine[]> {
     const lines = await this.getLogFile(id);
     const filtered = lines.filter(filter);
 

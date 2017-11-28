@@ -65,7 +65,7 @@ export default class MarkovChain {
       // If ithin current item's range
       if (val < item[1].length) {
         // If it's an item (i.e. the end token), return it
-        if (typeof item[0] === 'string') {
+        if (typeof item[0] !== 'string') {
           return <MarkovItem>item[0];
         }
 

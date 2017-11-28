@@ -1,6 +1,7 @@
 import Command from './Command';
 import Server from './Server';
 import User from './User';
+import Message from './Message';
 import Thing from '../interfaces/Thing';
 import IObjectMap from '../interfaces/IObjectMap';
 import Bot from '../bot/Bot';
@@ -141,6 +142,15 @@ export default abstract class Addon implements Thing {
   setConfig(context: Server | User, conf: IAddonConfig) {
     return this.bot.setAddonConfig(this, context, conf);
   }
+
+  /**
+   * Gets called with every message that comes into the bot,
+   * but only if this addon is enabled in that server
+   *
+   * @param {Message} message
+   * @memberof Addon
+   */
+  onMessage(message: Message) {}
 
   /**
    * Logs a message
