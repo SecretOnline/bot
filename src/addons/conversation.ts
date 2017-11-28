@@ -94,7 +94,7 @@ export default class Conversation extends Addon {
         }
 
         if (message.channel.connection.id === 'djs') {
-          message.channel.raw.startTyping();
+          message.channel.raw.stopTyping();
         }
       } catch (err) {
         // Stop typing (Discord only)
