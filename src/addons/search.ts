@@ -106,11 +106,13 @@ export default class Search extends Addon {
       .join('\n\n');
 
     return new InfoSendable(links[0].href)
-      .setAuthorName(response.query)
-      .setAuthorUrl(response.url)
+      .setTitle(response.query)
+      .setDescription(description)
+      .setUrl(response.url)
+      .setAuthorName('Google')
+      .setAuthorUrl('https://google.com')
       // tslint:disable-next-line:max-line-length
-      .setAuthorThumbnail('https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png')
-      .setDescription(description);
+      .setAuthorThumbnail('https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png');
   }
 
   async youTube(input: Input) {
