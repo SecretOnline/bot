@@ -135,6 +135,7 @@ export default class Search extends Addon {
     try {
       response = await wikijs().page(input.text);
     } catch (error) {
+      listResponse = await wikijs().search(input.text);
     }
 
     if (response) {
@@ -157,5 +158,14 @@ export default class Search extends Addon {
         // tslint:disable-next-line:max-line-length
         .setAuthorThumbnail('https://pbs.twimg.com/profile_images/874733198336380928/XhA-TwYY_400x400.jpg');
     }
+
+    const items = listResponse.results.slice(0, 5);
+
+    // tslint:disable-next-line:max-line-length
+    return new InfoSendable(`search results: ${items.join(', ')}`)
+      .setDescription(items.join('\n'))
+      .setAuthorName(`Search: ${input.text}`)
+      // tslint:disable-next-line:max-line-length
+      .setAuthorThumbnail('https://pbs.twimg.com/profile_images/874733198336380928/XhA-TwYY_400x400.jpg');
   }
 }
