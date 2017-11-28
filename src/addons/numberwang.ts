@@ -149,27 +149,27 @@ export default class Numberwang extends Addon {
           'others may join as we continue the show',
           'we\'ll start with whoever is the fastest typer',
         ].join('\n');
-      } else {
-        if (conf.players.find(u => u.id === input.user.id)) {
-          return `you're already playing, ${input.user.name}`;
-        }
-
-        conf.players.push(input.user);
-        return `just start guessing, ${input.user.name}! \`~nw <number>\``;
       }
-    } else {
-      const conf: NwGame = {
-        players: [input.user],
-        lastId: null,
-        diff: this.difficulty,
-        rounds: Math.floor(Math.random() * 4) + 2,
-        wn: false,
-      };
 
-      this.servers.set(sid, conf);
+      if (conf.players.find(u => u.id === input.user.id)) {
+        return `you're already playing, ${input.user.name}`;
+      }
 
-      return 'we\'ll need another contestant before we can get started with Numberwang';
+      conf.players.push(input.user);
+      return `just start guessing, ${input.user.name}! \`~nw <number>\``;
     }
+
+    const conf: NwGame = {
+      players: [input.user],
+      lastId: null,
+      diff: this.difficulty,
+      rounds: Math.floor(Math.random() * 4) + 2,
+      wn: false,
+    };
+
+    this.servers.set(sid, conf);
+
+    return 'we\'ll need another contestant before we can get started with Numberwang';
   }
 
   introduce(players: User[]) {
@@ -217,17 +217,17 @@ export default class Numberwang extends Addon {
             `today's winner was ${arrayRandom(conf.players).toString()}. congratulations!`,
             arrayRandom(outros),
           ].join('\n');
-        } else {
-          // Enter Wangernumb and reset difficulty
-          conf.wn = true;
-          conf.diff = this.difficulty;
-          return `${user.name} ${arrayRandom(wangernumbs)}`;
         }
-      } else {
-        // Reset difficulty
+
+        // Enter Wangernumb and reset difficulty
+        conf.wn = true;
         conf.diff = this.difficulty;
-        return `${user.name} ${arrayRandom(thatsnumberwang)}`;
+        return `${user.name} ${arrayRandom(wangernumbs)}`;
       }
+
+      // Reset difficulty
+      conf.diff = this.difficulty;
+      return `${user.name} ${arrayRandom(thatsnumberwang)}`;
     }
   }
 }
