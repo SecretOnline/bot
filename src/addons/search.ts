@@ -91,6 +91,7 @@ export default class Search extends Addon {
     // tslint:disable max-line-length
     this.addCommand(new Command('google', this.google, this));
     this.addCommand(new Command('youtube', this.youTube, this));
+    this.addCommand(new Command('wiki', this.wiki, this));
     // tslint:enable max-line-length
 
     return true;
@@ -126,5 +127,35 @@ export default class Search extends Addon {
 
     const item = response.items[0];
     return new TextSendable(`https://youtube.com/watch?v=${item.id.videoId}`);
+  }
+
+  async wiki(input: Input) {
+    let response: Page;
+    let listResponse: Result;
+    try {
+      response = await wikijs().page(input.text);
+    } catch (error) {
+    }
+
+    if (response) {
+      const [info, summary, mainImage] = await Promise.all([
+        response.info(),
+        response.summary(),
+        response.mainImage(),
+      ]);
+
+      console.log(info);
+      console.log(mainImage);
+
+      return new InfoSendable((<any>response).raw.fullurl)
+        .setTitle((<any>info).name)
+        .setDescription(truncate(summary, 240))
+        .setUrl((<any>response).raw.fullurl)
+        .setThumbnail(mainImage)
+        .setAuthorName('Wikipedia')
+        .setAuthorUrl('https://en.wikipedia.org/wiki/Main_Page')
+        // tslint:disable-next-line:max-line-length
+        .setAuthorThumbnail('https://pbs.twimg.com/profile_images/874733198336380928/XhA-TwYY_400x400.jpg');
+    }
   }
 }
