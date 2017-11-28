@@ -102,7 +102,7 @@ export default class Search extends Addon {
     const links = response.links.slice(0, 5);
 
     const description = links
-      .map(l => `**[${l.title}](${l.href})**\n${truncate(l.description, 140)}`)
+      .map(l => `**[${l.title}](${l.href.replace(')', '\\)')})**\n${truncate(l.description, 140)}`)
       .join('\n\n');
 
     return new InfoSendable(links[0].href)
