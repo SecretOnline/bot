@@ -75,7 +75,7 @@ export default class Search extends Addon {
   name = 'Search';
   id = 'search';
   description = 'Allows you to harness the infinite power of the internet';
-  version: '9.0.0';
+  version: '9.0.1';
 
   private youtubeApi: any;
 
