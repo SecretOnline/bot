@@ -92,6 +92,10 @@ export default class Conversation extends Addon {
         if (sendable) {
           message.channel.send(sendable);
         }
+
+        if (message.channel.connection.id === 'djs') {
+          message.channel.raw.startTyping();
+        }
       } catch (err) {
         // Stop typing (Discord only)
         if (message.channel.connection.id === 'djs') {

@@ -48,7 +48,7 @@ export default class MarkovChain {
     let nexts = Array.from(word.next.entries());
 
     if (avoidEnd) {
-      nexts = nexts.filter(n => typeof n[0] === 'string');
+      nexts = nexts.filter(n => n[0]);
     }
 
     const total = nexts.reduce((p, c) => p + c[1].length, 0);
@@ -90,7 +90,7 @@ export default class MarkovChain {
     };
     const { length, min } = fullOpts;
 
-    const itemArr: MarkovItem[] = [];
+    const itemArr = [start];
 
     let prev = start;
     for (let i = 0; i < length; i += 1) {
@@ -154,7 +154,7 @@ export default class MarkovChain {
     pairs.forEach((pair) => {
       if (!this.items.has(pair[0].value)) {
         this.items.set(pair[0].value, {
-          ...pair[1],
+          ...pair[0],
           next: new Map(),
         });
       }
