@@ -6,6 +6,7 @@ import TextSendable from '../sendables/TextSendable';
 import AddonError from '../errors/AddonError';
 import * as google from 'google';
 import * as YouTube from 'youtube-node';
+import wikijs, { Page, Result } from 'wikijs';
 
 import { truncate } from '../util';
 import { resolve } from 'dns';
