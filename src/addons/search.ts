@@ -147,9 +147,6 @@ export default class Search extends Addon {
         response.mainImage(),
       ]);
 
-      console.log(info);
-      console.log(mainImage);
-
       return new InfoSendable((<any>response).raw.fullurl)
         .setTitle((<any>info).name)
         .setDescription(truncate(summary, 240))
