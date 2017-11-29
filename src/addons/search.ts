@@ -149,7 +149,7 @@ export default class Search extends Addon {
       ]);
 
       return new InfoSendable((<any>response).raw.fullurl)
-        .setTitle((<any>info).name)
+        .setTitle((<any>info).name || input.text)
         .setDescription(truncate(summary, 240))
         .setUrl((<any>response).raw.fullurl)
         .setThumbnail(mainImage)
