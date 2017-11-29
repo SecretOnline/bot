@@ -58,7 +58,7 @@ interface DiscordConfig extends IConnectionConfig {
  * @param {string} [color] Color to set the embed to
  * @returns
  */
-function embedify(sendable: ISendable, colorMap: IColorMap) {
+async function embedify(sendable: ISendable, colorMap: IColorMap) {
   const embed = new RichEmbed()
     .setColor(colorMap.normal);
 
@@ -125,7 +125,8 @@ function embedify(sendable: ISendable, colorMap: IColorMap) {
         section.inline);
     });
   } else if (sendable instanceof AnimationSendable) {
-    embed.setDescription(sendable.frames[0]);
+    const frame = await sendable.frames[0];
+    embed.setDescription(frame.text);
   } else {
     embed.setDescription(sendable.text);
   }
@@ -229,7 +230,7 @@ export default class DiscordJs extends Connection {
       }
 
       const colorMap = this.bot.getColorMap(target);
-      let embeds = sendables.map(s => embedify(s, colorMap));
+      let embeds = await Promise.all(sendables.map(s => embedify(s, colorMap)));
       if (!Array.isArray(embeds)) {
         embeds = [embeds];
       }
