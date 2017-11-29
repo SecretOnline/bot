@@ -99,13 +99,14 @@ export default class Search extends Addon {
 
   async google(input: Input) {
     const response = await googlePromise(input.text);
-    const links = response.links.slice(0, 5);
 
-    const description = links
-      .map(l => `**[${l.title}](${l.href.replace(')', '\\)')})**\n${truncate(l.description, 140)}`)
+    const description = response.links
+      .filter(l => l.title && l.href && l.description)
+      .map(l => `[${l.title}](${l.href.replace(')', '\\)')})\n${truncate(l.description, 140)}`)
+      .slice(0, 5)
       .join('\n\n');
 
-    return new InfoSendable(links[0].href)
+    return new InfoSendable(response.links[0].href)
       .setTitle(response.query)
       .setDescription(description)
       .setUrl(response.url)
