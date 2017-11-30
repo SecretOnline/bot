@@ -1,4 +1,4 @@
-import { arrayRandom } from '../util';
+import { arrayRandom, dedupe } from '../util';
 
 type MarkovItemType = 'word' | 'nospacebefore' | 'nospaceafter' | 'end';
 
@@ -125,12 +125,27 @@ export default class MarkovChain {
 
   respond(text: string) {
     const words = text.split(' ');
-    const start = arrayRandom(words);
-    const token = this.get(start);
-    if (!token) {
-      return '';
+
+    // Pick 5 words in the message at random
+    const starters = dedupe([
+      arrayRandom(words),
+      arrayRandom(words),
+      arrayRandom(words),
+      arrayRandom(words),
+      arrayRandom(words),
+    ]);
+
+    for (let i = 0; i < starters.length; i += 1) {
+      const element = starters[i];
+
+      const token = this.get(starters[i]);
+      if (!token) {
+        continue;
+      }
+      return this.chain(token);
     }
-    return this.chain(token);
+
+    return '';
   }
 
   get(value: string) {

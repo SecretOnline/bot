@@ -118,3 +118,7 @@ export function truncate(str, len = 80, replace = '...') {
     return `${str.substr(0, len - replace.length)}${replace}`;
   }
 }
+
+export function dedupe<T>(array: T[]) {
+  return array.filter((el, i, arr) => arr.indexOf(el) === i);
+}
