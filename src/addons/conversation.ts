@@ -13,7 +13,7 @@ import Markov from '../bot/Markov';
 // tslint:disable max-line-length
 const markovHelp = [
   'syntax: `~<markov> <sentence>`',
-  'the `enable/disable-addon` commands allow you to add and remove command groups from your server',
+  'uses markov chains to generate replies to a message',
 ].join('\n');
 // tslint:enable max-line-length
 
