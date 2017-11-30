@@ -89,7 +89,7 @@ export default class Logger {
    *
    * @memberOf Logger
    */
-  async getLogs(filter, limit = 80) {
+  async getLogs(filter: (l: LogLine) => boolean, limit = 80) {
     return await this.filterLogs(filter, limit, this.currentId);
   }
 
@@ -197,22 +197,22 @@ export default class Logger {
     const lines = await this.getLogFile(id);
     const filtered = lines.filter(filter);
 
-    if (lines.length === limit) {
-      return lines;
+    if (filtered.length === limit) {
+      return filtered;
     }
 
-    if (lines.length < limit) {
-      const remaining = limit - lines.length;
+    if (filtered.length < limit) {
+      const remaining = limit - filtered.length;
 
       try {
         return await this.filterLogs(filter, remaining, id - 1)
-          .then(r => lines.concat(r));
+          .then(r => filtered.concat(r));
       } catch (error) {
         return [];
       }
     }
 
-    return lines.splice(limit * -1, limit);
+    return filtered.splice(limit * -1, limit);
   }
 
 
