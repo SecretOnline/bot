@@ -206,7 +206,7 @@ export default class Logger {
 
       try {
         return await this.filterLogs(filter, remaining, id - 1)
-          .then(r => filtered.concat(r));
+          .then(r => filtered.concat(r), () => filtered);
       } catch (error) {
         return [];
       }
