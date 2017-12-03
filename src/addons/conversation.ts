@@ -51,7 +51,7 @@ export default class Conversation extends Addon {
     const markov = new Markov();
 
     // Get latest message from the logs, and add them
-    const lines = await this.bot.getLogs(filterByChannel(channel));
+    const lines = await this.bot.getLogs(filterByChannel(channel), 1000);
     lines.forEach(l => markov.add(l.message));
 
     this.channels.set(channel.id, markov);
