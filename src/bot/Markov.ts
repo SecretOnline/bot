@@ -1,6 +1,6 @@
 import { arrayRandom, dedupe } from '../util';
 
-type MarkovItemType = 'word' | 'nospacebefore' | 'nospaceafter' | 'end';
+type MarkovItemType = 'word' | 'nospacebefore' | 'nospaceafter' | 'end' | 'togglespacing';
 
 interface MarkovToken {
   value: string;
@@ -104,20 +104,32 @@ export default class MarkovChain {
     }
 
     // Turn array into string, respecting space hints in item types
+    const toggles = {};
+
     let outStr = '';
     for (let i = 0; i < itemArr.length; i += 1) {
-      let space;
-      if (
-        i === 0 ||
-        itemArr[i].type === 'nospacebefore' ||
-        itemArr[i - 1].type === 'nospaceafter'
-      ) {
-        space = '';
-      } else {
-        space = ' ';
+      const curr = itemArr[i];
+      const prev = itemArr[i - 1];
+
+      let includeSpace = true;
+      if (i === 0) {
+        // Never start with a space
+        includeSpace = false;
+      } else if (curr.type === 'nospacebefore') {
+        // Remove spaces if hinted
+        includeSpace = false;
+      } else if (prev.type === 'nospaceafter') {
+        // Remove space if previous item hinted
+        includeSpace = false;
+      } else if (curr.type === 'togglespacing') {
+        if (toggles[curr.value]) {
+          includeSpace = false;
+        }
+
+        toggles[curr.value] = !toggles[curr.value];
       }
 
-      outStr += `${space}${itemArr[i].value}`;
+      outStr += `${includeSpace ? ' ' : ''}${itemArr[i].value}`;
     }
 
     return outStr;
@@ -222,9 +234,6 @@ export default class MarkovChain {
   static tokenize(str: string) {
     // Based off util/quoteSplit(), but expanded for markov use
     const arr: MarkovToken[] = [];
-
-    let quoteState = false;
-    let dQuoteState = false;
     const exp = /((?:["`({[\]})])|(?:\w(?:[\w']*\w)?)|(?:['"([{}\]).,\\\/?!~]))\s*/g;
 
     let item = exp.exec(str);
@@ -236,12 +245,8 @@ export default class MarkovChain {
       switch (value) {
         // Toggle quote state
         case '\'':
-          type = quoteState ? 'nospaceafter' : 'nospacebefore';
-          quoteState = !quoteState;
-          break;
         case '"':
-          type = dQuoteState ? 'nospaceafter' : 'nospacebefore';
-          dQuoteState = !dQuoteState;
+          type = 'togglespacing';
           break;
         // Normal punctuation
         case '.':
