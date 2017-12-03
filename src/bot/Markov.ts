@@ -125,8 +125,12 @@ export default class MarkovChain {
         if (toggles[curr.value]) {
           includeSpace = false;
         }
-
-        toggles[curr.value] = !toggles[curr.value];
+        // Special handling for single quotes (because apostrophes)
+        if ((!toggles[curr.value]) && prev.value && (prev.value.substr(-1) === 's')) {
+          includeSpace = false;
+        } else {
+          toggles[curr.value] = !toggles[curr.value];
+        }
       }
 
       outStr += `${includeSpace ? ' ' : ''}${itemArr[i].value}`;
