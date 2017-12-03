@@ -1,6 +1,6 @@
 import { arrayRandom, dedupe } from '../util';
 
-type MarkovItemType = 'word' | 'nospacebefore' | 'nospaceafter' | 'end' | 'togglespacing';
+type MarkovItemType = 'word' | 'nospacebefore' | 'nospaceafter' | 'end' | 'togglespacing' | 'url';
 
 interface MarkovToken {
   value: string;
@@ -238,7 +238,8 @@ export default class MarkovChain {
   static tokenize(str: string) {
     // Based off util/quoteSplit(), but expanded for markov use
     const arr: MarkovToken[] = [];
-    const exp = /((?:["`({[\]})])|(?:\w(?:[\w']*\w)?)|(?:[`'"([{}\]).,\\\/?!~]))\s*/g;
+    // tslint:disable-next-line:max-line-length
+    const exp = /((?:["`({[\]})])|(?:\w+:\/\/\S+)|(?:\w(?:[\w']*\w)?)|(?:[`'"([{}\]).,\\\/?!~]))\s*/g;
 
     let item = exp.exec(str);
     while (item !== null) {
@@ -259,6 +260,10 @@ export default class MarkovChain {
         case '?':
         case '!':
           type = 'nospacebefore';
+      }
+
+      if (value.match(/\w+:\/\/\S+/)) {
+        type = 'url';
       }
 
       const token: MarkovToken = {
