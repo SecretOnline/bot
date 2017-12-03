@@ -238,7 +238,7 @@ export default class MarkovChain {
   static tokenize(str: string) {
     // Based off util/quoteSplit(), but expanded for markov use
     const arr: MarkovToken[] = [];
-    const exp = /((?:["`({[\]})])|(?:\w(?:[\w']*\w)?)|(?:['"([{}\]).,\\\/?!~]))\s*/g;
+    const exp = /((?:["`({[\]})])|(?:\w(?:[\w']*\w)?)|(?:[`'"([{}\]).,\\\/?!~]))\s*/g;
 
     let item = exp.exec(str);
     while (item !== null) {
@@ -250,6 +250,7 @@ export default class MarkovChain {
         // Toggle quote state
         case '\'':
         case '"':
+        case '`':
           type = 'togglespacing';
           break;
         // Normal punctuation
