@@ -222,14 +222,14 @@ export default class MarkovChain {
   static tokenize(str: string) {
     // Based off util/quoteSplit(), but expanded for markov use
     const arr: MarkovToken[] = [];
-    const exp = /(?:(["`({[\]})])|([^"`({[][^\s,.!?"'\]})`]*))\s*/g;
 
     let quoteState = false;
     let dQuoteState = false;
+    const exp = /((?:["`({[\]})])|(?:\w(?:[\w']*\w)?)|(?:['"([{}\]).,\\\/?!~]))\s*/g;
 
     let item = exp.exec(str);
     while (item !== null) {
-      const value = item[1] || item[2];
+      const value = item[1];
 
       // Determine type of token
       let type: MarkovItemType = 'word';
