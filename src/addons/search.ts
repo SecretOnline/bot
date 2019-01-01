@@ -6,7 +6,7 @@ import TextSendable from '../sendables/TextSendable';
 import AddonError from '../errors/AddonError';
 import * as google from 'google';
 import * as YouTube from 'youtube-node';
-import wikijs, { Page, Result } from 'wikijs';
+// import wikijs, { Page, Result } from 'wikijs';
 
 import { truncate } from '../util';
 import { resolve } from 'dns';
@@ -91,7 +91,7 @@ export default class Search extends Addon {
     // tslint:disable max-line-length
     this.addCommand(new Command('google', this.google, this));
     this.addCommand(new Command('youtube', this.youTube, this));
-    this.addCommand(new Command('wiki', this.wiki, this));
+    // this.addCommand(new Command('wiki', this.wiki, this));
     // tslint:enable max-line-length
 
     return true;
@@ -132,40 +132,40 @@ export default class Search extends Addon {
     return new TextSendable(`https://youtube.com/watch?v=${item.id.videoId}`);
   }
 
-  async wiki(input: Input) {
-    let response: Page;
-    let listResponse: Result;
-    try {
-      response = await wikijs().page(input.text);
-    } catch (error) {
-      listResponse = await wikijs().search(input.text);
-    }
+  // async wiki(input: Input) {
+  //   let response: Page;
+  //   let listResponse: Result;
+  //   try {
+  //     response = await wikijs().page(input.text);
+  //   } catch (error) {
+  //     listResponse = await wikijs().search(input.text);
+  //   }
 
-    if (response) {
-      const [info, summary, mainImage] = await Promise.all([
-        response.info(),
-        response.summary(),
-        response.mainImage(),
-      ]);
+  //   if (response) {
+  //     const [info, summary, mainImage] = await Promise.all([
+  //       response.info(),
+  //       response.summary(),
+  //       response.mainImage(),
+  //     ]);
 
-      return new InfoSendable((<any>response).raw.fullurl)
-        .setTitle((<any>info).name || input.text)
-        .setDescription(truncate(summary, 240))
-        .setUrl((<any>response).raw.fullurl)
-        .setThumbnail(mainImage)
-        .setAuthorName('Wikipedia')
-        .setAuthorUrl('https://en.wikipedia.org/wiki/Main_Page')
-        // tslint:disable-next-line:max-line-length
-        .setAuthorThumbnail('https://pbs.twimg.com/profile_images/874733198336380928/XhA-TwYY_400x400.jpg');
-    }
+  //     return new InfoSendable((<any>response).raw.fullurl)
+  //       .setTitle((<any>info).name || input.text)
+  //       .setDescription(truncate(summary, 240))
+  //       .setUrl((<any>response).raw.fullurl)
+  //       .setThumbnail(mainImage)
+  //       .setAuthorName('Wikipedia')
+  //       .setAuthorUrl('https://en.wikipedia.org/wiki/Main_Page')
+  //       // tslint:disable-next-line:max-line-length
+  //       .setAuthorThumbnail('https://pbs.twimg.com/profile_images/874733198336380928/XhA-TwYY_400x400.jpg');
+  //   }
 
-    const items = listResponse.results.slice(0, 5);
+  //   const items = listResponse.results.slice(0, 5);
 
-    // tslint:disable-next-line:max-line-length
-    return new InfoSendable(`search results: ${items.join(', ')}`)
-      .setDescription(items.join('\n'))
-      .setAuthorName(`Search: ${input.text}`)
-      // tslint:disable-next-line:max-line-length
-      .setAuthorThumbnail('https://pbs.twimg.com/profile_images/874733198336380928/XhA-TwYY_400x400.jpg');
-  }
+  //   // tslint:disable-next-line:max-line-length
+  //   return new InfoSendable(`search results: ${items.join(', ')}`)
+  //     .setDescription(items.join('\n'))
+  //     .setAuthorName(`Search: ${input.text}`)
+  //     // tslint:disable-next-line:max-line-length
+  //     .setAuthorThumbnail('https://pbs.twimg.com/profile_images/874733198336380928/XhA-TwYY_400x400.jpg');
+  // }
 }
