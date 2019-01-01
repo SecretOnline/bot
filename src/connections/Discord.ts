@@ -40,6 +40,7 @@ import {
   promiseChain,
   delay,
 } from '../util';
+import RichSendable from '../sendables/RichSendable';
 
 /**
  * Configuration for the Discord connection
@@ -89,7 +90,7 @@ async function embedify(sendable: ISendable, colorMap: IColorMap) {
       .setColor(colorMap.error)
       .setDescription(sendable.error.message)
       .setTitle(sendable.error.name);
-  } else if (sendable instanceof InfoSendable) {
+  } else if (sendable instanceof RichSendable) {
     if (sendable.description) {
       embed.setDescription(sendable.description);
     }
@@ -107,16 +108,6 @@ async function embedify(sendable: ISendable, colorMap: IColorMap) {
     }
     if (sendable.authorName || sendable.authorThumb || sendable.authorUrl) {
       embed.setAuthor(sendable.authorName, sendable.authorThumb, sendable.authorUrl);
-    }
-  } else if (sendable instanceof SectionedSendable) {
-    if (sendable.description) {
-      embed.setDescription(sendable.description);
-    }
-    if (sendable.title) {
-      embed.setTitle(sendable.title);
-    }
-    if (sendable.color) {
-      embed.setColor(sendable.color);
     }
     sendable.sections.forEach((section) => {
       embed.addField(
