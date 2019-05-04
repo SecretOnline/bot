@@ -186,6 +186,9 @@ export default class DiscordJs extends Connection {
 
       this.emit('message', this.createMessage(msg));
     });
+    this.client.on('error', (error) => {
+      this.log(`Error occurred: ${error.name};${error.message}`);
+    });
 
     await this.client.login(conf.token);
 
