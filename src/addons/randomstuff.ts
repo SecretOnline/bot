@@ -155,7 +155,7 @@ export default class RandomStuff extends Addon {
   }
 
   async randomCat(input: Input) {
-    const response = await r2.get('http://random.cat/meow').json;
+    const response = await r2.get('http://aws.random.cat/meow').json;
     return new TextSendable(response.file);
 
     // TODO: ReActions
