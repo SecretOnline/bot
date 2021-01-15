@@ -1,6 +1,6 @@
 {
   "name": "secret_bot",
-  "version": "9.4.0",
+  "version": "9.5.0",
   "versionName": "the type update",
   "description": "a stupid bot",
   "main": "src/index.ts",
