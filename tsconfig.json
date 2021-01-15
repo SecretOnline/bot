@@ -7,21 +7,13 @@
     "outDir": "./dist",
     "typeRoots": [
       "node_modules/@types",
-      "node_modules/disord.js/typings",
+      "node_modules/discord.js/typings",
       "types"
     ],
-    "lib": [
-      "es2016"
-    ],
+    "lib": ["es2016"],
     "target": "es2016",
     "module": "commonjs"
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "typings",
-    "dist"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "typings", "dist"]
 }
