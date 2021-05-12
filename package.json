@@ -28,7 +28,7 @@
     "github": "^11.0.0",
     "google": "^2.1.0",
     "google-translate": "^2.2.0",
-    "mathjs": "^3.18.0",
+    "mathjs": "^7.5.1",
     "node-emoji": "^1.8.1",
     "opusscript": "0.0.4",
     "r2": "^2.0.0",
